@@ -290,7 +290,9 @@ void taskCarMainRoutine() {
 	{
 		//do this no matter what state.
 		//get current time in ms
-		uint32_t current_time_ms = xTaskGetTickCount() / portTICK_PERIOD_MS;
+		TickType_t current_tick_time = xTaskGetTickCount();
+		uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
+
 		uint16_t torque_to_send = 0;
 		HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 		//always active block
@@ -419,8 +421,8 @@ void taskCarMainRoutine() {
 		mcCmdTorque(torque_to_send);  //command the MC to move the motor
 
 
-		//wait until
-		vTaskDelay(PERIOD_TORQUE_SEND);
+		//wait until Constant 10 Hz rate
+		vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
 
 	}
 
