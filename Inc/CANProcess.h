@@ -17,7 +17,7 @@
 #define ID_PEDALBOX2							0x501
 #define	ID_PEDALBOXCALIBRATE					0x503
 #define ID_BAMOCAR_STATION_TX					0x210	//message recieved by MC
-#define ID_BAMOCAR_STATION_RX					0x190	//message sent by MC
+#define ID_BAMOCAR_STATION_RX					0x180	//message sent by MC
 //#define ID_BMS_PACK_VOLTAGE						0x400
 #define ID_WHEEL_FR								0x100	// wheel module IDs
 #define ID_WHEEL_FL								0x101
@@ -131,9 +131,11 @@ typedef struct
 }CanRxMsgTypeDef;
 
 void ISR_RXCAN();
-void CANFilterConfig();
+void CAN1FilterConfig();
+void CAN2FilterConfig();
 void taskRXCANProcess();
-void taskTXCAN();
+void taskTXCAN_1();
+void taskTXCAN_2();
 void taskRXCAN();
 void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);

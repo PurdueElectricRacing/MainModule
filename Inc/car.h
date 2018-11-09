@@ -15,7 +15,6 @@
 #include "CANProcess.h"
 #include "BMS.h"
 #include "motor_controller_functions.h"
-//#include "accelerometer.h"
 #include <math.h>
 
 
@@ -38,7 +37,7 @@
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
 
 #define PERIOD_ACCELRO				50 / portTICK_RATE_MS
-#define PERIOD_TORQUE_SEND		 	100 / portTICK_RATE_MS
+#define PERIOD_TORQUE_SEND		 	20 / portTICK_RATE_MS //50 hz
 #define HEARTBEAT_PULSEWIDTH		200 / portTICK_RATE_MS
 #define HEARTBEAT_PERIOD			100 / portTICK_RATE_MS
 #define PEDALBOX_TIMEOUT			1000 / portTICK_RATE_MS
@@ -50,9 +49,11 @@
 
 
 //rtos parameter defines
-#define QUEUE_SIZE_RXCAN			16
+#define QUEUE_SIZE_RXCAN_1			16
+#define QUEUE_SIZE_RXCAN_2			16
 #define QUEUE_SIZE_PEDALBOXMSG		16
-#define QUEUE_SIZE_TXCAN			10
+#define QUEUE_SIZE_TXCAN_1			10
+#define QUEUE_SIZE_TXCAN_2			10
 #define QUEUE_SIZE_MCFRAME			3
 
 
@@ -130,7 +131,7 @@ typedef struct {
 	int32_t				brake1_max;
 	int32_t				brake2_min;
 	int32_t				brake2_max;
-	int64_t 				throttle_acc;				//sum of car's intended throttle messages from pedalbox since last cmd sent to MC
+	int32_t 				throttle_acc;				//sum of car's intended throttle messages from pedalbox since last cmd sent to MC
 	int16_t					throttle_cnt;				//number of throttle messages in accumulator
 	float 				brake;						//car's intended brake position
 	uint32_t				pb_msg_rx_time;				//indicates when a pedalbox message was last received
@@ -146,19 +147,21 @@ typedef struct {
 	//Pedalbox_msg_t 			pb_current_msg;
 
 	//RTOS objects, initialized in initRTOSObjects
-	QueueHandle_t			q_rxcan;
-	QueueHandle_t			q_txcan;
+	QueueHandle_t			q_rxcan_1;
+	QueueHandle_t			q_txcan_1;
+	QueueHandle_t			q_rxcan_2;
+	QueueHandle_t			q_txcan_2;
 	QueueHandle_t	 		q_pedalboxmsg;
 	QueueHandle_t			q_mc_frame;
 
-	SemaphoreHandle_t		m_CAN;						//mutex for CAN peripheral
-
-	CAN_HandleTypeDef *		phcan;						//pointer to car's CAN peripheral handle
+	CAN_HandleTypeDef *		phcan1;						//pointer to car's CAN peripheral handle
+	CAN_HandleTypeDef *		phcan2;
 
 } Car_t;
 
 extern volatile Car_t car;
 extern CAN_HandleTypeDef hcan1;
+extern CAN_HandleTypeDef hcan2;
 
 //function prototypes
 void carSetBrakeLight(Brake_light_status_t status);
