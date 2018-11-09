@@ -15,6 +15,7 @@
 #include "CANProcess.h"
 #include "BMS.h"
 #include "motor_controller_functions.h"
+#include "power_limiting.h"
 #include <math.h>
 
 

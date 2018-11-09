@@ -410,12 +410,6 @@ void taskCarMainRoutine() {
 			enableMotorController();
 			car.state = CAR_STATE_READY2DRIVE;
 		}
-		// calculate
-//			calcTorqueLimit = (80000 / (actualDC * 10 * actualV * 10)); //(DCLimit / (actualDC * 10)) * actualTorque;
-//			if(torque_to_send/MAX_THROTTLE_LEVEL > calcTorqueLimit)
-//			{
-//				torque_to_send = calcTorqueLimit * torque_to_send;
-//			}
 
 		//mcCmdTorqueFake(car.throttle_acc);
 		mcCmdTorque(torque_to_send);  //command the MC to move the motor
