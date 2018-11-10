@@ -63,6 +63,7 @@ void carInit() {
 	car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
 	car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
 
+	init_bms_struct(); //setup the bms data
 }
 
 void ISR_StartButtonPressed() {
@@ -412,6 +413,8 @@ void taskCarMainRoutine() {
 		}
 
 		//mcCmdTorqueFake(car.throttle_acc);
+		//limit power
+		torque_to_send = limit_torque(torque_to_send);
 		mcCmdTorque(torque_to_send);  //command the MC to move the motor
 
 

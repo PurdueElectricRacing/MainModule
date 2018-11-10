@@ -102,13 +102,9 @@ typedef enum {
 int BCparam;
 int actualTorque0700;
 int actualTorque1508;
-int actualDC;
-int actualV;
 int DCLimit;
-int calcTorqueLimit;
 int pedalTorque;
 int actualTorque;
-int torque_to_send;
 int speedActual;
 int currentActual;
 int commandCurrent;

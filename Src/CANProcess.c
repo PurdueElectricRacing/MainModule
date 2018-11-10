@@ -291,8 +291,7 @@ void taskRXCANProcess()
 					break;
 				}
 				case ID_BMS_PACK_CUR_VOL:
-					actualDC = rx.Data[1] | (rx.Data[1] << 8);
-					actualV = rx.Data[3] | (rx.Data[2]<< 8);
+					process_bms_frame(&rx);
 					break;
 			}
 		}

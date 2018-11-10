@@ -26,7 +26,7 @@
 #define ID_DASHBOARD							0x350
 #define ID_DASHBOARD1							0x351
 #define ID_DASHBOARD2							0x352
-#define ID_BMS_PACK_CUR_VOL						0x03B //current and voltage
+#define ID_BMS_PACK_CUR_VOL						0x6B1 //Pack Curr, Pack Volt, SOC, High temp, Low Volt
 #define ID_BMS_DCL								0x03C
 #define ID_PEDALBOX_ERRORS						0x601
 

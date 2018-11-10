@@ -67,7 +67,7 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 volatile Car_t car;
-BMS_t BMS;
+bms_data_t bms;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
