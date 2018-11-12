@@ -83,7 +83,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 *     Function Description: Filter Configuration.
 *
 ***************************************************************************/
-void CAN1FilterConfig()
+void DCANFilterConfig()
 {
 	  CAN_FilterTypeDef FilterConf;
 	  FilterConf.FilterIdHigh =         ID_PEDALBOX2 << 5; // 2 num
@@ -95,7 +95,7 @@ void CAN1FilterConfig()
 	  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
 	  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
 	  FilterConf.FilterActivation = ENABLE;
-	  HAL_CAN_ConfigFilter(car.phcan1, &FilterConf);
+	  HAL_CAN_ConfigFilter(car.phdcan, &FilterConf);
 }
 
 /***************************************************************************
@@ -117,7 +117,7 @@ void CAN1FilterConfig()
 *     Function Description: Filter Configuration.
 *
 ***************************************************************************/
-void CAN2FilterConfig()
+void VCANFilterConfig()
 {
 
 
@@ -131,7 +131,7 @@ void CAN2FilterConfig()
 	  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
 	  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
 	  FilterConf.FilterActivation = ENABLE;
-	  HAL_CAN_ConfigFilter(car.phcan2, &FilterConf);
+	  HAL_CAN_ConfigFilter(car.phvcan, &FilterConf);
 }
 
 
@@ -139,7 +139,7 @@ void CAN2FilterConfig()
 *
 *     Function Information
 *
-*     Name of Function: taskTXCAN_1
+*     Name of Function: taskTX_DCAN
 *
 *     Programmer's Name: Ben Ng, xbenng@gmail.com
 *
@@ -154,7 +154,7 @@ void CAN2FilterConfig()
 *     	Task function to send CAN messages using the CAN peripheral
 *
 ***************************************************************************/
-void taskTXCAN_1()
+void taskTX_DCAN()
 {
 	CanTxMsgTypeDef tx;
 
@@ -171,8 +171,8 @@ void taskTXCAN_1()
 			header.StdId = tx.StdId;
 			header.TransmitGlobalTime = DISABLE;
 			uint32_t mailbox;
-			while (!HAL_CAN_GetTxMailboxesFreeLevel(car.phcan1)); // while mailboxes not free
-			HAL_CAN_AddTxMessage(car.phcan1, &header, tx.Data, &mailbox);
+			while (!HAL_CAN_GetTxMailboxesFreeLevel(car.phdcan)); // while mailboxes not free
+			HAL_CAN_AddTxMessage(car.phdcan, &header, tx.Data, &mailbox);
 		}
 	}
 }
@@ -181,7 +181,7 @@ void taskTXCAN_1()
 *
 *     Function Information
 *
-*     Name of Function: taskTXCAN_1
+*     Name of Function: taskTX_DCAN
 *
 *     Programmer's Name: Ben Ng, xbenng@gmail.com
 *
@@ -196,7 +196,7 @@ void taskTXCAN_1()
 *     	Task function to send CAN messages using the CAN peripheral
 *
 ***************************************************************************/
-void taskTXCAN_2()
+void taskTX_VCAN()
 {
 	CanTxMsgTypeDef tx;
 
@@ -213,8 +213,8 @@ void taskTXCAN_2()
 			header.StdId = tx.StdId;
 			header.TransmitGlobalTime = DISABLE;
 			uint32_t mailbox;
-			while (!HAL_CAN_GetTxMailboxesFreeLevel(car.phcan2)); // while mailboxes not free
-			HAL_CAN_AddTxMessage(car.phcan2, &header, tx.Data, &mailbox);
+			while (!HAL_CAN_GetTxMailboxesFreeLevel(car.phvcan)); // while mailboxes not free
+			HAL_CAN_AddTxMessage(car.phvcan, &header, tx.Data, &mailbox);
 		}
 	}
 }

@@ -121,8 +121,8 @@ int main(void)
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
   carInit();
-  CAN1FilterConfig();
-  CAN2FilterConfig();
+  DCANFilterConfig();
+  VCANFilterConfig();
   initRTOSObjects();  //start tasks in here
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
