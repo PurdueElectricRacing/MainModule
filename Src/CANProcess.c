@@ -88,7 +88,7 @@ void CAN1FilterConfig()
 	  CAN_FilterTypeDef FilterConf;
 	  FilterConf.FilterIdHigh =         ID_PEDALBOX2 << 5; // 2 num
 	  FilterConf.FilterIdLow =          ID_DASHBOARD << 5; // 0
-	  FilterConf.FilterMaskIdHigh =     0x7ff;       // 3
+	  FilterConf.FilterMaskIdHigh =     ID_BMS << 5;       // 3
 	  FilterConf.FilterMaskIdLow =      0x7fe;       // 1
 	  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
 	  FilterConf.FilterBank = 0;
@@ -123,7 +123,7 @@ void CAN2FilterConfig()
 
 	  CAN_FilterTypeDef FilterConf;
 	  FilterConf.FilterIdHigh =         ID_BAMOCAR_STATION_RX << 5; // 2 num
-	  FilterConf.FilterIdLow =          ID_BAMOCAR_STATION_RX << 5; // 0
+	  FilterConf.FilterIdLow =          0x7ff;		 // 0
 	  FilterConf.FilterMaskIdHigh =     0x7ff;       // 3
 	  FilterConf.FilterMaskIdLow =      0x7ff;       // 1
 	  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
@@ -290,7 +290,7 @@ void taskRXCANProcess()
 					HAL_GPIO_TogglePin(PUMP_GPIO_Port, PUMP_Pin);
 					break;
 				}
-				case ID_BMS_PACK_CUR_VOL:
+				case ID_BMS:
 					process_bms_frame(&rx);
 					break;
 			}
@@ -383,6 +383,24 @@ void processPedalboxFrame(CanRxMsgTypeDef* rx)
 		xQueueSendToBack(car.q_pedalboxmsg, &pedalboxmsg, 100);
 	}
 }
+
+//called from rx_process frame and updates the variables used for power limiting
+int process_bms_frame(CanRxMsgTypeDef* rx) {
+	//process the bms can frame
+	//take the BMS semaphore
+	if (xSemaphoreTake(bms.bms_params, 10) == pdTRUE) {
+		bms.pack_current = (rx->Data[0] << 8) | rx->Data[1];
+		bms.pack_volt = (rx->Data[2] << 8) | rx->Data[3];
+		bms.pack_soc = rx->Data[4];
+		bms.high_temp = rx->Data[5];
+		bms.low_cell_volt = (rx->Data[6] << 8) | rx->Data[7];
+		xSemaphoreGive(bms.bms_params);
+	} else {
+		return HAL_ERROR;
+	}
+	return 0;
+}
+
 
 void processCalibrate(CanRxMsgTypeDef* rx) {
 	//set the calibration flag, so calibration values are updated upon reception of new pedalboxmsg

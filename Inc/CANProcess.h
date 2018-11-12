@@ -10,6 +10,7 @@
 
 //includes
 #include "motor_controller_functions.h"
+#include "BMS.h"
 //#include "WheelModule.h"
 
 //defines for reading data from RxCanMsgTypeDef
@@ -26,7 +27,7 @@
 #define ID_DASHBOARD							0x350
 #define ID_DASHBOARD1							0x351
 #define ID_DASHBOARD2							0x352
-#define ID_BMS_PACK_CUR_VOL						0x6B1 //Pack Curr, Pack Volt, SOC, High temp, Low Volt
+#define ID_BMS									0x6B1 //Pack Curr, Pack Volt, SOC, High temp, Low Volt
 #define ID_BMS_DCL								0x03C
 #define ID_PEDALBOX_ERRORS						0x601
 
@@ -140,6 +141,7 @@ void taskRXCAN();
 void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);
 void processPedalboxFrame(CanRxMsgTypeDef* rx);
+int process_bms_frame(CanRxMsgTypeDef* rx);
 
 
 void processCalibrate(CanRxMsgTypeDef* rx);

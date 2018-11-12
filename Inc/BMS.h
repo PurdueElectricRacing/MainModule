@@ -42,8 +42,7 @@ typedef struct {
 	uint8_t battery_violation;		//flag that tells what limit was broken 1 -> Power, 2 -> Temp, 3 -> Volt
 }bms_data_t;
 
-void process_bms_frame(CanRxMsgTypeDef* rx);
-void init_bms_struct(void);
+int init_bms_struct(void);
 
 extern bms_data_t bms;
 

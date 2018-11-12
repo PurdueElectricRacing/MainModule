@@ -34,19 +34,4 @@ int init_bms_struct() {
 	return 0;
 }
 
-//called from rx_process frame and updates the variables used for power limiting
-int process_bms_frame(CanRxMsgTypeDef* rx) {
-	//process the bms can frame
-	//take the BMS semaphore
-	if (xSemaphoreTake(bms.bms_params, 10) == pdTRUE) {
-		bms.pack_current = (rx->Data[0] << 8) | rx->Data[1];
-		bms.pack_volt = (rx->Data[2] << 8) | rx->Data[3];
-		bms.pack_soc = rx->Data[4];
-		bms.high_temp = rx->Data[5];
-		bms.low_cell_volt = (rx->Data[6] << 8) | rx->Data[7];
-		xSemaphoreGive(bms.bms_params);
-	} else {
-		return HAL_ERROR;
-	}
-	return 0;
-}
+

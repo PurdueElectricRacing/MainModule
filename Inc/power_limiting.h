@@ -23,9 +23,9 @@
 #define TEMP_SOFT_LIM	55
 #define TEMP_HARD_LIM	58
 
-float power_limit_watt(int16_t torque_req);
-float power_limit_temp(int16_t torque_req);
-float power_limit_volt(int16_t torque_req);
+uint8_t power_limit_watt(int16_t torque_req);
+uint8_t power_limit_temp(int16_t torque_req);
+uint8_t power_limit_volt(int16_t torque_req);
 int16_t limit_torque(int16_t torque_req);
 
 #endif /* POWER_LIMITING_H_ */

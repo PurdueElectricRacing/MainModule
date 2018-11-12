@@ -6,23 +6,62 @@
  */
 #include "power_limiting.h"
 
-int16_t power_limit_watt(int16_t torque_req) {
-	// calculate
-//	calcTorqueLimit = (80000 / (actualDC * 10 * actualV * 10)); //(DCLimit / (actualDC * 10)) * actualTorque;
-//	if(torque_to_send/MAX_THROTTLE_LEVEL > calcTorqueLimit)
-//	{
-//		torque_to_send = calcTorqueLimit * torque_to_send;
-//	}
+uint8_t power_limit_watt(int16_t torque_req) {
+	uint8_t gain = 0;
+	int power_actual = 0;
+	//only throttle if past the threshold
+	if (xSemaphoreTake(bms.bms_params, 10) == pdTRUE) {
+		power_actual = bms.pack_current * bms.pack_volt; //calculate the instantaneous power draw
+	} else {
+		return 0;
+	}
 
-	return 0;
+	//only throttle if past the threshold
+	if (power_actual < POWER_THRESH) return 100;
+	//if past the hard lim stop the driving
+	if (power_actual > POWER_HARD_LIM) {
+		bms.battery_violation = 1;
+		return 0;
+	}
+
+	if (power_actual < POWER_SOFT_LIM) {
+		//between threshold and soft limit
+		//have linear decrease from 100% -> 50%
+		gain = 100 + (-50 / (POWER_SOFT_LIM - POWER_THRESH)) * power_actual;
+	} else {
+		//between soft and hard lim
+		//linear decrease from 50% -> 0%
+		gain = 50 + (-50 / (POWER_HARD_LIM - POWER_SOFT_LIM)) * power_actual;
+	}
+
+	return gain;
 }
 
-int16_t power_limit_temp(int16_t torque_req) {
+uint8_t power_limit_temp(int16_t torque_req) {
+	uint8_t gain = 0;
+	//only throttle if past the threshold
+	if (bms.high_temp < TEMP_THRESH) return 100;
+	//if past the hard lim stop the driving
+	if (bms.high_temp > TEMP_HARD_LIM) {
+		bms.battery_violation = 2;
+		return 0;
+	}
 
-	return 0.0;
+	if (bms.high_temp < TEMP_SOFT_LIM) {
+		//between threshold and soft limit
+		//have linear decrease from 100% -> 50%
+		gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * bms.high_temp;
+	} else {
+		//between soft and hard lim
+		//linear decrease from 50% -> 0%
+		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * bms.high_temp;
+	}
+
+	return gain;
 }
 
-int8_t power_limit_volt(int16_t torque_req) {
+uint8_t power_limit_volt(int16_t torque_req) {
+	uint8_t gain = 0;
 	//only throttle if past the threshold
 	if (bms.low_cell_volt > VOLT_THRESH) return 100;
 	//if past the hard lim stop the driving
@@ -32,9 +71,17 @@ int8_t power_limit_volt(int16_t torque_req) {
 	}
 
 	//between thresh hold and hard limit
+	if (bms.low_cell_volt < TEMP_SOFT_LIM) {
+			//between threshold and soft limit
+			//have linear decrease from 100% -> 50%
+			gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * bms.low_cell_volt;
+	} else {
+		//between soft and hard lim
+		//linear decrease from 50% -> 0%
+		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * bms.low_cell_volt;
+	}
 
-
-	return 0.0;
+	return gain;
 }
 
 int16_t limit_torque(int16_t torque_req) {
