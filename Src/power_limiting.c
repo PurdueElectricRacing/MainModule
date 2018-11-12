@@ -6,33 +6,53 @@
  */
 #include "power_limiting.h"
 
+void init_pow_lim() {
+	pow_lim.power_params = xSemaphoreCreateBinary();
+
+	if (xSemaphoreTake(pow_lim.power_params, 10) == pdTRUE) {
+		pow_lim.power_hard_lim = 80000; //rule level
+		pow_lim.power_soft_lim = (80000 * 95) / 100; //95%
+		pow_lim.power_thresh = (80000 * 90) / 100; //90%
+		xSemaphoreGive(pow_lim.power_params);
+	} else {
+		//semaphore fail
+	}
+
+}
 uint8_t power_limit_watt(int16_t torque_req) {
 	uint8_t gain = 0;
 	int power_actual = 0;
 	//only throttle if past the threshold
 	if (xSemaphoreTake(bms.bms_params, 10) == pdTRUE) {
 		power_actual = bms.pack_current * bms.pack_volt; //calculate the instantaneous power draw
+		xSemaphoreGive(bms.bms_params);
 	} else {
 		return 0;
 	}
 
-	//only throttle if past the threshold
-	if (power_actual < POWER_THRESH) return 100;
-	//if past the hard lim stop the driving
-	if (power_actual > POWER_HARD_LIM) {
-		bms.battery_violation = 1;
-		return 0;
+	if (xSemaphoreTake(pow_lim.power_params, 10) == pdTRUE) {
+		//only throttle if past the threshold
+		if (power_actual < pow_lim.power_thresh) return 100;
+		//if past the hard lim stop the driving
+		if (power_actual > pow_lim.power_hard_lim) {
+			bms.battery_violation = 1;
+			return 0;
+		}
+
+		if (power_actual < pow_lim.power_soft_lim) {
+			//between threshold and soft limit
+			//have linear decrease from 100% -> 50%
+			gain = 100 + (-50 / (pow_lim.power_soft_lim - pow_lim.power_thresh)) * power_actual;
+		} else {
+			//between soft and hard lim
+			//linear decrease from 50% -> 0%
+			gain = 50 + (-50 / (pow_lim.power_hard_lim - pow_lim.power_soft_lim)) * power_actual;
+		}
+		xSemaphoreGive(pow_lim.power_params);
+	} else {
+		//semaphore take fail
 	}
 
-	if (power_actual < POWER_SOFT_LIM) {
-		//between threshold and soft limit
-		//have linear decrease from 100% -> 50%
-		gain = 100 + (-50 / (POWER_SOFT_LIM - POWER_THRESH)) * power_actual;
-	} else {
-		//between soft and hard lim
-		//linear decrease from 50% -> 0%
-		gain = 50 + (-50 / (POWER_HARD_LIM - POWER_SOFT_LIM)) * power_actual;
-	}
 
 	return gain;
 }

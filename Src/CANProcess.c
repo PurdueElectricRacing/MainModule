@@ -89,7 +89,7 @@ void CAN1FilterConfig()
 	  FilterConf.FilterIdHigh =         ID_PEDALBOX2 << 5; // 2 num
 	  FilterConf.FilterIdLow =          ID_DASHBOARD << 5; // 0
 	  FilterConf.FilterMaskIdHigh =     ID_BMS << 5;       // 3
-	  FilterConf.FilterMaskIdLow =      0x7fe;       // 1
+	  FilterConf.FilterMaskIdLow =      ID_POWER_LIMIT << 5;       // 1
 	  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
 	  FilterConf.FilterBank = 0;
 	  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -261,7 +261,7 @@ void taskRXCANProcess()
 					break;
 				}
 				case ID_PEDALBOXCALIBRATE: {
-					processCalibrate(&rx);
+					processCalibratePedalBox(&rx);
 					break;
 				}
 				case  	ID_WHEEL_FR:
@@ -291,8 +291,19 @@ void taskRXCANProcess()
 					break;
 				}
 				case ID_BMS:
+				{
 					process_bms_frame(&rx);
 					break;
+				}
+				case ID_POWER_LIMIT:
+				{
+					processCalibratePowerLimit(&rx);
+					break;
+				}
+				default:
+				{
+					printf("CAN message not processed");
+				}
 			}
 		}
 
@@ -402,7 +413,7 @@ int process_bms_frame(CanRxMsgTypeDef* rx) {
 }
 
 
-void processCalibrate(CanRxMsgTypeDef* rx) {
+void processCalibratePedalBox(CanRxMsgTypeDef* rx) {
 	//set the calibration flag, so calibration values are updated upon reception of new pedalboxmsg
 	if 		  (rx->Data[0] == 0x01) {
 		car.calibrate_flag = CALIBRATE_THROTTLE_MAX; //calibrate high
@@ -416,4 +427,15 @@ void processCalibrate(CanRxMsgTypeDef* rx) {
 		car.calibrate_flag = CALIBRATE_NONE;
 	}
 
+}
+
+void processCalibratePowerLimit(CanRxMsgTypeDef* rx) {
+	if (xSemaphoreTake(pow_lim.power_params, 10) == pdTRUE) {
+		//set hard limit to the exact value given
+		pow_lim.power_hard_lim = rx->Data[0] << 24 | rx->Data[1] << 16 | rx->Data[2] << 8 | rx->Data[3];
+		pow_lim.power_soft_lim = (pow_lim.power_hard_lim * 97) / 100; //97%
+		pow_lim.power_thresh = (pow_lim.power_hard_lim * 90) / 100; //90%
+	} else {
+		//semaphore not received properly
+	}
 }

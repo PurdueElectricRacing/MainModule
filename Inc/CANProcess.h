@@ -31,6 +31,9 @@
 #define ID_BMS_DCL								0x03C
 #define ID_PEDALBOX_ERRORS						0x601
 
+//wireless telemetry
+#define ID_POWER_LIMIT							0x696 //4 byte new power limit
+
 //wheel module defines
 #define WM_SPEED_7_0_BYTE						2
 #define WM_SPEED_11_8_BYTE						1
@@ -144,6 +147,8 @@ void processPedalboxFrame(CanRxMsgTypeDef* rx);
 int process_bms_frame(CanRxMsgTypeDef* rx);
 
 
-void processCalibrate(CanRxMsgTypeDef* rx);
+void processCalibratePedalBox(CanRxMsgTypeDef* rx);
+void processCalibratePowerLimit(CanRxMsgTypeDef* rx);
+
 
 #endif /* CANPROCESS_H_ */

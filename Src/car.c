@@ -64,6 +64,7 @@ void carInit() {
 	car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
 
 	init_bms_struct(); //setup the bms data
+	init_pow_lim(); //setup the power limiting
 }
 
 void ISR_StartButtonPressed() {
