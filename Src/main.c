@@ -56,6 +56,7 @@
 #include "BMS.h"
 #include "PedalBox.h"
 #include "CANProcess.h"
+#include "power_limiting.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -68,6 +69,7 @@ osThreadId defaultTaskHandle;
 /* Private variables ---------------------------------------------------------*/
 volatile Car_t car;
 bms_data_t bms;
+power_lim_t pow_lim;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
