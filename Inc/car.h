@@ -154,8 +154,8 @@ typedef struct {
 	QueueHandle_t	 		q_pedalboxmsg;
 	QueueHandle_t			q_mc_frame;
 
-	CAN_HandleTypeDef *		phcan1;						//pointer to car's CAN peripheral handle
-	CAN_HandleTypeDef *		phcan2;
+	CAN_HandleTypeDef *		phdcan;						//pointer to car's CAN peripheral handle
+	CAN_HandleTypeDef *		phvcan;
 
 } Car_t;
 

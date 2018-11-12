@@ -46,8 +46,8 @@ void carInit() {
 	car.pb_mode = PEDALBOX_MODE_DIGITAL;
 	car.throttle_acc = 0;
 	car.brake = 0;
-	car.phcan1 = &hcan1;
-	car.phcan2 = &hcan2;
+	car.phdcan = &hcan1;
+	car.phvcan = &hcan2;
 	car.calibrate_flag = CALIBRATE_NONE;
 	car.throttle1_min = 0x0f90;
 	car.throttle1_max = 0x07e0;
@@ -179,8 +179,8 @@ void initRTOSObjects() {
 	//todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
 	xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
 	xTaskCreate(taskCarMainRoutine, "CarMain", 256 , NULL, 1, NULL);
-	xTaskCreate(taskTXCAN_1, "TX CAN 1", 256, NULL, 1, NULL);
-	xTaskCreate(taskTXCAN_2, "TX CAN 2", 256, NULL, 1, NULL);
+	xTaskCreate(taskTX_DCAN, "TX CAN 1", 256, NULL, 1, NULL);
+	xTaskCreate(taskTX_VCAN, "TX CAN 2", 256, NULL, 1, NULL);
 	xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
 	//xTaskCreate(taskMotorControllerPoll, "Motor Poll", 256, NULL, 1, NULL);

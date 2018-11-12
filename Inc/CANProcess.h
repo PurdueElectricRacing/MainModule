@@ -131,11 +131,11 @@ typedef struct
 }CanRxMsgTypeDef;
 
 void ISR_RXCAN();
-void CAN1FilterConfig();
-void CAN2FilterConfig();
+void DCANFilterConfig();
+void VCANFilterConfig();
 void taskRXCANProcess();
-void taskTXCAN_1();
-void taskTXCAN_2();
+void taskTX_DCAN();
+void taskTX_VCAN();
 void taskRXCAN();
 void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);
