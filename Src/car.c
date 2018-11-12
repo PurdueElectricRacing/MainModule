@@ -358,35 +358,40 @@ void taskCarMainRoutine() {
 			vTaskDelay((uint32_t) 2000 / portTICK_RATE_MS);
 			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
-			if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
-			{
-				car.state = CAR_STATE_READY2DRIVE;  //car is started
-			}
+
 		}
 		else if (car.state == CAR_STATE_READY2DRIVE)
 		{
-			//assert these pins during r2d
-			//HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
-
-			//check if the age of the pedalbox message is greater than the timeout
-			if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+			//confirm the PC is not broken
+			if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
 			{
-				torque_to_send = 0;
-				car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
-				//todo send a CAN message to dash?
+				car.state = CAR_STATE_RESET;  //car is started
 			}
 			else
 			{
-				car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
-			}
-			if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
-				car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
-				car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
-				car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
-			{
-				torque_to_send = car.throttle_acc; //gets average
-			} else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
+				//assert these pins during r2d
+				//HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
 
+				//check if the age of the pedalbox message is greater than the timeout
+				if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+				{
+					torque_to_send = 0;
+					car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
+					//todo send a CAN message to dash?
+				}
+				else
+				{
+					car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
+				}
+				if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
+					car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
+					car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
+					car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
+				{
+					torque_to_send = car.throttle_acc; //gets average
+				} else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
+
+				}
 			}
 		}
 		else if (car.state == CAR_STATE_ERROR)
