@@ -50,7 +50,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
 	rx.DLC = header.DLC;
 	rx.StdId = header.StdId;
-	xQueueSendFromISR(car.q_rxcan_1, &rx, NULL);
+	xQueueSendFromISR(car.q_rx_dcan, &rx, NULL);
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
@@ -60,7 +60,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
 	rx.DLC = header.DLC;
 	rx.StdId = header.StdId;
-	xQueueSendFromISR(car.q_rxcan_2, &rx, NULL);
+	xQueueSendFromISR(car.q_rx_vcan, &rx, NULL);
 }
 
 
@@ -161,9 +161,9 @@ void taskTX_DCAN()
 	for (;;)
 	{
 		//check if this task is triggered
-		if (xQueuePeek(car.q_txcan_1, &tx, portMAX_DELAY) == pdTRUE)
+		if (xQueuePeek(car.q_tx_dcan, &tx, portMAX_DELAY) == pdTRUE)
 		{
-			xQueueReceive(car.q_txcan_1, &tx, portMAX_DELAY);  //actually take item out of queue
+			xQueueReceive(car.q_tx_dcan, &tx, portMAX_DELAY);  //actually take item out of queue
 			CAN_TxHeaderTypeDef header;
 			header.DLC = tx.DLC;
 			header.IDE = tx.IDE;
@@ -181,7 +181,7 @@ void taskTX_DCAN()
 *
 *     Function Information
 *
-*     Name of Function: taskTX_DCAN
+*     Name of Function: taskTX_VCAN
 *
 *     Programmer's Name: Ben Ng, xbenng@gmail.com
 *
@@ -203,9 +203,9 @@ void taskTX_VCAN()
 	for (;;)
 	{
 		//check if this task is triggered
-		if (xQueuePeek(car.q_txcan_2, &tx, portMAX_DELAY) == pdTRUE)
+		if (xQueuePeek(car.q_tx_vcan, &tx, portMAX_DELAY) == pdTRUE)
 		{
-			xQueueReceive(car.q_txcan_2, &tx, portMAX_DELAY);  //actually take item out of queue
+			xQueueReceive(car.q_tx_vcan, &tx, portMAX_DELAY);  //actually take item out of queue
 			CAN_TxHeaderTypeDef header;
 			header.DLC = tx.DLC;
 			header.IDE = tx.IDE;
@@ -249,7 +249,7 @@ void taskRXCANProcess()
 	{
 		HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
 		//if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
-		if (xQueueReceive(car.q_rxcan_1, &rx, portMAX_DELAY) == pdTRUE)
+		if (xQueueReceive(car.q_rx_dcan, &rx, portMAX_DELAY) == pdTRUE)
 		{
 			//A CAN message has been recieved
 			//check what kind of message we received
@@ -298,7 +298,7 @@ void taskRXCANProcess()
 		}
 
 		//check the CAN2 to see if motor controller has responded
-		/*if (xQueueReceive(car.q_rxcan_2, &rx, portMAX_DELAY) == pdTRUE) {
+		/*if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
 			if ( ID_BAMOCAR_STATION_RX == rx.StdId ) { //if bamocar message
 				//forward frame to mc frame queue
 				xQueueSendToBack(car.q_mc_frame, &rx, 100);

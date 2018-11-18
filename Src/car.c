@@ -167,10 +167,10 @@ void initRTOSObjects() {
 
 	/* Create Queues */
 
-	car.q_rxcan_1 = 			xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
-	car.q_txcan_1 = 			xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
-	car.q_rxcan_2 = 			xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
-	car.q_txcan_2 = 			xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
+	car.q_rx_dcan = 			xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
+	car.q_tx_dcan = 			xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
+	car.q_rx_vcan = 			xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
+	car.q_tx_vcan = 			xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
 	car.q_pedalboxmsg = 	xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
 	car.q_mc_frame = 		xQueueCreate(QUEUE_SIZE_MCFRAME, sizeof(CanRxMsgTypeDef));
 
@@ -179,8 +179,8 @@ void initRTOSObjects() {
 	//todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
 	xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
 	xTaskCreate(taskCarMainRoutine, "CarMain", 256 , NULL, 1, NULL);
-	xTaskCreate(taskTX_DCAN, "TX CAN 1", 256, NULL, 1, NULL);
-	xTaskCreate(taskTX_VCAN, "TX CAN 2", 256, NULL, 1, NULL);
+	xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
+	xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
 	//xTaskCreate(taskMotorControllerPoll, "Motor Poll", 256, NULL, 1, NULL);
@@ -243,7 +243,7 @@ void taskBlink(void* can)
 			tx.Data[0] |= 0b00001000;
 		}
 
-		xQueueSendToBack(car.q_txcan_1, &tx, 100);
+		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
 		//		//req regid 40
 		//mcCmdTransmissionRequestSingle(0x40);
@@ -329,7 +329,7 @@ void taskCarMainRoutine() {
 		tx.DLC = 4;
 		tx.IDE = CAN_ID_STD;
 		tx.RTR = CAN_RTR_DATA;
-		xQueueSendToBack(car.q_txcan_1, &tx, 100);
+		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
 		//state dependent block
 		if (car.state == CAR_STATE_INIT)

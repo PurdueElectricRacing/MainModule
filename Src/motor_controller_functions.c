@@ -124,7 +124,7 @@ void mcCmdTorque(uint16_t torqueVal) {
 	tx.Data[2] =	(uint8_t) (torqueVal >> 8);		//bytes 11-8
 	HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
 
-	xQueueSendToFront(car.q_txcan_2, &tx, 100); //higher priority than polling
+	xQueueSendToFront(car.q_tx_vcan, &tx, 100); //higher priority than polling
 }
 
 void mcCmdTorqueFake(uint16_t torqueVal) {
@@ -138,7 +138,7 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
 	tx.Data[1] =	(uint8_t) torqueVal;	//bytes 7-0
 	tx.Data[2] =	(uint8_t) (torqueVal >> 8);		//bytes 11-8
 
-	xQueueSendToBack(car.q_txcan_1, &tx, 100);
+	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 }
 
 
@@ -151,7 +151,7 @@ void mcCmdTransmissionRequestPermenant (uint8_t regid, uint8_t retransmitTimeMS)
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	(uint8_t) retransmitTimeMS;
-	xQueueSendToBack(car.q_txcan_2, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 
 }
 
@@ -165,7 +165,7 @@ void mcCmdTransmissionRequestSingle(uint8_t regid) {
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	RETRANSMISSION_SINGLE;
-	xQueueSendToBack(car.q_txcan_2, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 
 }
 
@@ -178,7 +178,7 @@ void mcCmdTransmissionAbortPermenant(uint8_t regid) {
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	RETRANSMISSION_ABORT;
-	xQueueSendToBack(car.q_txcan_2, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 
 }
 
@@ -249,7 +249,7 @@ void enableMotorController() {
 	tx.DLC = 		3;
 	tx.Data[0] = 	0xd0;
 	tx.Data[1] =	0x01;
-	xQueueSendToBack(car.q_txcan_2, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 }
 
 

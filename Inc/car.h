@@ -147,10 +147,10 @@ typedef struct {
 	//Pedalbox_msg_t 			pb_current_msg;
 
 	//RTOS objects, initialized in initRTOSObjects
-	QueueHandle_t			q_rxcan_1;
-	QueueHandle_t			q_txcan_1;
-	QueueHandle_t			q_rxcan_2;
-	QueueHandle_t			q_txcan_2;
+	QueueHandle_t			q_rx_dcan;
+	QueueHandle_t			q_tx_dcan;
+	QueueHandle_t			q_rx_vcan;
+	QueueHandle_t			q_tx_vcan;
 	QueueHandle_t	 		q_pedalboxmsg;
 	QueueHandle_t			q_mc_frame;
 
