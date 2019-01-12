@@ -16,7 +16,6 @@
 ***************************************************************************/
 
 #include "car.h"
-#include "accelerometer.h"
 
 void carSetBrakeLight(Brake_light_status_t status)
 /***************************************************************************
@@ -47,7 +46,8 @@ void carInit() {
 	car.pb_mode = PEDALBOX_MODE_DIGITAL;
 	car.throttle_acc = 0;
 	car.brake = 0;
-	car.phcan = &hcan1;
+	car.phdcan = &hcan1;
+	car.phvcan = &hcan2;
 	car.calibrate_flag = CALIBRATE_NONE;
 	car.throttle1_min = 0x0f90;
 	car.throttle1_max = 0x07e0;
@@ -167,22 +167,22 @@ void initRTOSObjects() {
 
 	/* Create Queues */
 
-	car.q_rxcan = 			xQueueCreate(QUEUE_SIZE_RXCAN, sizeof(CanRxMsgTypeDef));
-	car.q_txcan = 			xQueueCreate(QUEUE_SIZE_TXCAN, sizeof(CanTxMsgTypeDef));
+	car.q_rx_dcan = 			xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
+	car.q_tx_dcan = 			xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
+	car.q_rx_vcan = 			xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
+	car.q_tx_vcan = 			xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
 	car.q_pedalboxmsg = 	xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
-//	car.q_mc_frame = 		xQueueCreate(QUEUE_SIZE_MCFRAME, sizeof(CanRxMsgTypeDef));
-
-	car.m_CAN =				xSemaphoreCreateMutex(); //mutex to protect CAN peripheral
+	car.q_mc_frame = 		xQueueCreate(QUEUE_SIZE_MCFRAME, sizeof(CanRxMsgTypeDef));
 
 	/* Create Tasks */
 
 	//todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
 	xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
 	xTaskCreate(taskCarMainRoutine, "CarMain", 256 , NULL, 1, NULL);
-	xTaskCreate(taskTXCAN, "TX CAN", 256, NULL, 1, NULL);
+	xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
+	xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
-	xTaskCreate(taskSendAccelero, "accelro", 256, NULL, 1, NULL);
 	//xTaskCreate(taskMotorControllerPoll, "Motor Poll", 256, NULL, 1, NULL);
  }
 //extern uint8_t variable;
@@ -219,8 +219,7 @@ void taskBlink(void* can)
 			tx.Data[0] |=  0b00000100;
 			break;
 		case CAR_STATE_RECOVER :
-			tx.Data[0] |=  0b00000101;
-			break;
+			tx.Data[0] |= 0b00000101;
 		}
 		if (car.apps_state_imp == PEDALBOX_STATUS_ERROR)
 		{
@@ -243,15 +242,9 @@ void taskBlink(void* can)
 			HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
 			tx.Data[0] |= 0b00001000;
 		}
-		//if (xSemaphoreTake(car.m_CAN, 100) == pdTRUE)
-		//{
-//			hcan1.pTxMsg = &tx;
-//			HAL_CAN_Transmit(&hcan1, 100);
-//			xSemaphoreGive(car.m_CAN);  //release CAN mutex
 
+		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
-		//}
-		xQueueSendToBack(car.q_txcan, &tx, 100);
 		//		//req regid 40
 		//mcCmdTransmissionRequestSingle(0x40);
 		//HAL_CAN_Receive_IT(&hcan1, 0);
@@ -297,9 +290,11 @@ void taskCarMainRoutine() {
 	{
 		//do this no matter what state.
 		//get current time in ms
-		uint32_t current_time_ms = xTaskGetTickCount() / portTICK_PERIOD_MS;
-		uint16_t torque_to_send = 0;
+		TickType_t current_tick_time = xTaskGetTickCount();
+		uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
 
+		uint16_t torque_to_send = 0;
+		HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 		//always active block
 		//Brake
 		//check if brake level is greater than the threshold level
@@ -334,7 +329,7 @@ void taskCarMainRoutine() {
 		tx.DLC = 4;
 		tx.IDE = CAN_ID_STD;
 		tx.RTR = CAN_RTR_DATA;
-		xQueueSendToBack(car.q_txcan, &tx, 100);
+		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
 		//state dependent block
 		if (car.state == CAR_STATE_INIT)
@@ -363,35 +358,40 @@ void taskCarMainRoutine() {
 			vTaskDelay((uint32_t) 2000 / portTICK_RATE_MS);
 			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
-			if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
-			{
-				car.state = CAR_STATE_READY2DRIVE;  //car is started
-			}
+
 		}
 		else if (car.state == CAR_STATE_READY2DRIVE)
 		{
-			//assert these pins during r2d
-			//HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
-
-			//check if the age of the pedalbox message is greater than the timeout
-			if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+			//confirm the PC is not broken
+			if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
 			{
-				torque_to_send = 0;
-				car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
-				//todo send a CAN message to dash?
+				car.state = CAR_STATE_RESET;  //car is started
 			}
 			else
 			{
-				car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
-			}
-			if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
-				car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
-				car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
-				car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
-			{
-				torque_to_send = car.throttle_acc; //gets average
-			} else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
+				//assert these pins during r2d
+				//HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
 
+				//check if the age of the pedalbox message is greater than the timeout
+				if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+				{
+					torque_to_send = 0;
+					car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
+					//todo send a CAN message to dash?
+				}
+				else
+				{
+					car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
+				}
+				if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
+					car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
+					car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
+					car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
+				{
+					torque_to_send = car.throttle_acc; //gets average
+				} else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
+
+				}
 			}
 		}
 		else if (car.state == CAR_STATE_ERROR)
@@ -426,8 +426,8 @@ void taskCarMainRoutine() {
 		mcCmdTorque(torque_to_send);  //command the MC to move the motor
 
 
-		//wait until
-		vTaskDelay(PERIOD_TORQUE_SEND);
+		//wait until Constant 10 Hz rate
+		vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
 
 	}
 

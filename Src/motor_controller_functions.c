@@ -21,6 +21,23 @@
 #include "motor_controller_functions.h"
 #include "CANProcess.h"
 
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: processPedalboxFrame
+*
+*     Programmer's Name: Raymond Dong, dong155@purdue.edu
+*
+*     Function Return Type: none
+*
+*     Parameters (list data type, name, and comment one per line):
+*		1.
+*
+*     Function Description:
+*
+*
+***************************************************************************/
 int taskProcessMotorControllerFrame() {
 	CanRxMsgTypeDef rx;
 
@@ -28,7 +45,68 @@ int taskProcessMotorControllerFrame() {
 		if(xQueueReceive(car.q_mc_frame, &rx, 100))
 		{
 			//received a message from motor controller.
-			//todo interpret frame
+			/*
+			{actual torque}				{actual dc current}			{dc current limit}
+			{calculated torque limit}	{pedal torque}
+			{calculated torque limit} = {dc current limit}/{actual dc current} * {actual torque}
+			if {calculated torque limit} > {pedal torque}
+				send {calculated torque limit}
+			else
+				send {pedal torque}
+			*/
+			//todo add semaphores around the torque values that are being updated
+			if (rx.Data[0] == REGID_I_ACT)
+			{
+				actualTorque0700 = rx.Data[1];
+				actualTorque1508 = rx.Data[2];
+				actualTorque = actualTorque0700 | (actualTorque1508 << 8);
+				BCparam = 1;    //actual torque received
+			}
+			if (rx.Data[0] == REGID_SPEED_ACTUAL)
+			{
+				speedActual = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 2;    //speed actual received
+			}
+			if (rx.Data[0] == REGID_I_IST)
+			{
+				currentActual = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 3;    //current actual received
+			}
+			if (rx.Data[0] == REGID_I_SOLL)
+			{
+				commandCurrent = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 4;    //command current received
+			}
+			if (rx.Data[0] == REGID_DC_BUS)
+			{
+				dcBusVoltage = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 5;    //current actual received
+			}
+			if (rx.Data[0] == REGID_T_MOTOR)
+			{
+				motorTemperature = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 6;    //motor temperature received
+			}
+			if (rx.Data[0] == REGID_T_IGBT)
+			{
+				powerStageTemperature = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 7;    //power stage temperature received
+			}
+			if (rx.Data[0] == REGID_T_AIR)
+			{
+				airTemperature = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 8;    //air temperature received
+			}
+			if (rx.Data[0] == REGID_I_REDA)
+			{
+				actualCurrentLimit = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 9;    //actual current limit received
+			}
+			if (rx.Data[0] == REGID_ERR_BITMAP1)
+			{
+				errBitMap1 = (rx.Data[1] << 8 | rx.Data[2]);
+				BCparam = 10;    //errBitMap1 received
+			}
 		}
 	}
 	return 0;
@@ -44,8 +122,9 @@ void mcCmdTorque(uint16_t torqueVal) {
 	tx.Data[0] = 	REGID_CMD_TORQUE;
 	tx.Data[1] =	(uint8_t) torqueVal;	//bytes 7-0
 	tx.Data[2] =	(uint8_t) (torqueVal >> 8);		//bytes 11-8
+	HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
 
-	xQueueSendToBack(car.q_txcan, &tx, 100);
+	xQueueSendToFront(car.q_tx_vcan, &tx, 100); //higher priority than polling
 }
 
 void mcCmdTorqueFake(uint16_t torqueVal) {
@@ -59,7 +138,7 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
 	tx.Data[1] =	(uint8_t) torqueVal;	//bytes 7-0
 	tx.Data[2] =	(uint8_t) (torqueVal >> 8);		//bytes 11-8
 
-	xQueueSendToBack(car.q_txcan, &tx, 100);
+	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 }
 
 
@@ -72,7 +151,7 @@ void mcCmdTransmissionRequestPermenant (uint8_t regid, uint8_t retransmitTimeMS)
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	(uint8_t) retransmitTimeMS;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 
 }
 
@@ -86,7 +165,7 @@ void mcCmdTransmissionRequestSingle(uint8_t regid) {
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	RETRANSMISSION_SINGLE;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 
 }
 
@@ -99,7 +178,7 @@ void mcCmdTransmissionAbortPermenant(uint8_t regid) {
 	tx.Data[0] = 	REGID_CMD_REQUEST_DATA;
 	tx.Data[1] =	regid;
 	tx.Data[2] =	RETRANSMISSION_ABORT;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 
 }
 
@@ -169,9 +248,8 @@ void enableMotorController() {
 	tx.StdId = 		ID_BAMOCAR_STATION_TX;
 	tx.DLC = 		3;
 	tx.Data[0] = 	0xd0;
-	//tx.Data[0] = 	0x4f;
 	tx.Data[1] =	0x01;
-	xQueueSendToBack(car.q_txcan, &tx, 100);
+	xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 }
 
 
@@ -213,6 +291,7 @@ void taskMotorControllerPoll(void* param)
 			//byte1 - IN USE - 1bytes - MSB First
 			// Request Parameters
 			BCparam = 0;            // BCparam 0 - Nothing received
+			HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 			while(BCparam != 1) {
 				mcCmdTransmissionRequestSingle(REGID_I_ACT);
 				vTaskDelay(POLL_DELAY);
