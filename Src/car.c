@@ -68,9 +68,20 @@ void carInit() {
 void ISR_StartButtonPressed() {
 	if (car.state == CAR_STATE_INIT)
 	{
-		if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
-			&& HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) //check if precharge has finished
-		car.state = CAR_STATE_PREREADY2DRIVE;
+//		if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
+//			&& HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) { //check if precharge has finished
+			car.state = CAR_STATE_PREREADY2DRIVE;
+			//send acknowledge message to dashboard
+			CanTxMsgTypeDef tx;
+			tx.IDE = CAN_ID_STD;
+			tx.RTR = CAN_RTR_DATA;
+			tx.StdId = ID_DASHBOARD_ACK;
+			tx.DLC = 1;
+			tx.Data[0] = 1;
+			//send the acknowledgment to dash that this was successful
+			//todo: change to vcan
+			xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+		//}
 	} else {
 		car.state = CAR_STATE_RESET;
 	}
@@ -243,6 +254,7 @@ void taskBlink(void* can)
 			tx.Data[0] |= 0b00001000;
 		}
 
+		//todo: change to vcan
 		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
 		//		//req regid 40
@@ -320,16 +332,16 @@ void taskCarMainRoutine() {
 
 
 
-		CanTxMsgTypeDef tx;
-		tx.StdId = ID_PEDALBOX_ERRORS;
-		tx.Data[0] = car.apps_state_bp_plaus;
-		tx.Data[1] = car.apps_state_eor;
-		tx.Data[2] = car.apps_state_imp;
-		tx.Data[3] = car.apps_state_timeout;
-		tx.DLC = 4;
-		tx.IDE = CAN_ID_STD;
-		tx.RTR = CAN_RTR_DATA;
-		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+//		CanTxMsgTypeDef tx;
+//		tx.StdId = ID_PEDALBOX_ERRORS;
+//		tx.Data[0] = car.apps_state_bp_plaus;
+//		tx.Data[1] = car.apps_state_eor;
+//		tx.Data[2] = car.apps_state_imp;
+//		tx.Data[3] = car.apps_state_timeout;
+//		tx.DLC = 4;
+//		tx.IDE = CAN_ID_STD;
+//		tx.RTR = CAN_RTR_DATA;
+//		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
 		//state dependent block
 		if (car.state == CAR_STATE_INIT)
@@ -356,7 +368,8 @@ void taskCarMainRoutine() {
 			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
 			//enable FRG/RUN 0.5s after RFE.
 			vTaskDelay((uint32_t) 2000 / portTICK_RATE_MS);
-			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer			car.state = CAR_STATE_READY2DRIVE;  //car is started
+			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
+			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
 
 		}
