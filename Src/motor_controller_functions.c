@@ -195,7 +195,7 @@ void mcCmdTransmissionAbortPermenant(uint8_t regid) {
 	return;
 }
 
-void disableMotor()
+void disableMotorController()
 /***************************************************************************
 *
 *     Function Information

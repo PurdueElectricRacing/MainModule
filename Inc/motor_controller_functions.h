@@ -19,7 +19,7 @@ void mcCmdTransmissionRequestSingle(uint8_t regid);
 void mcCmdTransmissionAbortPermenant(uint8_t regid);
 void mcCmdTorque(uint16_t);
 void mcCmdTorqueFake(uint16_t);
-void disableMotor();
+void disableMotorController();
 void enableMotorController();
 
 //CAN Defines

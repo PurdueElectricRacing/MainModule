@@ -334,15 +334,10 @@ void taskCarMainRoutine() {
 		//state dependent block
 		if (car.state == CAR_STATE_INIT)
 		{
-			disableMotor();
-			//HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET); //turn on pump
-
+			disableMotorController();
 
 			//assert these pins always
 			HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
-			//HAL_GPIO_WritePin(Motor_Controller_Relay_CTRL_GPIO_Port, Motor_Controller_Relay_CTRL_Pin, GPIO_PIN_SET); //turn on mc
-			//car.state = CAR_STATE_PREREADY2DRIVE;  //car is started
-
 		}
 		else if (car.state == CAR_STATE_PREREADY2DRIVE)
 		{
@@ -350,13 +345,12 @@ void taskCarMainRoutine() {
 			HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
 			//bamocar 5.2
 			//Contacts of the safety device closed,
-			//enable FRG/RUN 0.5s after RFE.
 			enableMotorController();
 			//turn on buzzer
 			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
-			//enable FRG/RUN 0.5s after RFE.
 			vTaskDelay((uint32_t) 2000 / portTICK_RATE_MS);
-			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer			car.state = CAR_STATE_READY2DRIVE;  //car is started
+			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
+			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
 
 		}
@@ -390,39 +384,35 @@ void taskCarMainRoutine() {
 				{
 					torque_to_send = car.throttle_acc; //gets average
 				} else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
-
+					//nothing
 				}
+				//mcCmdTorqueFake(car.throttle_acc);
+				mcCmdTorque(torque_to_send);  //command the MC to move the motor
 			}
 		}
 		else if (car.state == CAR_STATE_ERROR)
 		{
-			//disableMotor();
+			//disableMotorController();
 		}
 		else if (car.state == CAR_STATE_RESET)
 		{
 			HAL_GPIO_WritePin(PUMP_GPIO_Port,PUMP_Pin,GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(RFE_GPIO_Port,RFE_Pin,GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(FRG_RUN_GPIO_Port,FRG_RUN_Pin,GPIO_PIN_RESET);
+			disableMotorController();
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port,BATT_FAN_Pin,GPIO_PIN_RESET);
 			car.state = CAR_STATE_INIT;
 
 		}
 		else if (car.state == CAR_STATE_RECOVER)
 		{
-			HAL_GPIO_WritePin(RFE_GPIO_Port,RFE_Pin,GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(FRG_RUN_GPIO_Port,FRG_RUN_Pin,GPIO_PIN_RESET);
+			//TODO:this state will need to be looked at since RINEHART is a little different
+			disableMotorController();
 			vTaskDelay((uint32_t) 500 / portTICK_RATE_MS);
 			enableMotorController();
 			car.state = CAR_STATE_READY2DRIVE;
 		}
 
-		//mcCmdTorqueFake(car.throttle_acc);
-		mcCmdTorque(torque_to_send);  //command the MC to move the motor
-
-
 		//wait until Constant 10 Hz rate
 		vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
-
 	}
 
 }
