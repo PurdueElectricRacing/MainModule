@@ -293,7 +293,7 @@ void taskCarMainRoutine() {
 		TickType_t current_tick_time = xTaskGetTickCount();
 		uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
 
-		uint16_t torque_to_send = 0;
+		int16_t torque_to_send = 0;
 		HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 		//always active block
 		//Brake
@@ -415,12 +415,6 @@ void taskCarMainRoutine() {
 			enableMotorController();
 			car.state = CAR_STATE_READY2DRIVE;
 		}
-		// calculate
-//			calcTorqueLimit = (80000 / (actualDC * 10 * actualV * 10)); //(DCLimit / (actualDC * 10)) * actualTorque;
-//			if(torque_to_send/MAX_THROTTLE_LEVEL > calcTorqueLimit)
-//			{
-//				torque_to_send = calcTorqueLimit * torque_to_send;
-//			}
 
 		//mcCmdTorqueFake(car.throttle_acc);
 		mcCmdTorque(torque_to_send);  //command the MC to move the motor

@@ -37,15 +37,16 @@
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
 
 #define PERIOD_ACCELRO				50 / portTICK_RATE_MS
-#define PERIOD_TORQUE_SEND		 	20 / portTICK_RATE_MS //50 hz
-#define HEARTBEAT_PULSEWIDTH		200 / portTICK_RATE_MS
+#define PERIOD_TORQUE_SEND		20 / portTICK_RATE_MS //50 hz
+#define HEARTBEAT_PULSEWIDTH	200 / portTICK_RATE_MS
 #define HEARTBEAT_PERIOD			100 / portTICK_RATE_MS
 #define PEDALBOX_TIMEOUT			1000 / portTICK_RATE_MS
-#define POLL_DELAY					50 / portTICK_RATE_MS
+#define POLL_DELAY						50 / portTICK_RATE_MS
 #define MAX_BRAKE_LEVEL 			0xFFF
-#define MAX_THROTTLE_LEVEL			0x7FFE
-#define LC_THRESHOLD				10			// todo lc threshold DUMMY VALUE
+#define MAX_THROTTLE_LEVEL		0x8FC //230 Nm
+#define LC_THRESHOLD					10			// todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS	10
+#define DONT_CARE							0
 
 
 //rtos parameter defines
@@ -131,7 +132,7 @@ typedef struct {
 	int32_t				brake1_max;
 	int32_t				brake2_min;
 	int32_t				brake2_max;
-	int32_t 				throttle_acc;				//sum of car's intended throttle messages from pedalbox since last cmd sent to MC
+	int16_t 				throttle_acc;				//sum of car's intended throttle messages from pedalbox since last cmd sent to MC
 	int16_t					throttle_cnt;				//number of throttle messages in accumulator
 	float 				brake;						//car's intended brake position
 	uint32_t				pb_msg_rx_time;				//indicates when a pedalbox message was last received
