@@ -122,7 +122,7 @@ void mcCmdTorque(uint16_t torqueVal) {
 	tx.Data[0] = 	REGID_CMD_TORQUE;
 	tx.Data[1] =	(uint8_t) torqueVal;	//bytes 7-0
 	tx.Data[2] =	(uint8_t) (torqueVal >> 8);		//bytes 11-8
-	HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+	//HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
 
 	xQueueSendToFront(car.q_tx_vcan, &tx, 100); //higher priority than polling
 }

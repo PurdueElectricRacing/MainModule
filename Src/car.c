@@ -80,7 +80,8 @@ void ISR_StartButtonPressed() {
 			tx.Data[0] = 1;
 			//send the acknowledgment to dash that this was successful
 			//todo: change to vcan
-			xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+			HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+			xQueueSendToBackFromISR(car.q_tx_dcan, &tx, 100);
 		//}
 	} else {
 		car.state = CAR_STATE_RESET;
@@ -250,7 +251,6 @@ void taskBlink(void* can)
 		}
 		if(!HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port,P_AIR_STATUS_Pin))
 		{
-			HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
 			tx.Data[0] |= 0b00001000;
 		}
 
