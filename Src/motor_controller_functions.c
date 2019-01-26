@@ -113,7 +113,6 @@ int taskProcessMotorControllerFrame() {
 }
 
 void mcCmdTorque(uint16_t torqueVal) {
-	//example 5, BAMOCAR CAN MANUAL
 	CanTxMsgTypeDef tx;
 	tx.IDE = 			CAN_ID_STD;
 	tx.StdId = 		ID_RINEHART_STATION_TX;
@@ -132,7 +131,6 @@ void mcCmdTorque(uint16_t torqueVal) {
 }
 
 void mcCmdTorqueFake(uint16_t torqueVal) {
-	//example 5, BAMOCAR CAN MANUAL
 	CanTxMsgTypeDef tx;
 	tx.IDE = 			CAN_ID_STD;
 	tx.StdId = 		0x490;
@@ -146,6 +144,46 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
 	tx.Data[5] =	INVERTER_ENABLE;	//Enables inverter, discharge, speed mode
 	tx.Data[6] = 	0x0;	//torque command byte 1 (if set to zero will default to EEPROM which is desired)
 	tx.Data[7] =	0x0;	//torque command byte 2
+
+	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: configbroadcast
+*
+*     Programmer's Name: Tamim Noor
+*     				     Enrico William
+*     				     David Farrell
+*     				     Elijah Peters
+*
+*     Function Return Type: void
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. inputArray,
+*
+*      Global Dependents:
+*      car.q_tx_dcan
+*
+*     Function Description:
+*			broadcasts configurations pg 16 - 17 on RMS CAN Protocol
+***************************************************************************/
+void configbroadcast (uint8_t * inputArray) {
+	CanTxMsgTypeDef tx;
+	tx.IDE = 			CAN_ID_STD;
+	tx.StdId = 		ID_RINEHART_STATION_TX;
+	tx.DLC = 			8;
+	tx.RTR =			CAN_RTR_DATA;
+	tx.Data[0] = 	CONFIGURE_LOW; //parameter address
+	tx.Data[1] =	CONFIGURE_HIGH;	//parameter address
+	tx.Data[2] = 	WRITE;//R/W Command
+	tx.Data[3] =	RESERVED;	//RESERVED
+	tx.Data[4] = 	inputArray[0];	//First Data Command
+	tx.Data[5] =	inputArray[1];	//Second Data Command
+	tx.Data[6] = 	inputArray[2];	//Third Data Command
+	tx.Data[7] =	inputArray[3];	//Fourth Data Command
 
 	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 }
