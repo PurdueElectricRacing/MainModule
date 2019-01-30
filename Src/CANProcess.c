@@ -437,11 +437,12 @@ void process_IMU(CanRxMsgTypeDef* rx) {
 		accel_y = (int16_t) (rx->Data[3] << 8) | rx->Data[4];
 		accel_z = (int16_t) (rx->Data[5] << 8) | rx->Data[6];
 
-		if ((accel_x > IMU_8G_VAL || accel_y > IMU_8G_VAL || accel_z > IMU_8G_VAL)
+		if ((accel_x > IMU_8G_VAL/4 || accel_y > IMU_8G_VAL || accel_z > IMU_8G_VAL)
 				&& (accel_x < IMU_8G_NEG || accel_y < IMU_8G_NEG || accel_z < IMU_8G_NEG)) {
 			//car just got straight fucked
 			//open the SDC
 			HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_RESET);
+			car.state = CAR_STATE_RESET;
 		}
 	}
 }

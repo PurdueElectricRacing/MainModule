@@ -29,7 +29,7 @@
 #define ID_BMS_PACK_CUR_VOL				0x03B //current and voltage
 #define ID_BMS_DCL								0x03C
 #define ID_PEDALBOX_ERRORS				0x601
-#define ID_IMU										0x422
+#define ID_IMU										0x421
 
 //wheel module defines
 #define WM_SPEED_7_0_BYTE						2

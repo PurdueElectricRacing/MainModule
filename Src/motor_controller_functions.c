@@ -291,7 +291,7 @@ void taskMotorControllerPoll(void* param)
 			//byte1 - IN USE - 1bytes - MSB First
 			// Request Parameters
 			BCparam = 0;            // BCparam 0 - Nothing received
-			HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
+//			HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 			while(BCparam != 1) {
 				mcCmdTransmissionRequestSingle(REGID_I_ACT);
 				vTaskDelay(POLL_DELAY);
