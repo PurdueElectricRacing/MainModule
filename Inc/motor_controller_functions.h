@@ -13,10 +13,6 @@
 #include "car.h"
 
 //function prototypes
-int taskProcessMotorControllerFrame();
-void mcCmdTransmissionRequestPermenant (uint8_t regid, uint8_t retransmitTimeMS);
-void mcCmdTransmissionRequestSingle(uint8_t regid);
-void mcCmdTransmissionAbortPermenant(uint8_t regid);
 void mcCmdTorque(uint16_t);
 void mcCmdTorqueFake(uint16_t);
 void disableMotorController();
@@ -35,28 +31,30 @@ void enableMotorController();
 #define RESERVED  								0
 
 
-//Brodcast configuration bytes
+//Brodcast configuration bytes Pages 16-17 of the Rinehart CAN Manual
 //Data byte 4 commands
-#define TEMP1               0x1
-#define TEMP2								0x2
-#define TEMP3								0x4
-#define ANALOG_IV     			0x8
-#define DIGITAL_IS          0x10
+#define MC_TEMP1            0x1
+#define MC_TEMP2						0x2
+#define MC_TEMP3						0x4
+#define ANALOG_IV     			0x8   //Analog Input Voltages
+#define DIGITAL_IS          0x10  //Digital Input Status
 #define MOTOR_POS           0x20
-#define CURRENT             0x40
-#define VOLTAGE 		    		0x80
+#define MC_CURRENT          0x40
+#define MC_VOLTAGE 		    	0x80
 
 //Data byte 5 commands
-#define FLUX                0x1
+#define MC_FLUX             0x1
 #define INTERNAL_VOLTAGE		0x2
 #define INTERNAL_STATES	    0x4
 #define FAULT_CODES     		0x8
 #define TORQUE_TIMER        0x10
 
+//Data byte 6 is not used
+
 //Data byte 7 commands
 #define PARAM_RESPONSE      0x20
 #define PARAM_COMMAND       0x40
-#define CAN_COMMAND 				0x80
+#define CAN_COMMAND 				0x80  //can use this as a heartbeat
 
 
 #endif /* MOTOR_CONTROLLER_FUNCTIONS_H_ */
