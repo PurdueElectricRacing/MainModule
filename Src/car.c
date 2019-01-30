@@ -340,7 +340,7 @@ void taskCarMainRoutine() {
 			//assert these pins always
 			HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
 			//HAL_GPIO_WritePin(Motor_Controller_Relay_CTRL_GPIO_Port, Motor_Controller_Relay_CTRL_Pin, GPIO_PIN_SET); //turn on mc
-			car.state = CAR_STATE_PREREADY2DRIVE;  //car is started
+			//car.state = CAR_STATE_PREREADY2DRIVE;  //car is started
 
 		}
 		else if (car.state == CAR_STATE_PREREADY2DRIVE)
