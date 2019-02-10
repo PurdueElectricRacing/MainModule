@@ -81,6 +81,7 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
 ***************************************************************************/
 void configbroadcast (uint8_t * inputArray) {
 	CanTxMsgTypeDef tx;
+
 	tx.IDE = 			CAN_ID_STD;
 	tx.StdId = 		ID_RINEHART_STATION_TX;
 	tx.DLC = 			8;

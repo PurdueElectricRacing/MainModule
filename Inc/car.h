@@ -43,7 +43,7 @@
 #define PEDALBOX_TIMEOUT			1000 / portTICK_RATE_MS
 #define POLL_DELAY						50 / portTICK_RATE_MS
 #define MAX_BRAKE_LEVEL 			0xFFF
-#define MAX_THROTTLE_LEVEL		0x8FC //230 Nm
+#define MAX_THROTTLE_LEVEL		1800 //180 Nm
 #define LC_THRESHOLD					10			// todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS	10
 #define DONT_CARE							0
