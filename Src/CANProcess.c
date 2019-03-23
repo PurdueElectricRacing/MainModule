@@ -21,47 +21,6 @@
 #include "car.h"
 #include "PedalBox.h"
 
-
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: HAL_CAN_RxFifo0MsgPendingCallback
-*
-*     Programmer's Name: Ben Ng, xbenng@gmail.com
-*
-*     Function Return Type:
-*
-*     Parameters (list data type, name, and comment one per line):
-*
-*     Global Dependents:
-*   1. ;
-*
-*     Function Description:
-*     To be called by HAL_CAN_IRQHandler when a CAN message is received.
-*
-***************************************************************************/
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-  //HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-  
-  CanRxMsgTypeDef rx;
-  CAN_RxHeaderTypeDef header;
-  HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
-  rx.DLC = header.DLC;
-  rx.StdId = header.StdId;
-  xQueueSendFromISR(car.q_rx_dcan, &rx, NULL);
-}
-
-void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-  CanRxMsgTypeDef rx;
-  CAN_RxHeaderTypeDef header;
-  HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
-  rx.DLC = header.DLC;
-  rx.StdId = header.StdId;
-  xQueueSendFromISR(car.q_rx_vcan, &rx, NULL);
-}
-
-
 /***************************************************************************
 *
 *     Function Information
