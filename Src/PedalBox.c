@@ -43,7 +43,7 @@ void taskPedalBoxMsgHandler() {
 		if(xQueueReceive(car.q_pedalboxmsg, &pedalboxmsg, 1000))
 		{
 			//get current time in ms
-			uint32_t current_time_ms = xTaskGetTickCount() / portTICK_PERIOD_MS;;
+			uint32_t current_time_ms = xTaskGetTickCount() / portTICK_PERIOD_MS;
 			// update time stamp, indicates when a pedalbox message was last received
 			car.pb_msg_rx_time = current_time_ms;
 			//check if calibration values should be updated
@@ -73,11 +73,16 @@ void taskPedalBoxMsgHandler() {
 			//int throttle1_sign = -1;
 			//int throttle2_sign = -1;
 
-			float			throttle1_cal = ((float)(pedalboxmsg.throttle1_raw - car.throttle1_min)) / (car.throttle1_max - car.throttle1_min);  //value 0-1, throttle 1 calibrated between min and max
-			float			throttle2_cal = ((float)(pedalboxmsg.throttle2_raw - car.throttle2_min)) / (car.throttle2_max - car.throttle2_min);;  //value 0-1, throttle 2 calibrated between min and max
-			float 			brake1_cal	  = ((float)(pedalboxmsg.brake1_raw - car.brake1_min)) / (car.brake1_max - car.brake1_min);  //value 0-1, brake 1 calibrated between min and max
-			float 			brake2_cal	  = ((float)(pedalboxmsg.brake2_raw - car.brake2_min)) / (car.brake2_max - car.brake2_min);  //value 0-1, brake 2 calibrated between min and max
-			float 			throttle_avg  = (throttle1_cal + throttle2_cal) / 2.0;
+			//value 0-1, throttle 1 calibrated between min and max
+			float			throttle1_cal = ((float)(pedalboxmsg.throttle1_raw - car.throttle1_min)) / (car.throttle1_max - car.throttle1_min);
+			//value 0-1, throttle 2 calibrated between min and max
+			float			throttle2_cal = ((float)(pedalboxmsg.throttle2_raw - car.throttle2_min)) / (car.throttle2_max - car.throttle2_min);
+			//value 0-1, brake 1 calibrated between min and max
+		  float 		brake1_cal	  = ((float)(pedalboxmsg.brake1_raw - car.brake1_min)) / (car.brake1_max - car.brake1_min);
+		  //value 0-1, brake 2 calibrated between min and max
+		  float 		brake2_cal	  = ((float)(pedalboxmsg.brake2_raw - car.brake2_min)) / (car.brake2_max - car.brake2_min);
+
+		  float 		throttle_avg  = (throttle1_cal + throttle2_cal) / 2.0;
 			float			brake_avg     = (brake1_cal + brake2_cal) / 2.0;
 
 
@@ -99,7 +104,7 @@ void taskPedalBoxMsgHandler() {
 				car.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
 			}
 
-			//APPS Implausibility error handling, EV 2.3.5,
+			//APPS Implausibility error handling, T.6.2,
 			//	error if throttle sensors disagree more than 10% travel
 			//	for more than 100ms
 			if (fabs(throttle1_cal - throttle2_cal) > .1 ) //legacy: (pedaboxmsg.APPS_Implausible == PEDALBOX_STATUS_ERROR)
@@ -119,20 +124,15 @@ void taskPedalBoxMsgHandler() {
 				}
 			} else {
 				car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
-
 			}
 
-
-
-
-//			BRAKE PLAUSIBILITY check
-
+//			BRAKE PLAUSIBILITY check EV.2.4.1
 			if (throttle_avg >= .25 && brake_avg >= BRAKE_PRESSED_THRESHOLD)
 			{
 				car.apps_state_bp_plaus = PEDALBOX_STATUS_ERROR;
 			}
 			else if (throttle_avg <= APPS_BP_PLAUS_RESET_THRESHOLD) {//latch until this condition
-				//EV 2.5.1, reset apps-brake pedal plausibility error only if throttle level is less than the .05
+				//EV.2.4.2, reset apps-brake pedal plausibility error only if throttle level is less than the .05
 					car.apps_state_bp_plaus = PEDALBOX_STATUS_NO_ERROR;
 			}
 
@@ -150,24 +150,16 @@ void taskPedalBoxMsgHandler() {
 					//no errors, set throttle to value received from pedalbox
 					car.throttle_acc = ((throttle_avg - 0.1) * MAX_THROTTLE_LEVEL / 0.8);
 				}
-			//car.throttle_cnt ++;
 			}
 			else
 			{
 				car.throttle_acc = 0;
 			}
-
 		}
 	}
 
 	//if this task breaks from the loop kill it
 	vTaskDelete(NULL);
 }
-
-//int storeToFlash() {
-//	HAL_FLASH_Unlock();
-//	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGSERR );
-//)
-//};
 
 

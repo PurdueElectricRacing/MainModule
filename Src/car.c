@@ -183,8 +183,8 @@ void initRTOSObjects() {
 	xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
 	xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
-	//xTaskCreate(taskMotorControllerPoll, "Motor Poll", 256, NULL, 1, NULL);
  }
+
 //extern uint8_t variable;
 void taskBlink(void* can)
 {
@@ -301,13 +301,6 @@ void taskCarMainRoutine() {
 		if (car.brake >= BRAKE_PRESSED_THRESHOLD) {
 			//brake is presssed
 			carSetBrakeLight(BRAKE_LIGHT_ON);  //turn on brake light
-
-
-			//EV 2.5, check if the throttle level is greater than 25% while brakes are on
-//				if (throttle_avg > APPS_BP_PLAUS_THRESHOLD) {
-//					//set apps-brake pedal plausibility error
-//					car.apps_bp_plaus = PEDALBOX_STATUS_ERROR;
-//				}
 		} else {
 			//brake is not pressed
 			carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
@@ -335,26 +328,18 @@ void taskCarMainRoutine() {
 		if (car.state == CAR_STATE_INIT)
 		{
 			disableMotor();
-			//HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET); //turn on pump
-
 
 			//assert these pins always
 			HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
-			//HAL_GPIO_WritePin(Motor_Controller_Relay_CTRL_GPIO_Port, Motor_Controller_Relay_CTRL_Pin, GPIO_PIN_SET); //turn on mc
-			//car.state = CAR_STATE_PREREADY2DRIVE;  //car is started
-
 		}
 		else if (car.state == CAR_STATE_PREREADY2DRIVE)
 		{
 
 			HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
-			//bamocar 5.2
-			//Contacts of the safety device closed,
-			//enable FRG/RUN 0.5s after RFE.
 			enableMotorController();
 			//turn on buzzer
 			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
-			//enable FRG/RUN 0.5s after RFE.
+
 			vTaskDelay((uint32_t) 2000 / portTICK_RATE_MS);
 			HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
@@ -370,7 +355,6 @@ void taskCarMainRoutine() {
 			else
 			{
 				//assert these pins during r2d
-				//HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
 
 				//check if the age of the pedalbox message is greater than the timeout
 				if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)

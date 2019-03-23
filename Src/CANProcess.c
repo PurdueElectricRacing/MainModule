@@ -296,27 +296,8 @@ void taskRXCANProcess()
 					break;
 			}
 		}
-
-		//check the CAN2 to see if motor controller has responded
-		/*if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
-			if ( ID_BAMOCAR_STATION_RX == rx.StdId ) { //if bamocar message
-				//forward frame to mc frame queue
-				xQueueSendToBack(car.q_mc_frame, &rx, 100);
-				break;
-			}
-		}*/
 	}
 }
-
-//void processWheelModuleFrame(CanRxMsgTypeDef* rx) {
-//	uint16_t speed = 0;
-//	speed |= (rx->Data[WM_SPEED_7_0_BYTE] & 0xFF);
-//	speed |= ((rx->Data[WM_SPEED_11_8_BYTE] << 8) & 	0x0F00);
-//	//todo process wheel module stuff
-//	if (rx->StdId == ID_WHEEL_FR) {
-//		wheelModule.speedFR = rx->Data[0];
-//	}
-//}
 
 /***************************************************************************
 *
