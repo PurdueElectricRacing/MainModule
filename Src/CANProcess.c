@@ -74,8 +74,6 @@ void DCANFilterConfig() {
 *
 ***************************************************************************/
 void VCANFilterConfig() {
-
-
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_BAMOCAR_STATION_RX << 5; // 2 num
   FilterConf.FilterIdLow =          ID_BAMOCAR_STATION_RX << 5; // 0

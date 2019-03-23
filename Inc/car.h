@@ -172,12 +172,12 @@ void taskCarMainRoutine();
 int SendTorqueTask();
 int mainModuleWatchdogTask();
 int taskHeartbeat();
-void taskSoundBuzzer(int* time);
 void initRTOSObjects();
 void taskBlink(void* can);
 void stopCar();
 void taskSendAccelero();
 void taskMotorControllerPoll();
+void soundBuzzer(int time_ms);
 
 
 #endif /* CAR_H_ */

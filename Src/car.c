@@ -229,6 +229,17 @@ void taskBlink(void* can) {
       tx.Data[0] |= 0b00001000;
     }
     xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+
+//    CanTxMsgTypeDef tx;
+//		tx.StdId = ID_PEDALBOX_ERRORS;
+//		tx.Data[0] = car.apps_state_bp_plaus;
+//		tx.Data[1] = car.apps_state_eor;
+//		tx.Data[2] = car.apps_state_imp;
+//		tx.Data[3] = car.apps_state_timeout;
+//		tx.DLC = 4;
+//		tx.IDE = CAN_ID_STD;
+//		tx.RTR = CAN_RTR_DATA;
+//		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
     //    //req regid 40
     //mcCmdTransmissionRequestSingle(0x40);
     //HAL_CAN_Receive_IT(&hcan1, 0);
@@ -237,7 +248,7 @@ void taskBlink(void* can) {
 }
 
 
-void taskSoundBuzzer(int* time_ms) {
+void soundBuzzer(int time_ms) {
   /***************************************************************************
   *
   *     Function Information
@@ -257,13 +268,9 @@ void taskSoundBuzzer(int* time_ms) {
   *   ready to drive sound task
   *
   ***************************************************************************/
-  while (1) {
-    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
-    //enable FRG/RUN 0.5s after RFE.
-    vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
-    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
-    vTaskDelete(NULL);
-  }
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
+	vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
 }
 
 
@@ -296,16 +303,7 @@ void taskCarMainRoutine() {
         car.state == CAR_STATE_READY2DRIVE) {
       car.state = CAR_STATE_RESET;
     }
-    CanTxMsgTypeDef tx;
-    tx.StdId = ID_PEDALBOX_ERRORS;
-    tx.Data[0] = car.apps_state_bp_plaus;
-    tx.Data[1] = car.apps_state_eor;
-    tx.Data[2] = car.apps_state_imp;
-    tx.Data[3] = car.apps_state_timeout;
-    tx.DLC = 4;
-    tx.IDE = CAN_ID_STD;
-    tx.RTR = CAN_RTR_DATA;
-    xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+
     //state dependent block
     if (car.state == CAR_STATE_INIT) {
       disableMotorController();
@@ -317,9 +315,7 @@ void taskCarMainRoutine() {
       //Contacts of the safety device closed,
       enableMotorController();
       //turn on buzzer
-      HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
-      vTaskDelay((uint32_t) 2000 / portTICK_RATE_MS);
-      HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
+      soundBuzzer(2000); //turn buzzer on for 2 seconds
       car.state = CAR_STATE_READY2DRIVE;  //car is started
       HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
     } else if (car.state == CAR_STATE_READY2DRIVE) {
@@ -362,7 +358,7 @@ void taskCarMainRoutine() {
       enableMotorController();
       car.state = CAR_STATE_READY2DRIVE;
     }
-    //wait until Constant 10 Hz rate
+    //wait until Constant 50 Hz rate
     vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
   }
 }
