@@ -17,8 +17,6 @@
 #include "motor_controller_functions.h"
 #include <math.h>
 
-
-
 ////gpio aliases
 //#define BUZZER_PORT     GPIOB //todo
 //#define BUZZER_PIN      GPIO_PIN_10
