@@ -36,6 +36,11 @@
 #define WM_SPEED_11_8_BYTE          1
 #define WM_SPEED_11_8_MASK          0x0F00
 
+//IMU defines
+#define IMU_16G											4
+#define IMU_ACCEL										0
+#define IMU_8G_VAL									0x3FFF
+#define IMU_8G_NEG									0xC001 //negative 0x3FFF
 
 //pedalbox defines //todo not sure if better to send whole frame or just pbmsg.
 #define PEDALBOX1_FILTER                0 //filter number corresponding to the PEDALBOX1 message
