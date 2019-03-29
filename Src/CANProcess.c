@@ -42,8 +42,8 @@
 ***************************************************************************/
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_PEDALBOX2 << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_DASHBOARD << 5; // 0
+  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
+  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5; // 0
   FilterConf.FilterMaskIdHigh =     0x7ff;       // 3
   FilterConf.FilterMaskIdLow =      0x7fe;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
@@ -75,9 +75,9 @@ void DCANFilterConfig() {
 ***************************************************************************/
 void VCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_BAMOCAR_STATION_RX << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_BAMOCAR_STATION_RX << 5; // 0
-  FilterConf.FilterMaskIdHigh =     0x7ff;       // 3
+  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
+  FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
+  FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
   FilterConf.FilterMaskIdLow =      0x7ff;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
   FilterConf.FilterBank = 1;
@@ -194,7 +194,7 @@ void taskRXCANProcess() {
   while (1) {
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
-    if (xQueueReceive(car.q_rx_dcan, &rx, portMAX_DELAY) == pdTRUE) {
+    if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
       //A CAN message has been recieved
       //check what kind of message we received
       switch (rx.StdId) {
@@ -204,13 +204,6 @@ void taskRXCANProcess() {
         }
         case ID_PEDALBOXCALIBRATE: {
           processCalibrate(&rx);
-          break;
-        }
-        case    ID_WHEEL_FR:
-        case  ID_WHEEL_FL:
-        case  ID_WHEEL_RR:
-        case  ID_WHEEL_RL: { //todo add all the other wheel module IDs
-          //processWheelModuleFrame(&rx);
           break;
         }
         case  ID_DASHBOARD: {
@@ -227,33 +220,22 @@ void taskRXCANProcess() {
           HAL_GPIO_TogglePin(PUMP_GPIO_Port, PUMP_Pin);
           break;
         }
-        case ID_BMS_PACK_CUR_VOL:
-          actualDC = rx.Data[1] | (rx.Data[1] << 8);
-          actualV = rx.Data[3] | (rx.Data[2] << 8);
-          break;
       }
     }
     
-    //check the CAN2 to see if motor controller has responded
-    /*if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
-      if ( ID_BAMOCAR_STATION_RX == rx.StdId ) { //if bamocar message
-        //forward frame to mc frame queue
-        xQueueSendToBack(car.q_mc_frame, &rx, 100);
-        break;
-      }
-    }*/
+    if (xQueueReceive(car.phdcan, &rx, portMAX_DELAY) == pdTRUE) {
+    	switch (rx.StdId) {
+    	case ID_WHEEL_FRONT:
+    		//TODO
+    		break;
+    	case ID_WHEEL_REAR:
+    		//TODO
+    		break;
+    	}
+    }
+
   }
 }
-
-//void processWheelModuleFrame(CanRxMsgTypeDef* rx) {
-//  uint16_t speed = 0;
-//  speed |= (rx->Data[WM_SPEED_7_0_BYTE] & 0xFF);
-//  speed |= ((rx->Data[WM_SPEED_11_8_BYTE] << 8) &   0x0F00);
-//  //todo process wheel module stuff
-//  if (rx->StdId == ID_WHEEL_FR) {
-//    wheelModule.speedFR = rx->Data[0];
-//  }
-//}
 
 /***************************************************************************
 *

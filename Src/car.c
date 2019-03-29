@@ -46,8 +46,8 @@ void carInit() {
   car.pb_mode = PEDALBOX_MODE_DIGITAL;
   car.throttle_acc = 0;
   car.brake = 0;
-  car.phdcan = &hcan1;
-  car.phvcan = &hcan2;
+  car.phvcan = &hcan1;
+  car.phdcan = &hcan2;
   car.calibrate_flag = CALIBRATE_NONE;
   car.throttle1_min = 0x0f90;
   car.throttle1_max = 0x07e0;
@@ -69,7 +69,9 @@ void ISR_StartButtonPressed() {
 //    if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
 //        && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port,
 //                            P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) { //check if precharge has finished
-      car.state = CAR_STATE_PREREADY2DRIVE;
+  	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) {
+  		car.state = CAR_STATE_PREREADY2DRIVE;
+  	}
 //    }
   } else {
     car.state = CAR_STATE_RESET;
@@ -179,7 +181,6 @@ void initRTOSObjects() {
   xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
   xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
-  //xTaskCreate(taskMotorControllerPoll, "Motor Poll", 256, NULL, 1, NULL);
 }
 //extern uint8_t variable;
 void taskBlink(void* can) {

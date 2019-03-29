@@ -17,12 +17,10 @@
 #define ID_PEDALBOX2              0x501
 #define ID_PEDALBOXCALIBRATE      0x503
 #define ID_RINEHART_STATION_TX    0x0C0 //message recieved by MC
-#define ID_BAMOCAR_STATION_RX     0x180 //message sent by MC
+
 //#define ID_BMS_PACK_VOLTAGE           0x400
-#define ID_WHEEL_FR               0x100 // wheel module IDs
-#define ID_WHEEL_FL               0x101
-#define ID_WHEEL_RR               0x102
-#define ID_WHEEL_RL               0x103
+#define ID_WHEEL_FRONT						0x700
+#define ID_WHEEL_REAR							0x701
 #define ID_DASHBOARD              0x350
 #define ID_DASHBOARD1             0x351
 #define ID_DASHBOARD2             0x352
