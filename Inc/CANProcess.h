@@ -15,9 +15,9 @@
 //defines for reading data from RxCanMsgTypeDef
 #define ID_PEDALBOX1							0x500
 #define ID_PEDALBOX2							0x501
-#define	ID_PEDALBOXCALIBRATE					0x503
-#define ID_BAMOCAR_STATION_TX					0x210	//message recieved by MC
-#define ID_BAMOCAR_STATION_RX					0x180	//message sent by MC
+#define	ID_PEDALBOXCALIBRATE			0x503
+#define ID_BAMOCAR_STATION_TX			0x210	//message recieved by MC
+#define ID_BAMOCAR_STATION_RX			0x180	//message sent by MC
 //#define ID_BMS_PACK_VOLTAGE						0x400
 #define ID_WHEEL_FR								0x100	// wheel module IDs
 #define ID_WHEEL_FL								0x101
@@ -26,16 +26,21 @@
 #define ID_DASHBOARD							0x350
 #define ID_DASHBOARD1							0x351
 #define ID_DASHBOARD2							0x352
-#define ID_BMS_PACK_CUR_VOL						0x03B //current and voltage
+#define ID_BMS_PACK_CUR_VOL				0x03B //current and voltage
 #define ID_BMS_DCL								0x03C
-#define ID_PEDALBOX_ERRORS						0x601
+#define ID_PEDALBOX_ERRORS				0x601
+#define ID_IMU										0x421
 
 //wheel module defines
 #define WM_SPEED_7_0_BYTE						2
-#define WM_SPEED_11_8_BYTE						1
-#define WM_SPEED_11_8_MASK						0x0F00
+#define WM_SPEED_11_8_BYTE					1
+#define WM_SPEED_11_8_MASK					0x0F00
 
-
+//IMU defines
+#define IMU_16G											4
+#define IMU_ACCEL										0
+#define IMU_8G_VAL									0x3FFF
+#define IMU_8G_NEG									0xC001 //negative 0x3FFF
 
 
 //pedalbox defines //todo not sure if better to send whole frame or just pbmsg.
@@ -140,6 +145,7 @@ void taskRXCAN();
 void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);
 void processPedalboxFrame(CanRxMsgTypeDef* rx);
+void process_IMU(CanRxMsgTypeDef* rx);
 
 
 void processCalibrate(CanRxMsgTypeDef* rx);
