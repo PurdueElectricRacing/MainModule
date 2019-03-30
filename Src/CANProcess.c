@@ -169,7 +169,11 @@ void taskRXCANProcess() {
           break;
         }
         case  ID_DASHBOARD: {
-          ISR_StartButtonPressed();
+        	if (rx.Data[0] == 1) {
+        		ISR_StartButtonPressed();
+        	} else {
+        		//process other button funcitonality
+        	}
           break;
         }
         case  ID_DASHBOARD1: {

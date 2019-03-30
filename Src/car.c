@@ -78,9 +78,6 @@ void ISR_StartButtonPressed() {
 			tx.StdId = ID_DASHBOARD_ACK;
 			tx.DLC = 1;
 			tx.Data[0] = 1;
-			//send the acknowledgment to dash that this was successful
-			//todo: change to vcan
-			HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
 			xQueueSendToBackFromISR(car.q_tx_vcan, &tx, 100);
   	}
 //    }
@@ -354,6 +351,7 @@ void taskCarMainRoutine() {
           //nothing
         }
         //mcCmdTorqueFake(car.throttle_acc);
+        //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
         mcCmdTorque(torque_to_send);  //command the MC to move the motor
       }
     } else if (car.state == CAR_STATE_ERROR) {
