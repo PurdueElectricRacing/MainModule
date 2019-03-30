@@ -7,6 +7,9 @@
 
 #include"car.h"
 
+#ifndef TRACTION_CONTROL_H_
+#define TRACTION_CONTROL_H_
+
 typedef struct{
 	float FL_rpm;
 	float FR_rpm;
@@ -24,3 +27,5 @@ typedef struct{
 
 //Declarations
 uint16_t TractionControl(uint32_t current_time, uint32_t * last_execution_time, uint16_t torque_pedal, uint16_t * integral_term, uint16_t * previous_torque);
+
+#endif
