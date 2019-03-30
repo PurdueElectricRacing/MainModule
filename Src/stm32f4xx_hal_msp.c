@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
+  * Copyright (c) 2019 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -58,7 +58,7 @@ extern void _Error_Handler(char *, int);
 void HAL_MspInit(void)
 {
   /* USER CODE BEGIN MspInit 0 */
-
+  
   /* USER CODE END MspInit 0 */
 
   __HAL_RCC_SYSCFG_CLK_ENABLE();
@@ -83,7 +83,7 @@ void HAL_MspInit(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 
   /* USER CODE BEGIN MspInit 1 */
-
+  
   /* USER CODE END MspInit 1 */
 }
 
@@ -96,7 +96,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
   if(hcan->Instance==CAN1)
   {
   /* USER CODE BEGIN CAN1_MspInit 0 */
-
+    
   /* USER CODE END CAN1_MspInit 0 */
     /* Peripheral clock enable */
     HAL_RCC_CAN1_CLK_ENABLED++;
@@ -123,13 +123,13 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
   /* USER CODE BEGIN CAN1_MspInit 1 */
-
+    
   /* USER CODE END CAN1_MspInit 1 */
   }
   else if(hcan->Instance==CAN2)
   {
   /* USER CODE BEGIN CAN2_MspInit 0 */
-
+    
   /* USER CODE END CAN2_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_CAN2_CLK_ENABLE();
@@ -157,7 +157,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
   /* USER CODE BEGIN CAN2_MspInit 1 */
-
+    
   /* USER CODE END CAN2_MspInit 1 */
   }
 
@@ -169,7 +169,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
   if(hcan->Instance==CAN1)
   {
   /* USER CODE BEGIN CAN1_MspDeInit 0 */
-
+    
   /* USER CODE END CAN1_MspDeInit 0 */
     /* Peripheral clock disable */
     HAL_RCC_CAN1_CLK_ENABLED--;
@@ -188,13 +188,13 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
     HAL_NVIC_DisableIRQ(CAN1_RX1_IRQn);
   /* USER CODE BEGIN CAN1_MspDeInit 1 */
-
+    
   /* USER CODE END CAN1_MspDeInit 1 */
   }
   else if(hcan->Instance==CAN2)
   {
   /* USER CODE BEGIN CAN2_MspDeInit 0 */
-
+    
   /* USER CODE END CAN2_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_CAN2_CLK_DISABLE();
@@ -214,7 +214,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
     HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
   /* USER CODE BEGIN CAN2_MspDeInit 1 */
-
+    
   /* USER CODE END CAN2_MspDeInit 1 */
   }
 

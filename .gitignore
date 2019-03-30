@@ -5,3 +5,4 @@
 !/Inc/*
 !*.ioc
 !.gitignore
+!*.bat
