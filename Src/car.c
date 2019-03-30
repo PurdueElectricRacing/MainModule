@@ -71,6 +71,14 @@ void ISR_StartButtonPressed() {
 //                            P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) { //check if precharge has finished
   	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) {
   		car.state = CAR_STATE_PREREADY2DRIVE;
+      //send acknowledge message to dashboard
+			CanTxMsgTypeDef tx;
+			tx.IDE = CAN_ID_STD;
+			tx.RTR = CAN_RTR_DATA;
+			tx.StdId = ID_DASHBOARD_ACK;
+			tx.DLC = 1;
+			tx.Data[0] = 1;
+			xQueueSendToBackFromISR(car.q_tx_vcan, &tx, 100);
   	}
 //    }
   } else {
@@ -343,6 +351,7 @@ void taskCarMainRoutine() {
           //nothing
         }
         //mcCmdTorqueFake(car.throttle_acc);
+        //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
         mcCmdTorque(torque_to_send);  //command the MC to move the motor
       }
     } else if (car.state == CAR_STATE_ERROR) {

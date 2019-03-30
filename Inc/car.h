@@ -116,7 +116,6 @@ int actualCurrentLimit;
 int errBitMap1;
 
 typedef struct {
-
   Car_state_t       state;
   uint8_t         errorFlags;
   //calibration values

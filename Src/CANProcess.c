@@ -21,25 +21,6 @@
 #include "car.h"
 #include "PedalBox.h"
 
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: RXCANProcessTask
-*
-*     Programmer's Name: Ben Ng, xbenng@gmail.com
-*
-*     Function Return Type:
-*
-*     Parameters (list data type, name, and comment one per line):
-*       1. CAN_HandleTypeDef *hcan, hcan structure address to add filter to
-*
-*     Global Dependents:
-*     1.
-*
-*     Function Description: Filter Configuration.
-*
-***************************************************************************/
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
@@ -54,25 +35,6 @@ void DCANFilterConfig() {
   HAL_CAN_ConfigFilter(car.phdcan, &FilterConf);
 }
 
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: RXCANProcessTask
-*
-*     Programmer's Name: Ben Ng, xbenng@gmail.com
-*
-*     Function Return Type:
-*
-*     Parameters (list data type, name, and comment one per line):
-*       1. CAN_HandleTypeDef *hcan, hcan structure address to add filter to
-*
-*     Global Dependents:
-*     1.
-*
-*     Function Description: Filter Configuration.
-*
-***************************************************************************/
 void VCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
@@ -207,7 +169,11 @@ void taskRXCANProcess() {
           break;
         }
         case  ID_DASHBOARD: {
-          ISR_StartButtonPressed();
+        	if (rx.Data[0] == 1) {
+        		ISR_StartButtonPressed();
+        	} else {
+        		//process other button funcitonality
+        	}
           break;
         }
         case  ID_DASHBOARD1: {
