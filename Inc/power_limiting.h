@@ -18,7 +18,6 @@
 #define VOLT_HARD_LIM	28000
 
 typedef struct {
-	SemaphoreHandle_t power_params;
 	int power_thresh;
 	int power_soft_lim;
 	int power_hard_lim;
@@ -34,6 +33,6 @@ uint8_t power_limit_volt(int16_t torque_req);
 int16_t limit_torque(int16_t torque_req);
 void init_pow_lim(void);
 
-extern power_lim_t pow_lim;
+extern volatile power_lim_t pow_lim;
 
 #endif /* POWER_LIMITING_H_ */

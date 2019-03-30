@@ -317,12 +317,7 @@ int process_bms_frame(CanRxMsgTypeDef* rx) {
 
 
 void processCalibratePowerLimit(CanRxMsgTypeDef* rx) {
-	if (xSemaphoreTake(pow_lim.power_params, 10) == pdTRUE) {
-		//set hard limit to the exact value given
-		pow_lim.power_hard_lim = rx->Data[0] << 24 | rx->Data[1] << 16 | rx->Data[2] << 8 | rx->Data[3];
-		pow_lim.power_soft_lim = (pow_lim.power_hard_lim * 97) / 100; //97%
-		pow_lim.power_thresh = (pow_lim.power_hard_lim * 90) / 100; //90%
-	} else {
-		//semaphore not received properly
-	}
+	pow_lim.power_hard_lim = rx->Data[0] << 24 | rx->Data[1] << 16 | rx->Data[2] << 8 | rx->Data[3];
+	pow_lim.power_soft_lim = (pow_lim.power_hard_lim * 97) / 100; //97%
+	pow_lim.power_thresh = (pow_lim.power_hard_lim * 90) / 100; //90%
 }
