@@ -78,6 +78,30 @@
 #define PEDALBOX1_IMP_OFFSET					1
 #define PEDALBOX1_IMP_MASK						0b00000010
 
+//Wheel Speed Defines
+//Front Left
+#define WHEEL_FL_7_0_BYTE 3
+#define WHEEL_FL_15_8_BYTE 2
+#define WHEEL_FL_23_16_BYTE 1
+#define WHEEL_FL_31_24_BYTE 0
+//Front Right
+#define WHEEL_FR_7_0_BYTE 7
+#define WHEEL_FR_15_8_BYTE 6
+#define WHEEL_FR_23_16_BYTE 5
+#define WHEEL_FR_31_24_BYTE 4
+//Rear Left
+#define WHEEL_RL_7_0_BYTE 3
+#define WHEEL_RL_15_8_BYTE 2
+#define WHEEL_RL_23_16_BYTE 1
+#define WHEEL_RL_31_24_BYTE 0
+//Rear Right
+#define WHEEL_RR_7_0_BYTE 7
+#define WHEEL_RR_15_8_BYTE 6
+#define WHEEL_RR_23_16_BYTE 5
+#define WHEEL_RR_31_24_BYTE 4
+
+
+
 
 /**
   * @brief  CAN Tx message structure definition

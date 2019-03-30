@@ -286,6 +286,11 @@ void taskSoundBuzzer(int* time_ms) {
 
 
 void taskCarMainRoutine() {
+	//Initializations for Traction Control
+	uint32_t last_time_tc = 0;
+	uint16_t int_term_tc = 0;
+	uint16_t prev_trq_tc = 0;
+
 	while (1)
 	{
 		//do this no matter what state.
@@ -406,6 +411,14 @@ void taskCarMainRoutine() {
 //			{
 //				torque_to_send = calcTorqueLimit * torque_to_send;
 //			}
+
+		//Traction_Control
+		//Assume toggle for traction control
+		uint8_t toggle_tc = 1;
+
+		if(toggle_tc == ENABLED){
+			torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
+		}
 
 		//mcCmdTorqueFake(car.throttle_acc);
 		mcCmdTorque(torque_to_send);  //command the MC to move the motor

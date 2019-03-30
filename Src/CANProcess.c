@@ -269,7 +269,7 @@ void taskRXCANProcess()
 				case	ID_WHEEL_RR:
 				case	ID_WHEEL_RL: //todo add all the other wheel module IDs
 				{
-					//processWheelModuleFrame(&rx);
+					processWheelModuleFrame(&rx);
 					break;
 				}
 				case	ID_DASHBOARD:
@@ -426,4 +426,70 @@ void process_IMU(CanRxMsgTypeDef* rx) {
 			car.state = CAR_STATE_RESET;
 		}
 	}
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: processWheelModuleFrame
+*
+*     Programmer's Name: Jose Luis Tejada
+*
+*     Function Return Type: none
+*
+*     Parameters (list data type, name, and comment one per line):
+*		1. CanRxMsgTypeDef* rx, CAN frame to be converted into a wheel speed rpm value
+*      Global Dependents:
+*	    1.
+*
+*     Function Description:
+*     	Converts CAN frame into a rpm value and sends it to pedalboxmsg handler
+*
+***************************************************************************/
+void processWheelModuleFrame(CanRxMsgTypeDef* rx){
+	wheel_speed_t temp_ws;
+
+	//Parse CAN message according to id
+	switch (rx->StdId)
+	{
+		case 	0x700: //Todo, replace with defined constants
+		{
+			uint32_t wheel_FL = (uint8_t)rx->Data[WHEEL_FL_31_24_BYTE];
+			wheel_FL = (wheel_FL << 8) | (uint8_t)rx->Data[WHEEL_FL_23_16_BYTE];
+			wheel_FL = (wheel_FL << 8) | (uint8_t)rx->Data[WHEEL_FL_15_8_BYTE];
+			wheel_FL = (wheel_FL << 8) | (uint8_t)rx->Data[WHEEL_FL_7_0_BYTE];
+
+			uint32_t wheel_FR = (uint8_t)rx->Data[WHEEL_FR_31_24_BYTE];
+			wheel_FR = (wheel_FR << 8) | (uint8_t)rx->Data[WHEEL_FR_23_16_BYTE];
+			wheel_FR = (wheel_FR << 8) | (uint8_t)rx->Data[WHEEL_FR_15_8_BYTE];
+			wheel_FR = (wheel_FR << 8) | (uint8_t)rx->Data[WHEEL_FR_7_0_BYTE];
+
+			float rpm_FL = (float)wheel_FL / 10000.0;
+			float rpm_FR = (float)wheel_FR / 10000.0;
+			temp_ws.FL_rpm = rpm_FL;
+			temp_ws.FR_rpm = rpm_FR;
+			break;
+		}
+		case	0x701:
+		{
+			uint32_t wheel_RL = (uint8_t)rx->Data[WHEEL_RL_31_24_BYTE];
+			wheel_RL = (wheel_RL << 8) | (uint8_t)rx->Data[WHEEL_RL_23_16_BYTE];
+			wheel_RL = (wheel_RL << 8) | (uint8_t)rx->Data[WHEEL_RL_15_8_BYTE];
+			wheel_RL = (wheel_RL << 8) | (uint8_t)rx->Data[WHEEL_RL_7_0_BYTE];
+
+			uint32_t wheel_RR = (uint8_t)rx->Data[WHEEL_RR_31_24_BYTE];
+			wheel_RR = (wheel_RR << 8) | (uint8_t)rx->Data[WHEEL_RR_23_16_BYTE];
+			wheel_RR = (wheel_RR << 8) | (uint8_t)rx->Data[WHEEL_RR_15_8_BYTE];
+			wheel_RR = (wheel_RR << 8) | (uint8_t)rx->Data[WHEEL_RR_7_0_BYTE];
+
+			float rpm_RL = (float) wheel_RL / 10000.0;
+			float rpm_RR = (float) wheel_RR / 10000.0;
+			temp_ws.RL_rpm = rpm_RL;
+			temp_ws.RR_rpm = rpm_RR;
+			break;
+		}
+	}
+
+	car.wheel_rpm = temp_ws;
 }

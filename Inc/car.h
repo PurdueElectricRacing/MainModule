@@ -16,6 +16,7 @@
 #include "BMS.h"
 #include "motor_controller_functions.h"
 #include <math.h>
+#include "traction_control.h"
 
 
 
@@ -97,6 +98,12 @@ typedef enum {
 	CALIBRATE_BRAKE_MAX
 } Calibrate_flag_t;
 
+typedef enum{
+	ENABLED = 1,
+	DISABLED = 0
+}CURR_STATE;
+
+
 
 int BCparam;
 int actualTorque0700;
@@ -146,6 +153,9 @@ typedef struct {
 	LC_status_t				lc_status;
 	//Pedalbox_msg_t 			pb_current_msg;
 
+	//Wheel Speed (Traction Control)
+	wheel_speed_t				wheel_rpm;
+
 	//RTOS objects, initialized in initRTOSObjects
 	QueueHandle_t			q_rx_dcan;
 	QueueHandle_t			q_tx_dcan;
@@ -156,6 +166,7 @@ typedef struct {
 
 	CAN_HandleTypeDef *		phdcan;						//pointer to car's CAN peripheral handle
 	CAN_HandleTypeDef *		phvcan;
+
 
 } Car_t;
 
