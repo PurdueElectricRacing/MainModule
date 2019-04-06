@@ -21,6 +21,8 @@
 #include "car.h"
 #include "PedalBox.h"
 
+extern SemaphoreHandle_t g_can_sem;
+
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
@@ -156,9 +158,17 @@ void taskRXCANProcess() {
   while (1) {
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
-    if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
+
+    xSemaphoreTake(g_can_sem, portMAX_DELAY);
+    BaseType_t peek = xQueuePeek(car.q_rx_vcan, &rx, portMAX_DELAY);
+
+    if (peek == pdTRUE) {
       //A CAN message has been recieved
       //check what kind of message we received
+    	xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY);
+
+    	xSemaphoreGive(g_can_sem);
+
       switch (rx.StdId) {
         case ID_PEDALBOX2: { //if pedalbox1 message
           processPedalboxFrame(&rx);

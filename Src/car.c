@@ -17,6 +17,8 @@
 
 #include "car.h"
 
+SemaphoreHandle_t g_can_sem;
+
 void carSetBrakeLight(Brake_light_status_t status)
 /***************************************************************************
 *
@@ -181,6 +183,13 @@ void initRTOSObjects() {
   car.q_tx_vcan =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
   car.q_pedalboxmsg =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
   car.q_mc_frame =    xQueueCreate(QUEUE_SIZE_MCFRAME, sizeof(CanRxMsgTypeDef));
+
+  g_can_sem = xSemaphoreCreateMutex();
+  if (g_can_sem == NULL)
+  {
+  	while(1);
+  }
+
   /* Create Tasks */
   //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
   xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
