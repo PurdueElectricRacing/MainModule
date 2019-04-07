@@ -35,7 +35,7 @@
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
 
 #define PERIOD_ACCELRO        50 / portTICK_RATE_MS
-#define PERIOD_TORQUE_SEND    20 / portTICK_RATE_MS //50 hz
+#define PERIOD_TORQUE_SEND    25
 #define HEARTBEAT_PULSEWIDTH  200 / portTICK_RATE_MS
 #define HEARTBEAT_PERIOD      100 / portTICK_RATE_MS
 #define PEDALBOX_TIMEOUT      1000 / portTICK_RATE_MS
@@ -45,12 +45,15 @@
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS  10
 #define DONT_CARE             0
+#define BUZZER_DELAY          2000
+
+#define TEST_MC
 
 
 //rtos parameter defines
 #define QUEUE_SIZE_RXCAN_1      16
 #define QUEUE_SIZE_RXCAN_2      16
-#define QUEUE_SIZE_PEDALBOXMSG    16
+#define QUEUE_SIZE_PEDALBOXMSG  16
 #define QUEUE_SIZE_TXCAN_1      10
 #define QUEUE_SIZE_TXCAN_2      10
 #define QUEUE_SIZE_MCFRAME      3

@@ -324,7 +324,8 @@ void taskCarMainRoutine() {
     }
 
     //state dependent block
-    if (car.state == CAR_STATE_INIT) {
+    if (car.state == CAR_STATE_INIT)
+    {
       disableMotorController();
       //assert these pins always
       HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
@@ -336,8 +337,9 @@ void taskCarMainRoutine() {
       //Contacts of the safety device closed,
       enableMotorController();
       //turn on buzzer
-      soundBuzzer(2000); //turn buzzer on for 2 seconds
+      soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
       car.state = CAR_STATE_READY2DRIVE;  //car is started
+
       HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
     }
     else if (car.state == CAR_STATE_READY2DRIVE)
@@ -345,15 +347,20 @@ void taskCarMainRoutine() {
       //confirm the PC is not broken
       if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
         car.state = CAR_STATE_RESET;  //car is started
-      } else {
+      }
+      else
+      {
         //assert these pins during r2d
         //HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
         //check if the age of the pedalbox message is greater than the timeout
-        if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT) {
+        if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+        {
           torque_to_send = 0;
           car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
           //todo send a CAN message to dash?
-        } else {
+        }
+        else
+        {
           car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
         }
         // TODO UNCOMMENT THIS BIT
@@ -362,7 +369,12 @@ void taskCarMainRoutine() {
 //            car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
 //            car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR) {
 //        	// TODO change this back
-          torque_to_send = car.throttle_acc / 5; //gets average
+
+#ifdef TEST_MC
+        	torque_to_send = MAX_THROTTLE_LEVEL / 5;
+#else
+          torque_to_send = car.throttle_acc; //gets average
+#endif
 //        } else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
 //          //nothing
 //        }
@@ -370,14 +382,20 @@ void taskCarMainRoutine() {
         //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
         mcCmdTorque(torque_to_send);  //command the MC to move the motor
       }
-    } else if (car.state == CAR_STATE_ERROR) {
-      //disableMotorController();
-    } else if (car.state == CAR_STATE_RESET) {
+    }
+    else if (car.state == CAR_STATE_ERROR)
+    {
+//      disableMotorController();
+    }
+    else if (car.state == CAR_STATE_RESET)
+    {
       HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
       disableMotorController();
       HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_RESET);
       car.state = CAR_STATE_INIT;
-    } else if (car.state == CAR_STATE_RECOVER) {
+    }
+    else if (car.state == CAR_STATE_RECOVER)
+    {
       //TODO:this state will need to be looked at since RINEHART is a little different
       disableMotorController();
       vTaskDelay((uint32_t) 500 / portTICK_RATE_MS);

@@ -127,9 +127,9 @@ void disableMotorController()
   CanTxMsgTypeDef tx;
   tx.IDE =      CAN_ID_STD;
   tx.StdId =    ID_RINEHART_STATION_TX;
+  tx.RTR =      CAN_RTR_DATA;
   tx.DLC =      8;
-  tx.Data[0] =
-    0x0;  //torque command byte 1 since enabling make it go zero speed don't want anyone dead...
+  tx.Data[0] =  0x0;  //torque command byte 1 since enabling make it go zero speed don't want anyone dead...
   tx.Data[1] =  0x0;  //torque command byte 2
   tx.Data[2] =  DONT_CARE;  //speed command byte 1 (irrelevant since using torque)
   tx.Data[3] =  DONT_CARE;  //speed command byte 2
@@ -165,9 +165,9 @@ void enableMotorController() {
   CanTxMsgTypeDef tx;
   tx.IDE =      CAN_ID_STD;
   tx.StdId =    ID_RINEHART_STATION_TX;
+  tx.RTR =      CAN_RTR_DATA;
   tx.DLC =      8;
-  tx.Data[0] =
-    0x0;  //torque command byte 1 since enabling make it go zero speed don't want anyone dead...
+  tx.Data[0] =  0x0;  //torque command byte 1 since enabling make it go zero speed don't want anyone dead...
   tx.Data[1] =  0x0;  //torque command byte 2
   tx.Data[2] =  DONT_CARE;  //speed command byte 1 (irrelevant since using torque)
   tx.Data[3] =  DONT_CARE;  //speed command byte 2
