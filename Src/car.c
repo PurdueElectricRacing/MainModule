@@ -48,8 +48,8 @@ void carInit() {
   car.pb_mode = PEDALBOX_MODE_DIGITAL;
   car.throttle_acc = 0;
   car.brake = 0;
-  car.phvcan = &hcan1;
-  car.phdcan = &hcan2;
+  car.phdcan = &hcan1;
+  car.phvcan = &hcan2;
   car.calibrate_flag = CALIBRATE_NONE;
   car.throttle1_min = 0x0f90;
   car.throttle1_max = 0x07e0;
@@ -246,7 +246,7 @@ void taskBlink(void* can) {
       HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
       tx.Data[0] |= 0b00001000;
     }
-    xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+    xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 
 //    CanTxMsgTypeDef tx;
 //		tx.StdId = ID_PEDALBOX_ERRORS;

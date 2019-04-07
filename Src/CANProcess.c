@@ -23,6 +23,30 @@
 
 extern SemaphoreHandle_t g_can_sem;
 
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	//HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+
+	CanRxMsgTypeDef rx;
+	CAN_RxHeaderTypeDef header;
+	HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
+	rx.DLC = header.DLC;
+	rx.StdId = header.StdId;
+	xQueueSendFromISR(car.q_rx_dcan, &rx, NULL);
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	CanRxMsgTypeDef rx;
+	CAN_RxHeaderTypeDef header;
+	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
+	rx.DLC = header.DLC;
+	rx.StdId = header.StdId;
+	xQueueSendFromISR(car.q_rx_vcan, &rx, NULL);
+}
+
+
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
@@ -160,12 +184,13 @@ void taskRXCANProcess() {
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
 
 //    xSemaphoreTake(g_can_sem, portMAX_DELAY);
-    BaseType_t peek = xQueuePeek(car.q_rx_vcan, &rx, (TickType_t) 5);
+    BaseType_t peek = xQueuePeek(car.q_rx_dcan, &rx, (TickType_t) 5);
 
-    if (peek == pdTRUE) {
-      //A CAN message has been recieved
+    if (peek == pdTRUE)
+    {
+      //A CAN message has been received
       //check what kind of message we received
-    	xQueueReceive(car.q_rx_vcan, &rx, (TickType_t) 5);
+    	xQueueReceive(car.q_rx_dcan, &rx, (TickType_t) 5);
 
 //    	xSemaphoreGive(g_can_sem);
 
@@ -182,7 +207,7 @@ void taskRXCANProcess() {
         	if (rx.Data[0] == 1) {
         		ISR_StartButtonPressed();
         	} else {
-        		//process other button funcitonality
+        		//process other button functionality
         	}
           break;
         }
@@ -209,6 +234,7 @@ void taskRXCANProcess() {
 //    		break;
 //    	}
 //    }
+    vTaskDelay(5);
 
   }
 }
