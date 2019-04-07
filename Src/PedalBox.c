@@ -117,9 +117,10 @@ void taskPedalBoxMsgHandler() {
           car.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP_PREV;
           car.apps_imp_first_time_ms = current_time_ms;
         }
-      } else {
+      }
+      else
+      {
         car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
-        
       }
       
       

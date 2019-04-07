@@ -71,7 +71,8 @@ void ISR_StartButtonPressed() {
 //    if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
 //        && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port,
 //                            P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) { //check if precharge has finished
-  	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) {
+  	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
+  	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
 			CanTxMsgTypeDef tx;
@@ -80,7 +81,7 @@ void ISR_StartButtonPressed() {
 			tx.StdId = ID_DASHBOARD_ACK;
 			tx.DLC = 1;
 			tx.Data[0] = 1;
-			xQueueSendToBackFromISR(car.q_tx_vcan, &tx, 100);
+			xQueueSendToBack(car.q_tx_dcan, &tx, 100);
   	}
 //    }
   } else {
@@ -177,8 +178,8 @@ void initRTOSObjects() {
   *
   ***************************************************************************/
   /* Create Queues */
-//  car.q_rx_dcan =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
-//  car.q_tx_dcan =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
+  car.q_rx_dcan =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
+  car.q_tx_dcan =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
   car.q_rx_vcan =       xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
   car.q_tx_vcan =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
   car.q_pedalboxmsg =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
@@ -194,7 +195,7 @@ void initRTOSObjects() {
   //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
   xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
   xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 1, NULL);
-//  xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
+  xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
   xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
@@ -209,7 +210,7 @@ void taskBlink(void* can) {
     tx.IDE = CAN_ID_STD;
     tx.RTR = CAN_RTR_DATA;
     tx.StdId = 0x200;
-    tx.DLC = 1;
+    tx.DLC = 3;
     tx.Data[0] = 0;
     switch (car.state) {
       case CAR_STATE_INIT :
@@ -231,22 +232,22 @@ void taskBlink(void* can) {
         tx.Data[0] |= 0b00000101;
     }
     if (car.apps_state_imp == PEDALBOX_STATUS_ERROR) {
-      tx.Data[0] |= 0b00010000;
+      tx.Data[1] |= 0b00010000;
     }
     if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
-      tx.Data[0] |= 0b00100000;
+      tx.Data[1] |= 0b00100000;
     }
     if (car.apps_state_eor == PEDALBOX_STATUS_ERROR) {
-      tx.Data[0] |= 0b01000000;
+      tx.Data[1] |= 0b01000000;
     }
     if (car.apps_state_timeout == PEDALBOX_STATUS_ERROR) {
-      tx.Data[0] |= 0b10000000;
+      tx.Data[1] |= 0b10000000;
     }
     if (!HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin)) {
       HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-      tx.Data[0] |= 0b00001000;
+      tx.Data[2] |= 0b00001000;
     }
-    xQueueSendToBack(car.q_tx_vcan, &tx, 100);
+    xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
 //    CanTxMsgTypeDef tx;
 //		tx.StdId = ID_PEDALBOX_ERRORS;
@@ -327,7 +328,9 @@ void taskCarMainRoutine() {
       disableMotorController();
       //assert these pins always
       HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
-    } else if (car.state == CAR_STATE_PREREADY2DRIVE) {
+    }
+    else if (car.state == CAR_STATE_PREREADY2DRIVE)
+    {
       HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
       //bamocar 5.2
       //Contacts of the safety device closed,
@@ -336,7 +339,9 @@ void taskCarMainRoutine() {
       soundBuzzer(2000); //turn buzzer on for 2 seconds
       car.state = CAR_STATE_READY2DRIVE;  //car is started
       HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
-    } else if (car.state == CAR_STATE_READY2DRIVE) {
+    }
+    else if (car.state == CAR_STATE_READY2DRIVE)
+    {
       //confirm the PC is not broken
       if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
         car.state = CAR_STATE_RESET;  //car is started
@@ -351,14 +356,16 @@ void taskCarMainRoutine() {
         } else {
           car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
         }
-        if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
-            car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
-            car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
-            car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR) {
-          torque_to_send = car.throttle_acc; //gets average
-        } else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
-          //nothing
-        }
+        // TODO UNCOMMENT THIS BIT
+//        if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
+//            car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
+//            car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
+//            car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR) {
+//        	// TODO change this back
+          torque_to_send = car.throttle_acc / 5; //gets average
+//        } else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
+//          //nothing
+//        }
         //mcCmdTorqueFake(car.throttle_acc);
         //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
         mcCmdTorque(torque_to_send);  //command the MC to move the motor

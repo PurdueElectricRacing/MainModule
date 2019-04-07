@@ -53,7 +53,7 @@ void DCANFilterConfig() {
   FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
   FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
   FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
-  FilterConf.FilterMaskIdLow =      0x000;       // 1
+  FilterConf.FilterMaskIdLow =      0x7fe;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -205,9 +205,12 @@ void taskRXCANProcess() {
           break;
         }
         case  ID_DASHBOARD: {
-        	if (rx.Data[0] == 1) {
+//        	if (rx.Data[0] == 1)
+        	{
         		ISR_StartButtonPressed();
-        	} else {
+        	}
+//        	else
+        	{
         		//process other button functionality
         	}
           break;
