@@ -177,8 +177,8 @@ void initRTOSObjects() {
   *
   ***************************************************************************/
   /* Create Queues */
-  car.q_rx_dcan =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
-  car.q_tx_dcan =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
+//  car.q_rx_dcan =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
+//  car.q_tx_dcan =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
   car.q_rx_vcan =       xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
   car.q_tx_vcan =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
   car.q_pedalboxmsg =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
@@ -194,7 +194,7 @@ void initRTOSObjects() {
   //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
   xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
   xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 1, NULL);
-  xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
+//  xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
   xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);

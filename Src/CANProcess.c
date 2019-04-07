@@ -159,15 +159,15 @@ void taskRXCANProcess() {
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
 
-    xSemaphoreTake(g_can_sem, portMAX_DELAY);
-    BaseType_t peek = xQueuePeek(car.q_rx_vcan, &rx, portMAX_DELAY);
+//    xSemaphoreTake(g_can_sem, portMAX_DELAY);
+    BaseType_t peek = xQueuePeek(car.q_rx_vcan, &rx, (TickType_t) 5);
 
     if (peek == pdTRUE) {
       //A CAN message has been recieved
       //check what kind of message we received
-    	xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY);
+    	xQueueReceive(car.q_rx_vcan, &rx, (TickType_t) 5);
 
-    	xSemaphoreGive(g_can_sem);
+//    	xSemaphoreGive(g_can_sem);
 
       switch (rx.StdId) {
         case ID_PEDALBOX2: { //if pedalbox1 message
@@ -199,16 +199,16 @@ void taskRXCANProcess() {
       }
     }
     
-    if (xQueueReceive(car.phdcan, &rx, portMAX_DELAY) == pdTRUE) {
-    	switch (rx.StdId) {
-    	case ID_WHEEL_FRONT:
-    		//TODO
-    		break;
-    	case ID_WHEEL_REAR:
-    		//TODO
-    		break;
-    	}
-    }
+//    if (xQueueReceive(car.phdcan, &rx, (TickType_t) 5) == pdTRUE) {
+//    	switch (rx.StdId) {
+//    	case ID_WHEEL_FRONT:
+//    		//TODO
+//    		break;
+//    	case ID_WHEEL_REAR:
+//    		//TODO
+//    		break;
+//    	}
+//    }
 
   }
 }
