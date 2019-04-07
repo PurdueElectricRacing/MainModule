@@ -49,10 +49,11 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5; // 0
-  FilterConf.FilterMaskIdHigh =     0x7ff;       // 3
-  FilterConf.FilterMaskIdLow =      0x7fe;       // 1
+
+  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
+  FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
+  FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
+  FilterConf.FilterMaskIdLow =      0x000;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -63,10 +64,10 @@ void DCANFilterConfig() {
 
 void VCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
-  FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
-  FilterConf.FilterMaskIdLow =      0x7ff;       // 1
+  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
+  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5; // 0
+  FilterConf.FilterMaskIdHigh =     0x000;       // 3
+  FilterConf.FilterMaskIdLow =      0x000;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
   FilterConf.FilterBank = 1;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
