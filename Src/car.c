@@ -152,6 +152,17 @@ int taskHeartbeat() {
   // write to GPIO
   while (1) {
     HAL_GPIO_TogglePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin);
+	int batteryStatus;
+	batteryStatus = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
+	if(batteryStatus == GPIO_PIN_SET)
+	{
+	  HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
+	}
+	else
+	{
+	  HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
+	  vTaskDelay(500);
+	}
     vTaskDelay(HEARTBEAT_PERIOD);
   }
 }
