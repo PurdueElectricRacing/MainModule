@@ -35,8 +35,6 @@
 #define WM_SPEED_11_8_MASK          0x0F00
 
 
-
-
 //pedalbox defines //todo not sure if better to send whole frame or just pbmsg.
 #define PEDALBOX1_FILTER                0 //filter number corresponding to the PEDALBOX1 message
 #define PEDALBOX1_THROT1_7_0_BYTE       1

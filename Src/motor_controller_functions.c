@@ -178,3 +178,22 @@ void enableMotorController() {
   
   xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 }
+
+void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data)
+{
+	CanTxMsgTypeDef tx;
+	tx.IDE =      CAN_ID_STD;
+	tx.StdId =    ID_RINEHART_STATION_TX;
+	tx.RTR =      CAN_RTR_DATA;
+	tx.DLC =      8;
+	tx.Data[0] =  (param_addr >> 8) & 0xFF;
+	tx.Data[1] =  param_addr & 0xFF;
+	tx.Data[2] =  rw_cmd;
+	tx.Data[3] =  0;
+	tx.Data[4] =  (data >> 8) & 0xFF;
+	tx.Data[5] =  data & 0xFF;
+	tx.Data[6] =  0;
+	tx.Data[7] =  0;
+
+  xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+}

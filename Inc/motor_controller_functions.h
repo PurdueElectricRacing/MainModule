@@ -17,6 +17,8 @@ void mcCmdTorque(uint16_t);
 void mcCmdTorqueFake(uint16_t);
 void disableMotorController();
 void enableMotorController();
+void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data);
+
 
 //Broadcast ID's
 #define ID_RINEHART_TEMP1						0x0A0
