@@ -41,8 +41,8 @@ void enableMotorController();
 #define ID_RINEHART_PARAM_RESP			0x0C2
 
 //CAN Defines
-#define RINEHART_FORWARD          1
-#define RINEHART_BACKWARD         0
+#define RINEHART_FORWARD          0
+#define RINEHART_BACKWARD         1
 #define INVERTER_ENABLE           1   //set this bit to enable the MC
 #define INVERTER_DISABLE          0   //clear this bit to disable the MC
 #define INVERTER_DISCHARGE_ENABLE 2   //internal discharge resistor on
@@ -53,7 +53,7 @@ void enableMotorController();
 #define RESERVED                  0
 
 
-//Brodcast configuration bytes Pages 16-17 of the Rinehart CAN Manual
+//Broadcast configuration bytes Pages 16-17 of the Rinehart CAN Manual
 //Data byte 4 commands
 #define MC_TEMP1            0x1
 #define MC_TEMP2            0x2

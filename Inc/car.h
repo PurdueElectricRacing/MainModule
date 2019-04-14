@@ -34,6 +34,7 @@
 #define APPS_BP_PLAUS_RESET_THRESHOLD .05  //EV 2.5
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
 
+
 #define PERIOD_ACCELRO        50 / portTICK_RATE_MS
 #define PERIOD_TORQUE_SEND    25
 #define HEARTBEAT_PULSEWIDTH  200 / portTICK_RATE_MS
@@ -48,6 +49,7 @@
 #define BUZZER_DELAY          2000
 
 #define TEST_MC
+#define MC_TEST_TORQUE MAX_THROTTLE_LEVEL / 10
 
 
 //rtos parameter defines

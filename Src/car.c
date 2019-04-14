@@ -371,7 +371,7 @@ void taskCarMainRoutine() {
 //        	// TODO change this back
 
 #ifdef TEST_MC
-        	torque_to_send = MAX_THROTTLE_LEVEL / 5;
+        	torque_to_send = MC_TEST_TORQUE;
 #else
           torque_to_send = car.throttle_acc; //gets average
 #endif

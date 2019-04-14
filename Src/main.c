@@ -96,8 +96,26 @@ int main(void)
   DCANFilterConfig();
   VCANFilterConfig();
   initRTOSObjects();  //start tasks in here
-  HAL_CAN_Start(&hcan1);
-  HAL_CAN_Start(&hcan2);
+
+
+  if (HAL_CAN_Start(&hcan1) != HAL_OK)
+  {
+  	while(PER == GREAT)
+		{
+  		HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
+  		HAL_Delay(1000);
+		}
+  }
+
+  if (HAL_CAN_Start(&hcan2) != HAL_OK)
+	{
+		while(PER == GREAT)
+		{
+			HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
+			HAL_Delay(1000);
+		}
+	}
+
   
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 //  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO1_MSG_PENDING);

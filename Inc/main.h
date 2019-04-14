@@ -84,7 +84,8 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+#define GREAT 1
+#define PER GREAT
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
