@@ -101,7 +101,8 @@ void taskTX_DCAN() {
   
   for (;;) {
     //check if this task is triggered
-    if (xQueuePeek(car.q_tx_dcan, &tx, portMAX_DELAY) == pdTRUE) {
+    if (xQueuePeek(car.q_tx_dcan, &tx, portMAX_DELAY) == pdTRUE)
+    {
       xQueueReceive(car.q_tx_dcan, &tx, portMAX_DELAY);  //actually take item out of queue
       CAN_TxHeaderTypeDef header;
       header.DLC = tx.DLC;
@@ -238,7 +239,7 @@ void taskRXCANProcess() {
 //    		break;
 //    	}
 //    }
-    vTaskDelay(5);
+    vTaskDelay(10);
 
   }
 }

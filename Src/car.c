@@ -213,7 +213,8 @@ void initRTOSObjects() {
   xTaskCreate(taskHeartbeat, "heartbeat", 128, NULL, 1, NULL);
 }
 //extern uint8_t variable;
-void taskBlink(void* can) {
+void taskBlink(void* can)
+{
   //vTaskDelay(5000); //TESTING1
   while (1) {
     //HAL_GPIO_TogglePin(FRG_RUN_CTRL_GPIO_Port, FRG_RUN_CTRL_Pin);
@@ -261,19 +262,6 @@ void taskBlink(void* can) {
     }
     xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
-//    CanTxMsgTypeDef tx;
-//		tx.StdId = ID_PEDALBOX_ERRORS;
-//		tx.Data[0] = car.apps_state_bp_plaus;
-//		tx.Data[1] = car.apps_state_eor;
-//		tx.Data[2] = car.apps_state_imp;
-//		tx.Data[3] = car.apps_state_timeout;
-//		tx.DLC = 4;
-//		tx.IDE = CAN_ID_STD;
-//		tx.RTR = CAN_RTR_DATA;
-//		xQueueSendToBack(car.q_tx_dcan, &tx, 100);
-    //    //req regid 40
-    //mcCmdTransmissionRequestSingle(0x40);
-    //HAL_CAN_Receive_IT(&hcan1, 0);
     vTaskDelay(250 / portTICK_RATE_MS);
   }
 }
@@ -383,11 +371,13 @@ void taskCarMainRoutine() {
 //        	// TODO change this back
 
 #ifdef TEST_MC
-        	torque_to_send = MAX_THROTTLE_LEVEL / 5;
+        	torque_to_send = MC_TEST_TORQUE;
 #else
           torque_to_send = car.throttle_acc; //gets average
 #endif
-//        } else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
+//        }
+//        else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR)
+//        {
 //          //nothing
 //        }
         //mcCmdTorqueFake(car.throttle_acc);
