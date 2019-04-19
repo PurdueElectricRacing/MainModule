@@ -152,17 +152,17 @@ int taskHeartbeat() {
   // write to GPIO
   while (1) {
     HAL_GPIO_TogglePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin);
-	int batteryStatus;
-	batteryStatus = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
-	if(batteryStatus == GPIO_PIN_SET)
-	{
-	  HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
-	}
-	else
-	{
-	  HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
-	  vTaskDelay(500);
-	}
+    int batteryStatus;
+    batteryStatus = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
+    if(batteryStatus == GPIO_PIN_SET)
+    {
+      HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
+    }
+    else
+    {
+      HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
+      vTaskDelay(500);
+    }
     vTaskDelay(HEARTBEAT_PERIOD);
   }
 }
@@ -210,6 +210,7 @@ void initRTOSObjects() {
   xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
   xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
+  xTaskCreate(taskHeartbeat, "heartbeat", 128, NULL, 1, NULL);
 }
 //extern uint8_t variable;
 void taskBlink(void* can) {
