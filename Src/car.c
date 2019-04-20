@@ -67,6 +67,7 @@ void carInit() {
 }
 
 void ISR_StartButtonPressed() {
+
   if (car.state == CAR_STATE_INIT) {
 //    if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
 //        && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port,
@@ -86,6 +87,14 @@ void ISR_StartButtonPressed() {
 //    }
   } else {
     car.state = CAR_STATE_RESET;
+    //Send an acknowledge message to dashboard
+    	CanTxMsgTypeDef tx;
+    	tx.IDE = CAN_ID_STD;
+    	tx.RTR = CAN_RTR_DATA;
+    	tx.StdId = ID_DASHBOARD_ACK;
+    	tx.DLC = 1;
+    	tx.Data[0] = 2;
+    	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
   }
 }
 
