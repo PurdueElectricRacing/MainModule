@@ -68,11 +68,11 @@ void carInit() {
 
 void ISR_StartButtonPressed() {
 
-  if (car.state == CAR_STATE_INIT) {
-//    if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
-//        && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port,
-//                            P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) { //check if precharge has finished
-  	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
+  if (car.state == CAR_STATE_INIT)
+  {
+    if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
+        && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) //check if precharge has finished
+//  	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
   	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
@@ -84,17 +84,17 @@ void ISR_StartButtonPressed() {
 			tx.Data[0] = 1;
 			xQueueSendToBack(car.q_tx_dcan, &tx, 100);
   	}
-//    }
-  } else {
+  }
+  else {
     car.state = CAR_STATE_RESET;
     //Send an acknowledge message to dashboard
-    	CanTxMsgTypeDef tx;
-    	tx.IDE = CAN_ID_STD;
-    	tx.RTR = CAN_RTR_DATA;
-    	tx.StdId = ID_DASHBOARD_ACK;
-    	tx.DLC = 1;
-    	tx.Data[0] = 2;
-    	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+    CanTxMsgTypeDef tx;
+    tx.IDE = CAN_ID_STD;
+    tx.RTR = CAN_RTR_DATA;
+    tx.StdId = ID_DASHBOARD_ACK;
+    tx.DLC = 1;
+    tx.Data[0] = 2;
+    xQueueSendToBack(car.q_tx_dcan, &tx, 100);
   }
 }
 
@@ -304,116 +304,125 @@ void soundBuzzer(int time_ms) {
 
 
 
-void taskCarMainRoutine() {
-  while (1) {
-    //do this no matter what state.
-    //get current time in ms
-    TickType_t current_tick_time = xTaskGetTickCount();
-    uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
-    int16_t torque_to_send = 0;
-    HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-    //always active block
-    //Brake
-    //check if brake level is greater than the threshold level
-    if (car.brake >= BRAKE_PRESSED_THRESHOLD) {
-      //brake is presssed
-      carSetBrakeLight(BRAKE_LIGHT_ON);  //turn on brake light
-      //EV 2.5, check if the throttle level is greater than 25% while brakes are on
-//        if (throttle_avg > APPS_BP_PLAUS_THRESHOLD) {
-//          //set apps-brake pedal plausibility error
-//          car.apps_bp_plaus = PEDALBOX_STATUS_ERROR;
-//        }
-    } else {
-      //brake is not pressed
-      carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
-    }
-    if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_SET &&
-        car.state == CAR_STATE_READY2DRIVE) {
-      car.state = CAR_STATE_RESET;
-    }
+void taskCarMainRoutine()
+{
+  TickType_t current_tick_time = xTaskGetTickCount();
+  uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
+  int16_t torque_to_send = 0;
 
-    //state dependent block
-    if (car.state == CAR_STATE_INIT)
-    {
-      disableMotorController();
-      //assert these pins always
-      HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
-    }
-    else if (car.state == CAR_STATE_PREREADY2DRIVE)
-    {
-      HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
-      //bamocar 5.2
-      //Contacts of the safety device closed,
-      enableMotorController();
-      //turn on buzzer
-      soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
-      car.state = CAR_STATE_READY2DRIVE;  //car is started
-
-      HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
-    }
-    else if (car.state == CAR_STATE_READY2DRIVE)
-    {
-      //confirm the PC is not broken
-      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
-        car.state = CAR_STATE_RESET;  //car is started
+  while (1)
+  {
+      //do this no matter what state.
+      //get current time in ms
+      HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
+      //always active block
+      //Brake
+      //check if brake level is greater than the threshold level
+      if (car.brake >= BRAKE_PRESSED_THRESHOLD)
+      {
+        //brake is presssed
+        carSetBrakeLight(BRAKE_LIGHT_ON);  //turn on brake light
+        //EV 2.5, check if the throttle level is greater than 25% while brakes are on
+        if (car.throttle_acc > APPS_BP_PLAUS_THRESHOLD)
+        {
+          //set apps-brake pedal plausibility error
+          car.apps_state_bp_plaus = PEDALBOX_STATUS_ERROR;
+        }
       }
       else
       {
-        //assert these pins during r2d
-        //HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
-        //check if the age of the pedalbox message is greater than the timeout
-        if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+        //brake is not pressed
+        carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
+      }
+
+      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_SET &&
+          car.state == CAR_STATE_READY2DRIVE)
+      {
+        car.state = CAR_STATE_RESET;
+      }
+
+      //state dependent block
+      if (car.state == CAR_STATE_INIT)
+      {
+        disableMotorController();
+        //assert these pins always
+        HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
+      }
+      else if (car.state == CAR_STATE_PREREADY2DRIVE)
+      {
+        HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
+        //bamocar 5.2
+        //Contacts of the safety device closed,
+        enableMotorController();
+        //turn on buzzer
+        soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
+        car.state = CAR_STATE_READY2DRIVE;  //car is started
+
+        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
+      }
+      else if (car.state == CAR_STATE_READY2DRIVE)
+      {
+        //confirm the PC is not broken
+        if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
         {
-          torque_to_send = 0;
-          car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
-          //todo send a CAN message to dash?
+          car.state = CAR_STATE_RESET;  //car is started
         }
         else
         {
-          car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
-        }
-        // TODO UNCOMMENT THIS BIT
-//        if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
-//            car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
-//            car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
-//            car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR) {
-//        	// TODO change this back
+          //assert these pins during r2d
+          //HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
+          //check if the age of the pedalbox message is greater than the timeout
+          if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+          {
+            torque_to_send = 0;
+            car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
+            //todo send a CAN message to dash?
+          }
+          else
+          {
+            car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
+          }
 
-#ifdef TEST_MC
-        	torque_to_send = MC_TEST_TORQUE;
-#else
-          torque_to_send = car.throttle_acc; //gets average
-#endif
-//        }
-//        else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR)
-//        {
-//          //nothing
-//        }
-        //mcCmdTorqueFake(car.throttle_acc);
-        //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
-        mcCmdTorque(torque_to_send);  //command the MC to move the motor
+          if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
+              car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
+              car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
+              car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
+          {
+  #ifdef TEST_MC
+            torque_to_send = MC_TEST_TORQUE;
+  #else
+            torque_to_send = car.throttle_acc; //gets average
+  #endif
+          }
+          else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR)
+          {
+            //nothing
+          }
+          mcCmdTorqueFake(car.throttle_acc);
+          //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
+          mcCmdTorque(torque_to_send);  //command the MC to move the motor
+        }
       }
+      else if (car.state == CAR_STATE_ERROR)
+      {
+        disableMotorController();
+      }
+      else if (car.state == CAR_STATE_RESET)
+      {
+        HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
+        disableMotorController();
+        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_RESET);
+        car.state = CAR_STATE_INIT;
+      }
+      else if (car.state == CAR_STATE_RECOVER)
+      {
+        //TODO:this state will need to be looked at since RINEHART is a little different
+        disableMotorController();
+        vTaskDelay((uint32_t) 500 / portTICK_RATE_MS);
+        enableMotorController();
+        car.state = CAR_STATE_READY2DRIVE;
+      }
+      //wait until Constant 50 Hz rate
+      vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
     }
-    else if (car.state == CAR_STATE_ERROR)
-    {
-//      disableMotorController();
-    }
-    else if (car.state == CAR_STATE_RESET)
-    {
-      HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
-      disableMotorController();
-      HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_RESET);
-      car.state = CAR_STATE_INIT;
-    }
-    else if (car.state == CAR_STATE_RECOVER)
-    {
-      //TODO:this state will need to be looked at since RINEHART is a little different
-      disableMotorController();
-      vTaskDelay((uint32_t) 500 / portTICK_RATE_MS);
-      enableMotorController();
-      car.state = CAR_STATE_READY2DRIVE;
-    }
-    //wait until Constant 50 Hz rate
-    vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
-  }
 }

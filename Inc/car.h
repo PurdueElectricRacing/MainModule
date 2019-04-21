@@ -48,7 +48,7 @@
 #define DONT_CARE             0
 #define BUZZER_DELAY          2000
 
-#define TEST_MC
+//#define TEST_MC
 #define MC_TEST_TORQUE MAX_THROTTLE_LEVEL / 5
 
 
@@ -169,13 +169,13 @@ void ISR_StartButtonPressed();
 void carInit();
 void taskPedalBoxMsgHandler();
 void taskCarMainRoutine();
-int SendTorqueTask();
+//int SendTorqueTask();
 int mainModuleWatchdogTask();
 int taskHeartbeat();
 void initRTOSObjects();
 void taskBlink(void* can);
-void stopCar();
-void taskSendAccelero();
+//void stopCar();
+//void taskSendAccelero();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
 
