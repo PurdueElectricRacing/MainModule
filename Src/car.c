@@ -267,7 +267,7 @@ void taskBlink(void* can)
     if (car.apps_state_timeout == PEDALBOX_STATUS_ERROR) {
       tx.Data[1] |= 0b10000000;
     }
-    if (!HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin)) {
+    if (!(HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == PC_COMPLETE)) {
       HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
       tx.Data[2] |= 0b00001000;
     }
@@ -308,12 +308,11 @@ void soundBuzzer(int time_ms) {
 
 void taskCarMainRoutine()
 {
-  TickType_t current_tick_time = xTaskGetTickCount();
-  uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
-  int16_t torque_to_send = 0;
-
   while (1)
   {
+      TickType_t current_tick_time = xTaskGetTickCount();
+      uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
+      int16_t torque_to_send = 0;
       //do this no matter what state.
       //get current time in ms
       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
