@@ -100,10 +100,10 @@ void taskPedalBoxMsgHandler() {
 //        ||
 //        !(throttle2_sign * pedalboxmsg.throttle2_raw >= throttle2_sign * car.throttle2_min &&
 //        throttle2_sign * pedalboxmsg.throttle2_raw <= throttle2_sign * car.throttle2_max)
-        pedalboxmsg.throttle1_raw >= 0x0e70 ||
-        pedalboxmsg.throttle1_raw <= 0x019a ||
-        pedalboxmsg.throttle2_raw >= 0x0e70 ||
-        pedalboxmsg.throttle2_raw <= 0x019a
+        pedalboxmsg.throttle1_raw >= THROTTLE_1_MIN ||
+        pedalboxmsg.throttle1_raw <= THROTTLE_1_MAX ||
+        pedalboxmsg.throttle2_raw >= THROTTLE_2_MIN ||
+        pedalboxmsg.throttle2_raw <= THROTTLE_2_MAX
       )
       {
         car.apps_state_eor = PEDALBOX_STATUS_ERROR;

@@ -51,10 +51,12 @@ void carInit() {
   car.phdcan = &hcan1;
   car.phvcan = &hcan2;
   car.calibrate_flag = CALIBRATE_NONE;
-  car.throttle1_min = 0x0f90;
-  car.throttle1_max = 0x07e0;
-  car.throttle2_min = 0x0ed0;
-  car.throttle2_max = 0x06c0;
+  car.throttle1_min = THROTTLE_1_MIN;
+  car.throttle1_max = THROTTLE_1_MAX;
+  //TODO: throttle1_max = 0x04A2
+  car.throttle2_min = THROTTLE_2_MIN;
+  //TODO: throttle2_max = 0x037A
+  car.throttle2_max = THROTTLE_2_MAX;
   car.brake1_min = 0x027c;
   car.brake1_max = 0x0900;
   car.brake2_min = 0x026f;

@@ -84,7 +84,7 @@ void configbroadcast (uint8_t* inputArray) {
   CanTxMsgTypeDef tx;
   
   tx.IDE =      CAN_ID_STD;
-  tx.StdId =    ID_RINEHART_STATION_TX;
+  tx.StdId =    ID_RINEHART_PARAM_CMD;
   tx.DLC =      8;
   tx.RTR =      CAN_RTR_DATA;
   tx.Data[0] =  CONFIGURE_LOW; //parameter address
