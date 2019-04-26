@@ -184,8 +184,6 @@ void taskRXCANProcess() {
   while (1) {
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
-
-//    xSemaphoreTake(g_can_sem, portMAX_DELAY);
     BaseType_t peek = xQueuePeek(car.q_rx_dcan, &rx, (TickType_t) 5);
 
     if (peek == pdTRUE)
@@ -193,8 +191,6 @@ void taskRXCANProcess() {
       //A CAN message has been received
       //check what kind of message we received
     	xQueueReceive(car.q_rx_dcan, &rx, (TickType_t) 5);
-
-//    	xSemaphoreGive(g_can_sem);
 
       switch (rx.StdId) {
         case ID_PEDALBOX2: { //if pedalbox1 message
