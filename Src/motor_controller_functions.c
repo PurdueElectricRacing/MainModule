@@ -58,47 +58,6 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
   xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 }
 
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: configbroadcast
-*
-*     Programmer's Name: Tamim Noor
-*                  Enrico William
-*                  David Farrell
-*                  Elijah Peters
-*
-*     Function Return Type: void
-*
-*     Parameters (list data type, name, and comment one per line):
-*       1. inputArray,
-*
-*      Global Dependents:
-*      car.q_tx_dcan
-*
-*     Function Description:
-*     broadcasts configurations pg 16 - 17 on RMS CAN Protocol
-***************************************************************************/
-void configbroadcast (uint8_t* inputArray) {
-  CanTxMsgTypeDef tx;
-  
-  tx.IDE =      CAN_ID_STD;
-  tx.StdId =    ID_RINEHART_PARAM_CMD;
-  tx.DLC =      8;
-  tx.RTR =      CAN_RTR_DATA;
-  tx.Data[0] =  CONFIGURE_LOW; //parameter address
-  tx.Data[1] =  CONFIGURE_HIGH; //parameter address
-  tx.Data[2] =  WRITE;//R/W Command
-  tx.Data[3] =  RESERVED; //RESERVED
-  tx.Data[4] =  inputArray[0];  //First Data Command
-  tx.Data[5] =  inputArray[1];  //Second Data Command
-  tx.Data[6] =  inputArray[2];  //Third Data Command
-  tx.Data[7] =  inputArray[3];  //Fourth Data Command
-  
-  xQueueSendToBack(car.q_tx_dcan, &tx, 100);
-}
-
 void disableMotorController()
 /***************************************************************************
 *
@@ -112,7 +71,7 @@ void disableMotorController()
 *
 *     Parameters (list data type, name, and comment one per line):
 *       1.Pedalbox_msg_t msg
-      brake_level from pedalbox potentiometer
+*     brake_level from pedalbox potentiometer
 *     throttle_level from pedalbox potentiometer
 *     APPS_Implausible flag
 *     EOR flag
@@ -183,7 +142,7 @@ void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data)
 {
 	CanTxMsgTypeDef tx;
 	tx.IDE =      CAN_ID_STD;
-	tx.StdId =    ID_RINEHART_STATION_TX;
+	tx.StdId =    ID_RINEHART_PARAM_CMD;
 	tx.RTR =      CAN_RTR_DATA;
 	tx.DLC =      8;
 	tx.Data[0] =  (param_addr >> 8) & 0xFF;
@@ -194,6 +153,46 @@ void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data)
 	tx.Data[5] =  data & 0xFF;
 	tx.Data[6] =  0;
 	tx.Data[7] =  0;
+
+  xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: configbroadcast
+*
+*     Programmer's Name: Tamim Noor
+*                  Enrico William
+*                  David Farrell
+*                  Elijah Peters
+*
+*     Function Return Type: void
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. inputArray,
+*
+*      Global Dependents:
+*      car.q_tx_dcan
+*
+*     Function Description:
+*     broadcasts configurations pg 16 - 17 on RMS CAN Protocol
+***************************************************************************/
+void configbroadcast (uint8_t* inputArray) {
+  CanTxMsgTypeDef tx;
+  tx.IDE =      CAN_ID_STD;
+  tx.StdId =    ID_RINEHART_PARAM_CMD;
+  tx.DLC =      8;
+  tx.RTR =      CAN_RTR_DATA;
+  tx.Data[0] =  CONFIGURE_LOW; //parameter address
+  tx.Data[1] =  CONFIGURE_HIGH; //parameter address
+  tx.Data[2] =  WRITE;//R/W Command
+  tx.Data[3] =  RESERVED; //RESERVED
+  tx.Data[4] =  inputArray[0];  //First Data Command
+  tx.Data[5] =  inputArray[1];  //Second Data Command
+  tx.Data[6] =  inputArray[2];  //Third Data Command
+  tx.Data[7] =  inputArray[3];  //Fourth Data Command
 
   xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 }

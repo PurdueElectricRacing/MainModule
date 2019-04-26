@@ -53,9 +53,7 @@ void carInit() {
   car.calibrate_flag = CALIBRATE_NONE;
   car.throttle1_min = THROTTLE_1_MIN;
   car.throttle1_max = THROTTLE_1_MAX;
-  //TODO: throttle1_max = 0x04A2
   car.throttle2_min = THROTTLE_2_MIN;
-  //TODO: throttle2_max = 0x037A
   car.throttle2_max = THROTTLE_2_MAX;
   car.brake1_min = 0x027c;
   car.brake1_max = 0x0900;
@@ -74,7 +72,6 @@ void ISR_StartButtonPressed() {
   {
     if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
         && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) //check if precharge has finished
-//  	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
   	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
@@ -226,7 +223,6 @@ void initRTOSObjects() {
 //extern uint8_t variable;
 void taskBlink(void* can)
 {
-  //vTaskDelay(5000); //TESTING1
   while (1) {
     //HAL_GPIO_TogglePin(FRG_RUN_CTRL_GPIO_Port, FRG_RUN_CTRL_Pin);
     HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
@@ -371,8 +367,8 @@ void taskCarMainRoutine()
         else
         {
           //assert these pins during r2d
-          //HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);
           //check if the age of the pedalbox message is greater than the timeout
+          //T.6.2.10 b
           if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
           {
             torque_to_send = 0;
@@ -389,11 +385,7 @@ void taskCarMainRoutine()
               car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
               car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
           {
-  #ifdef TEST_MC
-            torque_to_send = MC_TEST_TORQUE;
-  #else
             torque_to_send = car.throttle_acc; //gets average
-  #endif
           }
           else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR)
           {
@@ -403,10 +395,6 @@ void taskCarMainRoutine()
           //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
           mcCmdTorque(torque_to_send);  //command the MC to move the motor
         }
-      }
-      else if (car.state == CAR_STATE_ERROR)
-      {
-        disableMotorController();
       }
       else if (car.state == CAR_STATE_RESET)
       {
