@@ -18,12 +18,6 @@
 ***************************************************************************/
 #include <CANProcess.h>
 
-#include "car.h"
-#include "PedalBox.h"
-
-extern SemaphoreHandle_t g_can_sem;
-
-
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	//HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
@@ -238,7 +232,7 @@ void taskRXCANProcess() {
         processCalibratePowerLimit(&rx);
         break;
       }
-      case ID_BMS:
+      case ID_BMS_MACRO:
       {
         process_bms_frame(&rx);
         break;
@@ -339,22 +333,17 @@ void processCalibrate(CanRxMsgTypeDef* rx) {
 int process_bms_frame(CanRxMsgTypeDef* rx) {
 	//process the bms can frame
 	//take the BMS semaphore
-	if (xSemaphoreTake(bms.bms_params, 10) == pdTRUE) {
-		bms.pack_current = (rx->Data[0] << 8) | rx->Data[1];
-		bms.pack_volt = (rx->Data[2] << 8) | rx->Data[3];
-		bms.pack_soc = rx->Data[4];
-		bms.high_temp = rx->Data[5];
-		bms.low_cell_volt = (rx->Data[6] << 8) | rx->Data[7];
-		xSemaphoreGive(bms.bms_params);
-	} else {
-		return HAL_ERROR;
-	}
+  car.bms_params.pack_current = (rx->Data[0] << 8) | rx->Data[1];
+  car.bms_params.pack_volt = (rx->Data[2] << 8) | rx->Data[3];
+  car.bms_params.pack_soc = rx->Data[4];
+  car.bms_params.high_temp = rx->Data[5];
+  car.bms_params.low_cell_volt = (rx->Data[6] << 8) | rx->Data[7];
 	return 0;
 }
 
 
 void processCalibratePowerLimit(CanRxMsgTypeDef* rx) {
-	pow_lim.power_hard_lim = rx->Data[0] << 24 | rx->Data[1] << 16 | rx->Data[2] << 8 | rx->Data[3];
-	pow_lim.power_soft_lim = (pow_lim.power_hard_lim * 97) / 100; //97%
-	pow_lim.power_thresh = (pow_lim.power_hard_lim * 90) / 100; //90%
+	car.pow_lim.power_hard_lim = rx->Data[0] << 24 | rx->Data[1] << 16 | rx->Data[2] << 8 | rx->Data[3];
+	car.pow_lim.power_soft_lim = (car.pow_lim.power_hard_lim * 97) / 100; //97%
+	car.pow_lim.power_thresh = (car.pow_lim.power_hard_lim * 90) / 100; //90%
 }

@@ -259,7 +259,7 @@ void taskBlink(void* can)
     if (car.apps_state_timeout == PEDALBOX_STATUS_ERROR) {
       tx.Data[1] |= 0b10000000;
     }
-    if (!(HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == PC_COMPLETE)) {
+    if (!(HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)) {
       HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
       tx.Data[2] |= 0b00001000;
     }

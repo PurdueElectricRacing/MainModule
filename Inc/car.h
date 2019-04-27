@@ -122,6 +122,21 @@ int actualCurrentLimit;
 int errBitMap1;
 
 typedef struct {
+  uint16_t pack_current;      //Most recent pack current from the BMS
+  uint16_t pack_volt;       //Most recent pack voltage
+  uint8_t pack_soc;       //pack SOC
+  uint8_t  high_temp;     //the current highest temperature of a cell
+  uint16_t low_cell_volt;     //the lowest cell voltage
+  uint8_t battery_violation;    //flag that tells what limit was broken 1 -> Power, 2 -> Temp, 3 -> Volt
+} bms_data_t;
+
+typedef struct {
+  int power_thresh;
+  int power_soft_lim;
+  int power_hard_lim;
+}power_lim_t;
+
+typedef struct {
   Car_state_t       state;
   uint8_t         errorFlags;
   //calibration values
@@ -144,9 +159,11 @@ typedef struct {
   Pedalbox_mode_t     pb_mode;          //determines whether pb will be analog or CAN
   Calibrate_flag_t    calibrate_flag;
   
-  LC_status_t       lc_status;
+  LC_status_t         lc_status;
   //Pedalbox_msg_t      pb_current_msg;
-  
+  bms_data_t          bms_params;
+  power_lim_t         pow_lim;
+
   //RTOS objects, initialized in initRTOSObjects
   QueueHandle_t     q_rx_dcan;
   QueueHandle_t     q_tx_dcan;
@@ -161,6 +178,7 @@ typedef struct {
 } Car_t;
 
 extern volatile Car_t car;
+
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 

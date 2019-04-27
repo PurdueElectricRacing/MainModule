@@ -14,6 +14,7 @@
 /* USER CODE BEGIN Includes */
 #include "car.h"
 #include "BMS.h"
+#include "power_limiting.h"
 #include "PedalBox.h"
 #include "CANProcess.h"
 /* USER CODE END Includes */
@@ -41,7 +42,6 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 volatile Car_t car;
-BMS_t BMS;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

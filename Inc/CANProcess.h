@@ -10,6 +10,8 @@
 
 //includes
 #include "motor_controller_functions.h"
+#include "car.h"
+#include "PedalBox.h"
 //#include "WheelModule.h"
 
 //defines for reading data from RxCanMsgTypeDef
@@ -70,6 +72,9 @@
 #define PEDALBOX1_IMP_OFFSET          1
 #define PEDALBOX1_IMP_MASK            0b00000010
 
+//Power Limiting
+#define ID_POWER_LIMIT                0x352
+#define ID_BMS_MACRO                  0x6B1
 
 /**
   * @brief  CAN Tx message structure definition
@@ -136,7 +141,8 @@ void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);
 void processPedalboxFrame(CanRxMsgTypeDef* rx);
 
-
 void processCalibrate(CanRxMsgTypeDef* rx);
+void processCalibratePowerLimit(CanRxMsgTypeDef* rx);
+int process_bms_frame(CanRxMsgTypeDef* rx);
 
 #endif /* CANPROCESS_H_ */

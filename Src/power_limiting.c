@@ -7,38 +7,33 @@
 #include "power_limiting.h"
 
 void init_pow_lim() {
-	pow_lim.power_hard_lim = 80000; //rule level
-	pow_lim.power_soft_lim = (80000 * 95) / 100; //95%
-	pow_lim.power_thresh = (80000 * 90) / 100; //90%
+	car.pow_lim.power_hard_lim = 80000; //rule level
+	car.pow_lim.power_soft_lim = (80000 * 95) / 100; //95%
+	car.pow_lim.power_thresh = (80000 * 90) / 100; //90%
 }
 
 uint8_t power_limit_watt(int16_t torque_req) {
 	uint8_t gain = 0;
 	int power_actual = 0;
 	//only throttle if past the threshold
-	if (xSemaphoreTake(bms.bms_params, 10) == pdTRUE) {
-		power_actual = bms.pack_current * bms.pack_volt; //calculate the instantaneous power draw
-		xSemaphoreGive(bms.bms_params);
-	} else {
-		return 0;
-	}
+  power_actual = car.bms_params.pack_current * car.bms_params.pack_volt; //calculate the instantaneous power draw
 
 	//only throttle if past the threshold
-	if (power_actual < pow_lim.power_thresh) return 100;
+	if (power_actual < car.pow_lim.power_thresh) return 100;
 	//if past the hard lim stop the driving
-	if (power_actual > pow_lim.power_hard_lim) {
-		bms.battery_violation = 1;
+	if (power_actual > car.pow_lim.power_hard_lim) {
+		car.bms_params.battery_violation = 1;
 		return 0;
 	}
 
-	if (power_actual < pow_lim.power_soft_lim) {
+	if (power_actual < car.pow_lim.power_soft_lim) {
 		//between threshold and soft limit
 		//have linear decrease from 100% -> 50%
-		gain = 100 + (-50 / (pow_lim.power_soft_lim - pow_lim.power_thresh)) * power_actual;
+		gain = 100 + (-50 / (car.pow_lim.power_soft_lim - car.pow_lim.power_thresh)) * power_actual;
 	} else {
 		//between soft and hard lim
 		//linear decrease from 50% -> 0%
-		gain = 50 + (-50 / (pow_lim.power_hard_lim - pow_lim.power_soft_lim)) * power_actual;
+		gain = 50 + (-50 / (car.pow_lim.power_hard_lim - car.pow_lim.power_soft_lim)) * power_actual;
 	}
 
 	return gain;
@@ -47,21 +42,21 @@ uint8_t power_limit_watt(int16_t torque_req) {
 uint8_t power_limit_temp(int16_t torque_req) {
 	uint8_t gain = 0;
 	//only throttle if past the threshold
-	if (bms.high_temp < TEMP_THRESH) return 100;
+	if (car.bms_params.high_temp < TEMP_THRESH) return 100;
 	//if past the hard lim stop the driving
-	if (bms.high_temp > TEMP_HARD_LIM) {
-		bms.battery_violation = 2;
+	if (car.bms_params.high_temp > TEMP_HARD_LIM) {
+		car.bms_params.battery_violation = 2;
 		return 0;
 	}
 
-	if (bms.high_temp < TEMP_SOFT_LIM) {
+	if (car.bms_params.high_temp < TEMP_SOFT_LIM) {
 		//between threshold and soft limit
 		//have linear decrease from 100% -> 50%
-		gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * bms.high_temp;
+		gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * car.bms_params.high_temp;
 	} else {
 		//between soft and hard lim
 		//linear decrease from 50% -> 0%
-		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * bms.high_temp;
+		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * car.bms_params.high_temp;
 	}
 
 	return gain;
@@ -70,22 +65,22 @@ uint8_t power_limit_temp(int16_t torque_req) {
 uint8_t power_limit_volt(int16_t torque_req) {
 	uint8_t gain = 0;
 	//only throttle if past the threshold
-	if (bms.low_cell_volt > VOLT_THRESH) return 100;
+	if (car.bms_params.low_cell_volt > VOLT_THRESH) return 100;
 	//if past the hard lim stop the driving
-	if (bms.low_cell_volt < VOLT_HARD_LIM) {
-		bms.battery_violation = 3;
+	if (car.bms_params.low_cell_volt < VOLT_HARD_LIM) {
+		car.bms_params.battery_violation = 3;
 		return 0;
 	}
 
 	//between thresh hold and hard limit
-	if (bms.low_cell_volt < TEMP_SOFT_LIM) {
+	if (car.bms_params.low_cell_volt < TEMP_SOFT_LIM) {
 			//between threshold and soft limit
 			//have linear decrease from 100% -> 50%
-			gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * bms.low_cell_volt;
+			gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * car.bms_params.low_cell_volt;
 	} else {
 		//between soft and hard lim
 		//linear decrease from 50% -> 0%
-		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * bms.low_cell_volt;
+		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * car.bms_params.low_cell_volt;
 	}
 
 	return gain;
