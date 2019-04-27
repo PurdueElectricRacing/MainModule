@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    stm32f4xx_it.h
@@ -30,6 +31,7 @@
   *
   ******************************************************************************
   */
+/* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F4xx_IT_H
@@ -39,22 +41,35 @@
  extern "C" {
 #endif 
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
-#include "main.h"
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-void SysTick_Handler(void);
-void CAN1_TX_IRQHandler(void);
+/* USER CODE END Includes */
+
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
+
+/* USER CODE END ET */
+
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
+
+/* USER CODE END EC */
+
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
+
+/* USER CODE END EM */
+
+/* Exported functions prototypes ---------------------------------------------*/
 void CAN1_RX0_IRQHandler(void);
 void CAN1_RX1_IRQHandler(void);
 void TIM1_UP_TIM10_IRQHandler(void);
-void CAN2_TX_IRQHandler(void);
 void CAN2_RX0_IRQHandler(void);
 void CAN2_RX1_IRQHandler(void);
+/* USER CODE BEGIN EFP */
+
+/* USER CODE END EFP */
 
 #ifdef __cplusplus
 }

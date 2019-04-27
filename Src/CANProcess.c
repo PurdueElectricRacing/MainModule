@@ -21,12 +21,39 @@
 #include "car.h"
 #include "PedalBox.h"
 
+extern SemaphoreHandle_t g_can_sem;
+
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	//HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+
+	CanRxMsgTypeDef rx;
+	CAN_RxHeaderTypeDef header;
+	HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
+	rx.DLC = header.DLC;
+	rx.StdId = header.StdId;
+	xQueueSendFromISR(car.q_rx_dcan, &rx, NULL);
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	CanRxMsgTypeDef rx;
+	CAN_RxHeaderTypeDef header;
+	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
+	rx.DLC = header.DLC;
+	rx.StdId = header.StdId;
+	xQueueSendFromISR(car.q_rx_vcan, &rx, NULL);
+}
+
+
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5; // 0
-  FilterConf.FilterMaskIdHigh =     ID_POWER_LIMIT << 5;       // 3
-  FilterConf.FilterMaskIdLow =      ID_BMS << 5;       // 1
+
+  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
+  FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
+  FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
+  FilterConf.FilterMaskIdLow =      0x7fe;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -37,10 +64,10 @@ void DCANFilterConfig() {
 
 void VCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
-  FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
-  FilterConf.FilterMaskIdLow =      0x7ff;       // 1
+  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
+  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5; // 0
+  FilterConf.FilterMaskIdHigh =     0x000;       // 3
+  FilterConf.FilterMaskIdLow =      0x000;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
   FilterConf.FilterBank = 1;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -74,7 +101,8 @@ void taskTX_DCAN() {
   
   for (;;) {
     //check if this task is triggered
-    if (xQueuePeek(car.q_tx_dcan, &tx, portMAX_DELAY) == pdTRUE) {
+    if (xQueuePeek(car.q_tx_dcan, &tx, portMAX_DELAY) == pdTRUE)
+    {
       xQueueReceive(car.q_tx_dcan, &tx, portMAX_DELAY);  //actually take item out of queue
       CAN_TxHeaderTypeDef header;
       header.DLC = tx.DLC;
@@ -156,9 +184,14 @@ void taskRXCANProcess() {
   while (1) {
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
-    if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
-      //A CAN message has been recieved
+    BaseType_t peek = xQueuePeek(car.q_rx_dcan, &rx, (TickType_t) 5);
+
+    if (peek == pdTRUE)
+    {
+      //A CAN message has been received
       //check what kind of message we received
+    	xQueueReceive(car.q_rx_dcan, &rx, (TickType_t) 5);
+
       switch (rx.StdId) {
         case ID_PEDALBOX2: { //if pedalbox1 message
           processPedalboxFrame(&rx);
@@ -169,10 +202,13 @@ void taskRXCANProcess() {
           break;
         }
         case  ID_DASHBOARD: {
-        	if (rx.Data[0] == 1) {
+        	if (rx.Data[0] == 1)
+        	{
         		ISR_StartButtonPressed();
-        	} else {
-        		//process other button funcitonality
+        	}
+        	else
+        	{
+        		//process other button functionality
         	}
           break;
         }
@@ -189,7 +225,7 @@ void taskRXCANProcess() {
       }
     }
     
-    if (xQueueReceive(car.phdcan, &rx, portMAX_DELAY) == pdTRUE) {
+    if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
     	switch (rx.StdId) {
     	case ID_WHEEL_FRONT:
     		//TODO
@@ -210,6 +246,7 @@ void taskRXCANProcess() {
     	}
     }
 
+    vTaskDelay(10);
   }
 }
 

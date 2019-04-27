@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * File Name          : stm32f4xx_hal_msp.c
@@ -46,9 +47,44 @@
   *
   ******************************************************************************
   */
+/* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
-extern void _Error_Handler(char *, int);
+#include "main.h"
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN TD */
+
+/* USER CODE END TD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN Define */
+ 
+/* USER CODE END Define */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN Macro */
+
+/* USER CODE END Macro */
+
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* External functions --------------------------------------------------------*/
+/* USER CODE BEGIN ExternalFunctions */
+
+/* USER CODE END ExternalFunctions */
+
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -64,23 +100,9 @@ void HAL_MspInit(void)
   __HAL_RCC_SYSCFG_CLK_ENABLE();
   __HAL_RCC_PWR_CLK_ENABLE();
 
-  HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-
   /* System interrupt init*/
-  /* MemoryManagement_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(MemoryManagement_IRQn, 0, 0);
-  /* BusFault_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(BusFault_IRQn, 0, 0);
-  /* UsageFault_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(UsageFault_IRQn, 0, 0);
-  /* SVCall_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SVCall_IRQn, 0, 0);
-  /* DebugMonitor_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
   /* PendSV_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
-  /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 
   /* USER CODE BEGIN MspInit 1 */
   
@@ -89,10 +111,16 @@ void HAL_MspInit(void)
 
 static uint32_t HAL_RCC_CAN1_CLK_ENABLED=0;
 
+/**
+* @brief CAN MSP Initialization
+* This function configures the hardware resources used in this example
+* @param hcan: CAN handle pointer
+* @retval None
+*/
 void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
 {
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   if(hcan->Instance==CAN1)
   {
   /* USER CODE BEGIN CAN1_MspInit 0 */
@@ -104,6 +132,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
   
+    __HAL_RCC_GPIOD_CLK_ENABLE();
     /**CAN1 GPIO Configuration    
     PD0     ------> CAN1_RX
     PD1     ------> CAN1_TX 
@@ -116,8 +145,6 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /* CAN1 interrupt Init */
-    HAL_NVIC_SetPriority(CAN1_TX_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(CAN1_TX_IRQn);
     HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
     HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 5, 0);
@@ -138,6 +165,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
   
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     /**CAN2 GPIO Configuration    
     PB12     ------> CAN2_RX
     PB13     ------> CAN2_TX 
@@ -150,8 +178,6 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* CAN2 interrupt Init */
-    HAL_NVIC_SetPriority(CAN2_TX_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(CAN2_TX_IRQn);
     HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
     HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 5, 0);
@@ -162,6 +188,13 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
   }
 
 }
+
+/**
+* @brief CAN MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param hcan: CAN handle pointer
+* @retval None
+*/
 
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
 {
@@ -184,7 +217,6 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_0|GPIO_PIN_1);
 
     /* CAN1 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(CAN1_TX_IRQn);
     HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
     HAL_NVIC_DisableIRQ(CAN1_RX1_IRQn);
   /* USER CODE BEGIN CAN1_MspDeInit 1 */
@@ -210,7 +242,6 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_12|GPIO_PIN_13);
 
     /* CAN2 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(CAN2_TX_IRQn);
     HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
     HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
   /* USER CODE BEGIN CAN2_MspDeInit 1 */
@@ -223,13 +254,5 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

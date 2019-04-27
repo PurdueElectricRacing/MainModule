@@ -11,8 +11,6 @@
 //includes
 #include "motor_controller_functions.h"
 //#include "WheelModule.h"
-#include "BMS.h"
-
 
 //defines for reading data from RxCanMsgTypeDef
 #define ID_PEDALBOX1              0x500
@@ -36,9 +34,6 @@
 #define WM_SPEED_11_8_BYTE          1
 #define WM_SPEED_11_8_MASK          0x0F00
 
-//wireless telemetry
-#define ID_POWER_LIMIT							0x696 //4 byte new power limit
-#define ID_BMS                      0x750 //TODO figure this one out
 
 //pedalbox defines //todo not sure if better to send whole frame or just pbmsg.
 #define PEDALBOX1_FILTER                0 //filter number corresponding to the PEDALBOX1 message

@@ -19,39 +19,48 @@
 #include <math.h>
 
 ////gpio aliases
-//#define BUZZER_PORT			GPIOB	//todo
-//#define BUZZER_PIN			GPIO_PIN_10
-//#define FRG_RUN_PORT		GPIOE
-//#define FRG_RUN_PIN			GPIO_PIN_11
-//#define RFE_PORT			GPIOE
-//#define RFE_PIN				GPIO_PIN_12
-//#define BRAKE_LIGHT_PORT	GPIOE
-//#define BRAKE_LIGHT_PIN		GPIO_PIN_7
-//#define HEARTBEAT_PORT		GPIOE
-//#define HEARTBEAT_PIN		GPIO_PIN_1
+//#define BUZZER_PORT     GPIOB //todo
+//#define BUZZER_PIN      GPIO_PIN_10
+//#define FRG_RUN_PORT    GPIOE
+//#define FRG_RUN_PIN     GPIO_PIN_11
+//#define RFE_PORT      GPIOE
+//#define RFE_PIN       GPIO_PIN_12
+//#define BRAKE_LIGHT_PORT  GPIOE
+//#define BRAKE_LIGHT_PIN   GPIO_PIN_7
+//#define HEARTBEAT_PORT    GPIOE
+//#define HEARTBEAT_PIN   GPIO_PIN_1
 
+#define THROTTLE_1_MIN   0x0FFF
+#define THROTTLE_1_MAX   0x0350
+#define THROTTLE_2_MIN   0x0EFF
+#define THROTTLE_2_MAX   0x0450
 
-#define BRAKE_PRESSED_THRESHOLD	.3
+#define BRAKE_PRESSED_THRESHOLD .3
 #define APPS_BP_PLAUS_RESET_THRESHOLD .05  //EV 2.5
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
 
+
 #define PERIOD_ACCELRO        50 / portTICK_RATE_MS
-#define PERIOD_TORQUE_SEND    20 / portTICK_RATE_MS //50 hz
+#define PERIOD_TORQUE_SEND    25
 #define HEARTBEAT_PULSEWIDTH  200 / portTICK_RATE_MS
 #define HEARTBEAT_PERIOD      100 / portTICK_RATE_MS
 #define PEDALBOX_TIMEOUT      1000 / portTICK_RATE_MS
 #define POLL_DELAY            50 / portTICK_RATE_MS
 #define MAX_BRAKE_LEVEL       0xFFF
-#define MAX_THROTTLE_LEVEL    1800 //180 Nm
+#define MAX_THROTTLE_LEVEL    1600     //160 Nm
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS  10
 #define DONT_CARE             0
+#define BUZZER_DELAY          2000
+
+//#define TEST_MC
+#define MC_TEST_TORQUE MAX_THROTTLE_LEVEL / 5
 
 
 //rtos parameter defines
 #define QUEUE_SIZE_RXCAN_1      16
 #define QUEUE_SIZE_RXCAN_2      16
-#define QUEUE_SIZE_PEDALBOXMSG    16
+#define QUEUE_SIZE_PEDALBOXMSG  16
 #define QUEUE_SIZE_TXCAN_1      10
 #define QUEUE_SIZE_TXCAN_2      10
 #define QUEUE_SIZE_MCFRAME      3
@@ -124,9 +133,7 @@ typedef struct {
   int32_t       brake1_max;
   int32_t       brake2_min;
   int32_t       brake2_max;
-  int16_t
-  throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
-  int16_t         throttle_cnt;       //number of throttle messages in accumulator
+  int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
   uint32_t        pb_msg_rx_time;       //indicates when a pedalbox message was last received
   uint32_t        apps_imp_first_time_ms;   //indicates when the first imp error was received
@@ -163,13 +170,13 @@ void ISR_StartButtonPressed();
 void carInit();
 void taskPedalBoxMsgHandler();
 void taskCarMainRoutine();
-int SendTorqueTask();
+//int SendTorqueTask();
 int mainModuleWatchdogTask();
 int taskHeartbeat();
 void initRTOSObjects();
 void taskBlink(void* can);
-void stopCar();
-void taskSendAccelero();
+//void stopCar();
+//void taskSendAccelero();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
 

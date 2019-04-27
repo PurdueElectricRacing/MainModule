@@ -17,6 +17,8 @@ void mcCmdTorque(uint16_t);
 void mcCmdTorqueFake(uint16_t);
 void disableMotorController();
 void enableMotorController();
+void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data);
+
 
 //Broadcast ID's
 #define ID_RINEHART_TEMP1						0x0A0
@@ -41,19 +43,19 @@ void enableMotorController();
 #define ID_RINEHART_PARAM_RESP			0x0C2
 
 //CAN Defines
-#define RINEHART_FORWARD          0x1
-#define RINEHART_BACKWARD         0x0
-#define INVERTER_ENABLE           0x1   //set this bit to enable the MC
-#define INVERTER_DISABLE          0x0   //clear this bit to disable the MC
-#define INVERTER_DISCHARGE_ENABLE 0x2   //internal discharge resistor on
-#define SPEED_MODE_ENABLE         0x4   //use speed instead of torque
+#define RINEHART_FORWARD          1
+#define RINEHART_BACKWARD         0
+#define INVERTER_ENABLE           1   //set this bit to enable the MC
+#define INVERTER_DISABLE          0   //clear this bit to disable the MC
+#define INVERTER_DISCHARGE_ENABLE 2   //internal discharge resistor on
+#define SPEED_MODE_ENABLE         4   //use speed instead of torque
 #define CONFIGURE_HIGH            0
 #define CONFIGURE_LOW             0x94
-#define WRITE                     0x1
+#define WRITE                     1
 #define RESERVED                  0
 
 
-//Brodcast configuration bytes Pages 16-17 of the Rinehart CAN Manual
+//Broadcast configuration bytes Pages 16-17 of the Rinehart CAN Manual
 //Data byte 4 commands
 #define MC_TEMP1            0x1
 #define MC_TEMP2            0x2
