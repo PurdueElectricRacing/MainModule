@@ -20,8 +20,6 @@
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-	//HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-
 	CanRxMsgTypeDef rx;
 	CAN_RxHeaderTypeDef header;
 	HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
@@ -41,7 +39,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 }
 
 
-void DCANFilterConfig() {
+void VCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
 
   FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
@@ -53,10 +51,10 @@ void DCANFilterConfig() {
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(car.phdcan, &FilterConf);
+  HAL_CAN_ConfigFilter(car.phvcan, &FilterConf);
 }
 
-void VCANFilterConfig() {
+void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
   FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5; // 0
@@ -67,7 +65,7 @@ void VCANFilterConfig() {
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(car.phvcan, &FilterConf);
+  HAL_CAN_ConfigFilter(car.phdcan, &FilterConf);
 }
 
 
@@ -203,6 +201,7 @@ void taskRXCANProcess() {
         	else
         	{
         		//process other button functionality
+        	  //power limiting done here
         	}
           break;
         }

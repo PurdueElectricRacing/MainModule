@@ -48,8 +48,8 @@ void carInit() {
   car.pb_mode = PEDALBOX_MODE_DIGITAL;
   car.throttle_acc = 0;
   car.brake = 0;
-  car.phdcan = &hcan1;
-  car.phvcan = &hcan2;
+  car.phvcan = &hcan1;
+  car.phdcan = &hcan2;
   car.calibrate_flag = CALIBRATE_NONE;
   car.throttle1_min = THROTTLE_1_MIN;
   car.throttle1_max = THROTTLE_1_MAX;
@@ -84,7 +84,7 @@ void ISR_StartButtonPressed() {
 			tx.StdId = ID_DASHBOARD_ACK;
 			tx.DLC = 1;
 			tx.Data[0] = 1;
-			xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+			xQueueSendToBack(car.q_tx_vcan, &tx, 100);
   	}
   }
   else {
@@ -96,7 +96,7 @@ void ISR_StartButtonPressed() {
     tx.StdId = ID_DASHBOARD_ACK;
     tx.DLC = 1;
     tx.Data[0] = 2;
-    xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+    xQueueSendToBack(car.q_tx_vcan, &tx, 100);
   }
 }
 
@@ -387,9 +387,16 @@ void taskCarMainRoutine()
           {
             //nothing
           }
-          mcCmdTorqueFake(car.throttle_acc);
           //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
-          mcCmdTorque(torque_to_send);  //command the MC to move the motor
+          if (car.pow_lim.power_lim_en == ASSERTED) {
+            torque_to_send = limit_torque(torque_to_send);
+            mcCmdTorqueFake(torque_to_send);
+            mcCmdTorque(torque_to_send);  //command the MC to move the motor
+          }
+          else {
+            mcCmdTorqueFake(torque_to_send);
+            mcCmdTorque(torque_to_send);  //command the MC to move the motor
+          }
         }
       }
       else if (car.state == CAR_STATE_RESET)

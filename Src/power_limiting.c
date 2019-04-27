@@ -10,6 +10,7 @@ void init_pow_lim() {
 	car.pow_lim.power_hard_lim = 80000; //rule level
 	car.pow_lim.power_soft_lim = (80000 * 95) / 100; //95%
 	car.pow_lim.power_thresh = (80000 * 90) / 100; //90%
+	car.pow_lim.power_lim_en = ASSERTED;
 }
 
 uint8_t power_limit_watt(int16_t torque_req) {

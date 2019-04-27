@@ -121,6 +121,11 @@ int airTemperature;
 int actualCurrentLimit;
 int errBitMap1;
 
+typedef enum flag_state {
+  ASSERTED = 1,
+  DEASSERTED = 0,
+} flag_t;
+
 typedef struct {
   uint16_t pack_current;      //Most recent pack current from the BMS
   uint16_t pack_volt;       //Most recent pack voltage
@@ -134,6 +139,7 @@ typedef struct {
   int power_thresh;
   int power_soft_lim;
   int power_hard_lim;
+  flag_t power_lim_en;
 }power_lim_t;
 
 typedef struct {
