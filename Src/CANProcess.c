@@ -345,4 +345,109 @@ void processCalibratePowerLimit(CanRxMsgTypeDef* rx) {
 	car.pow_lim.power_hard_lim = rx->Data[0] << 24 | rx->Data[1] << 16 | rx->Data[2] << 8 | rx->Data[3];
 	car.pow_lim.power_soft_lim = (car.pow_lim.power_hard_lim * 97) / 100; //97%
 	car.pow_lim.power_thresh = (car.pow_lim.power_hard_lim * 90) / 100; //90%
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: process_IMU
+*
+*     Programmer's Name: Matt Flanagan, matthewdavidflanagan@outlook.com
+*
+*     Function Return Type: none
+*
+*     Parameters (list data type, name, and comment one per line):
+*			1. CanRxMsgTypeDef* rx, CAN frame of IMU
+*      Global Dependents:
+*	    1. None
+*
+*     Function Description:
+*     	Looks IMU data and see's if any axis is over 8G (rules for inertia switch). If so then
+*     	fault the SDC. ASSUMES THAT THE IMU DATA COMING IS 16G Resolution
+*
+***************************************************************************/
+void process_IMU(CanRxMsgTypeDef* rx) {
+	int16_t accel_x = 0;
+	int16_t accel_y = 0;
+	int16_t accel_z = 0;
+
+	if (rx->Data[7] == IMU_16G && rx->Data[0] == IMU_ACCEL) {
+		//IMU is in 16g resolution and is an acceleration frame
+		accel_x = (int16_t) (rx->Data[1] << 8) | rx->Data[2];
+		accel_y = (int16_t) (rx->Data[3] << 8) | rx->Data[4];
+		accel_z = (int16_t) (rx->Data[5] << 8) | rx->Data[6];
+
+		if ((accel_x > IMU_8G_VAL/4 || accel_y > IMU_8G_VAL || accel_z > IMU_8G_VAL)
+				&& (accel_x < IMU_8G_NEG || accel_y < IMU_8G_NEG || accel_z < IMU_8G_NEG)) {
+			//car just got straight fucked
+			//open the SDC
+			HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_RESET);
+			car.state = CAR_STATE_RESET;
+		}
+	}
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: processWheelModuleFrame
+*
+*     Programmer's Name: Jose Luis Tejada
+*
+*     Function Return Type: none
+*
+*     Parameters (list data type, name, and comment one per line):
+*		1. CanRxMsgTypeDef* rx, CAN frame to be converted into a wheel speed rpm value
+*      Global Dependents:
+*	    1.
+*
+*     Function Description:
+*     	Converts CAN frame into a rpm value and sends it to pedalboxmsg handler
+*
+***************************************************************************/
+void processWheelModuleFrame(CanRxMsgTypeDef* rx){
+	wheel_speed_t temp_ws;
+
+	//Parse CAN message according to id
+	switch (rx->StdId)
+	{
+		case 	0x700: //Todo, replace with defined constants
+		{
+			uint32_t wheel_FL = (uint8_t)rx->Data[WHEEL_FL_31_24_BYTE];
+			wheel_FL = (wheel_FL << 8) | (uint8_t)rx->Data[WHEEL_FL_23_16_BYTE];
+			wheel_FL = (wheel_FL << 8) | (uint8_t)rx->Data[WHEEL_FL_15_8_BYTE];
+			wheel_FL = (wheel_FL << 8) | (uint8_t)rx->Data[WHEEL_FL_7_0_BYTE];
+
+			uint32_t wheel_FR = (uint8_t)rx->Data[WHEEL_FR_31_24_BYTE];
+			wheel_FR = (wheel_FR << 8) | (uint8_t)rx->Data[WHEEL_FR_23_16_BYTE];
+			wheel_FR = (wheel_FR << 8) | (uint8_t)rx->Data[WHEEL_FR_15_8_BYTE];
+			wheel_FR = (wheel_FR << 8) | (uint8_t)rx->Data[WHEEL_FR_7_0_BYTE];
+
+			float rpm_FL = (float)wheel_FL / 10000.0;
+			float rpm_FR = (float)wheel_FR / 10000.0;
+			temp_ws.FL_rpm = rpm_FL;
+			temp_ws.FR_rpm = rpm_FR;
+			break;
+		}
+		case	0x701:
+		{
+			uint32_t wheel_RL = (uint8_t)rx->Data[WHEEL_RL_31_24_BYTE];
+			wheel_RL = (wheel_RL << 8) | (uint8_t)rx->Data[WHEEL_RL_23_16_BYTE];
+			wheel_RL = (wheel_RL << 8) | (uint8_t)rx->Data[WHEEL_RL_15_8_BYTE];
+			wheel_RL = (wheel_RL << 8) | (uint8_t)rx->Data[WHEEL_RL_7_0_BYTE];
+
+			uint32_t wheel_RR = (uint8_t)rx->Data[WHEEL_RR_31_24_BYTE];
+			wheel_RR = (wheel_RR << 8) | (uint8_t)rx->Data[WHEEL_RR_23_16_BYTE];
+			wheel_RR = (wheel_RR << 8) | (uint8_t)rx->Data[WHEEL_RR_15_8_BYTE];
+			wheel_RR = (wheel_RR << 8) | (uint8_t)rx->Data[WHEEL_RR_7_0_BYTE];
+
+			float rpm_RL = (float) wheel_RL / 10000.0;
+			float rpm_RR = (float) wheel_RR / 10000.0;
+			temp_ws.RL_rpm = rpm_RL;
+			temp_ws.RR_rpm = rpm_RR;
+			break;
+		}
+	}
+
+	car.wheel_rpm = temp_ws;
 }

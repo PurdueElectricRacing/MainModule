@@ -17,6 +17,7 @@
 #include "motor_controller_functions.h"
 #include "power_limiting.h"
 #include <math.h>
+#include "traction_control.h"
 
 ////gpio aliases
 //#define BUZZER_PORT     GPIOB //todo
@@ -104,6 +105,12 @@ typedef enum {
   CALIBRATE_BRAKE_MAX
 } Calibrate_flag_t;
 
+typedef enum{
+	ENABLED = 1,
+	DISABLED = 0
+}CURR_STATE;
+
+
 
 int BCparam;
 int actualTorque0700;
@@ -170,17 +177,21 @@ typedef struct {
   bms_data_t          bms_params;
   power_lim_t         pow_lim;
 
-  //RTOS objects, initialized in initRTOSObjects
-  QueueHandle_t     q_rx_dcan;
-  QueueHandle_t     q_tx_dcan;
-  QueueHandle_t     q_rx_vcan;
-  QueueHandle_t     q_tx_vcan;
-  QueueHandle_t     q_pedalboxmsg;
-  QueueHandle_t     q_mc_frame;
-  
-  CAN_HandleTypeDef*    phdcan;           //pointer to car's CAN peripheral handle
-  CAN_HandleTypeDef*    phvcan;
-  
+	//Wheel Speed (Traction Control)
+	wheel_speed_t				wheel_rpm;
+
+	//RTOS objects, initialized in initRTOSObjects
+	QueueHandle_t			q_rx_dcan;
+	QueueHandle_t			q_tx_dcan;
+	QueueHandle_t			q_rx_vcan;
+	QueueHandle_t			q_tx_vcan;
+	QueueHandle_t	 		q_pedalboxmsg;
+	QueueHandle_t			q_mc_frame;
+
+	CAN_HandleTypeDef *		phdcan;						//pointer to car's CAN peripheral handle
+	CAN_HandleTypeDef *		phvcan;
+
+
 } Car_t;
 
 extern volatile Car_t car;

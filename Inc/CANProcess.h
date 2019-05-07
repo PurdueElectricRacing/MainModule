@@ -36,6 +36,11 @@
 #define WM_SPEED_11_8_BYTE          1
 #define WM_SPEED_11_8_MASK          0x0F00
 
+//IMU defines
+#define IMU_16G											4
+#define IMU_ACCEL										0
+#define IMU_8G_VAL									0x3FFF
+#define IMU_8G_NEG									0xC001 //negative 0x3FFF
 
 //pedalbox defines //todo not sure if better to send whole frame or just pbmsg.
 #define PEDALBOX1_FILTER                0 //filter number corresponding to the PEDALBOX1 message
@@ -75,6 +80,30 @@
 //Power Limiting
 #define ID_POWER_LIMIT                0x352
 #define ID_BMS_MACRO                  0x6B1
+//Wheel Speed Defines
+//Front Left
+#define WHEEL_FL_7_0_BYTE 3
+#define WHEEL_FL_15_8_BYTE 2
+#define WHEEL_FL_23_16_BYTE 1
+#define WHEEL_FL_31_24_BYTE 0
+//Front Right
+#define WHEEL_FR_7_0_BYTE 7
+#define WHEEL_FR_15_8_BYTE 6
+#define WHEEL_FR_23_16_BYTE 5
+#define WHEEL_FR_31_24_BYTE 4
+//Rear Left
+#define WHEEL_RL_7_0_BYTE 3
+#define WHEEL_RL_15_8_BYTE 2
+#define WHEEL_RL_23_16_BYTE 1
+#define WHEEL_RL_31_24_BYTE 0
+//Rear Right
+#define WHEEL_RR_7_0_BYTE 7
+#define WHEEL_RR_15_8_BYTE 6
+#define WHEEL_RR_23_16_BYTE 5
+#define WHEEL_RR_31_24_BYTE 4
+
+
+
 
 /**
   * @brief  CAN Tx message structure definition
@@ -140,6 +169,7 @@ void taskRXCAN();
 void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);
 void processPedalboxFrame(CanRxMsgTypeDef* rx);
+void process_IMU(CanRxMsgTypeDef* rx);
 
 void processCalibrate(CanRxMsgTypeDef* rx);
 void processCalibratePowerLimit(CanRxMsgTypeDef* rx);
