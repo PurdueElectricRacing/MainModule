@@ -45,9 +45,20 @@ void VCANFilterConfig() {
   FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
   FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
   FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
-  FilterConf.FilterMaskIdLow =      0x7fe;       // 1
+  FilterConf.FilterMaskIdLow =      ID_WHEEL_FRONT << 5;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
+  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
+  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
+  FilterConf.FilterActivation = ENABLE;
+  HAL_CAN_ConfigFilter(car.phvcan, &FilterConf);
+
+  FilterConf.FilterIdHigh =         ID_WHEEL_REAR << 5; // 2 num
+  FilterConf.FilterIdLow =          0 << 5; // 0
+  FilterConf.FilterMaskIdHigh =     0 << 5;       // 3
+  FilterConf.FilterMaskIdLow =      0 << 5;       // 1
+  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
+  FilterConf.FilterBank = 1;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
@@ -56,8 +67,8 @@ void VCANFilterConfig() {
 
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5; // 0
+  FilterConf.FilterIdHigh =         ID_BMS_MACRO << 5; // 2 num
+  FilterConf.FilterIdLow =          0 << 5; // 0
   FilterConf.FilterMaskIdHigh =     0x000;       // 3
   FilterConf.FilterMaskIdLow =      0x000;       // 1
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
@@ -176,66 +187,52 @@ void taskRXCANProcess() {
   while (1) {
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
-    BaseType_t peek = xQueuePeek(car.q_rx_dcan, &rx, (TickType_t) 5);
 
-    if (peek == pdTRUE)
+    if (xQueueReceive(car.q_rx_vcan, &rx, (TickType_t) 5) == pdTRUE)
     {
       //A CAN message has been received
       //check what kind of message we received
-    	xQueueReceive(car.q_rx_dcan, &rx, (TickType_t) 5);
-
       switch (rx.StdId) {
         case ID_PEDALBOX2: { //if pedalbox1 message
           processPedalboxFrame(&rx);
           break;
         }
-        case ID_PEDALBOXCALIBRATE: {
-          processCalibrate(&rx);
-          break;
-        }
         case  ID_DASHBOARD: {
-        	if (rx.Data[0] == 1)
-        	{
-        		ISR_StartButtonPressed();
+        	switch(rx.Data[0]) {
+        	  case 0:
+        	  case 1:
+        	    ISR_StartButtonPressed();
+              break;
+        	  case 2:
+        	    //traction toggle
+        	    car.traction_en = !car.traction_en;
+        	    break;
+        	  case 3:
+        	    car.pow_lim.power_lim_en = !car.pow_lim.power_lim_en;
+        	    break;
         	}
-        	else
-        	{
-        		//process other button functionality
-        	  //power limiting done here
-        	}
+
           break;
         }
-        case  ID_DASHBOARD1: {
-          if (car.state == CAR_STATE_READY2DRIVE) {
-            car.state = CAR_STATE_RECOVER;
-          }
+        case ID_WHEEL_FRONT:
+        case ID_WHEEL_REAR:
+          processWheelModuleFrame(&rx);
           break;
-        }
-        case  ID_DASHBOARD2: {
-          HAL_GPIO_TogglePin(PUMP_GPIO_Port, PUMP_Pin);
-          break;
-        }
       }
     }
     
-    if (xQueueReceive(car.q_rx_vcan, &rx, portMAX_DELAY) == pdTRUE) {
+    if (xQueueReceive(car.q_rx_dcan, &rx, portMAX_DELAY) == pdTRUE) {
     	switch (rx.StdId) {
-    	case ID_WHEEL_FRONT:
-    		//TODO
-    		break;
-    	case ID_WHEEL_REAR:
-    		//TODO
-    		break;
-      case ID_POWER_LIMIT:
-      {
-        processCalibratePowerLimit(&rx);
-        break;
-      }
-      case ID_BMS_MACRO:
-      {
-        process_bms_frame(&rx);
-        break;
-      }
+        case ID_POWER_LIMIT:
+        {
+          processCalibratePowerLimit(&rx);
+          break;
+        }
+        case ID_BMS_MACRO:
+        {
+          process_bms_frame(&rx);
+          break;
+        }
     	}
     }
 
@@ -345,6 +342,8 @@ void processCalibratePowerLimit(CanRxMsgTypeDef* rx) {
 	car.pow_lim.power_hard_lim = rx->Data[0] << 24 | rx->Data[1] << 16 | rx->Data[2] << 8 | rx->Data[3];
 	car.pow_lim.power_soft_lim = (car.pow_lim.power_hard_lim * 97) / 100; //97%
 	car.pow_lim.power_thresh = (car.pow_lim.power_hard_lim * 90) / 100; //90%
+}
+
 /***************************************************************************
 *
 *     Function Information

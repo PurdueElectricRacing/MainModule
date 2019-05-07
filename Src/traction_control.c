@@ -17,7 +17,6 @@
  *
  ***************************************************************************/
 
-
 uint16_t TractionControl(uint32_t current_time, uint32_t * last_execution_time, uint16_t torque_pedal, uint16_t * integral_term, uint16_t * previous_torque)
 {
 	//Determine if sufficient time has passed for execution.

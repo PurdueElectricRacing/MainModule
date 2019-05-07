@@ -64,6 +64,7 @@ void carInit() {
   car.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
+  car.traction_en = DEASSERTED; //default traction control to off
 
   init_bms_struct(); //setup the bms data
 	init_pow_lim(); //setup the power limiting
@@ -300,6 +301,11 @@ void soundBuzzer(int time_ms) {
 
 void taskCarMainRoutine()
 {
+  //Initializations for Traction Control
+  uint32_t last_time_tc = 0;
+  uint16_t int_term_tc = 0;
+  uint16_t prev_trq_tc = 0;
+
   while (1)
   {
       TickType_t current_tick_time = xTaskGetTickCount();
@@ -390,13 +396,14 @@ void taskCarMainRoutine()
           //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
           if (car.pow_lim.power_lim_en == ASSERTED) {
             torque_to_send = limit_torque(torque_to_send);
-            mcCmdTorqueFake(torque_to_send);
-            mcCmdTorque(torque_to_send);  //command the MC to move the motor
           }
-          else {
-            mcCmdTorqueFake(torque_to_send);
-            mcCmdTorque(torque_to_send);  //command the MC to move the motor
+
+          if (car.traction_en == ASSERTED) {
+            torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
           }
+
+          mcCmdTorqueFake(torque_to_send);
+          mcCmdTorque(torque_to_send);  //command the MC to move the motor
         }
       }
       else if (car.state == CAR_STATE_RESET)

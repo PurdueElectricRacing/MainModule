@@ -19,18 +19,6 @@
 #include <math.h>
 #include "traction_control.h"
 
-////gpio aliases
-//#define BUZZER_PORT     GPIOB //todo
-//#define BUZZER_PIN      GPIO_PIN_10
-//#define FRG_RUN_PORT    GPIOE
-//#define FRG_RUN_PIN     GPIO_PIN_11
-//#define RFE_PORT      GPIOE
-//#define RFE_PIN       GPIO_PIN_12
-//#define BRAKE_LIGHT_PORT  GPIOE
-//#define BRAKE_LIGHT_PIN   GPIO_PIN_7
-//#define HEARTBEAT_PORT    GPIOE
-//#define HEARTBEAT_PIN   GPIO_PIN_1
-
 #define THROTTLE_1_MIN   0x0FFF
 #define THROTTLE_1_MAX   0x0350
 #define THROTTLE_2_MIN   0x0EFF
@@ -49,8 +37,6 @@
 #define POLL_DELAY            50 / portTICK_RATE_MS
 #define MAX_BRAKE_LEVEL       0xFFF
 #define MAX_THROTTLE_LEVEL    1600     //160 Nm
-#define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
-#define LAUNCH_CONTROL_INTERVAL_MS  10
 #define DONT_CARE             0
 #define BUZZER_DELAY          2000
 
@@ -179,6 +165,7 @@ typedef struct {
 
 	//Wheel Speed (Traction Control)
 	wheel_speed_t				wheel_rpm;
+	flag_t              traction_en; //parameter to enable and disable traction control
 
 	//RTOS objects, initialized in initRTOSObjects
 	QueueHandle_t			q_rx_dcan;
@@ -205,13 +192,10 @@ void ISR_StartButtonPressed();
 void carInit();
 void taskPedalBoxMsgHandler();
 void taskCarMainRoutine();
-//int SendTorqueTask();
 int mainModuleWatchdogTask();
 int taskHeartbeat();
 void initRTOSObjects();
 void taskBlink(void* can);
-//void stopCar();
-//void taskSendAccelero();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
 

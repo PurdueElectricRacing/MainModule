@@ -17,7 +17,7 @@ typedef struct{
 	float RL_rpm;
 } wheel_speed_t;
 
-#define MAX_TORQUE 210 //Maximum Torque Allowed
+#define MAX_TORQUE MAX_THROTTLE_LEVEL / 10 //Maximum Torque Allowed
 #define MIN_TORQUE 0 //Minimum Torque Allowed
 #define MAX_SLIP_RATIO 0.15 //Maximum Slip Ratio
 #define MIN_SLIP_RATIO 0.05 //Minimum Slip Ratio
