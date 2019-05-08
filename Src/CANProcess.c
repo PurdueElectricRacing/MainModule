@@ -206,9 +206,11 @@ void taskRXCANProcess() {
         	  case 2:
         	    //traction toggle
         	    car.traction_en = !car.traction_en;
+        	    send_ack(ID_DASHBOARD_ACK, 3);
         	    break;
         	  case 3:
         	    car.pow_lim.power_lim_en = !car.pow_lim.power_lim_en;
+        	    send_ack(ID_DASHBOARD_ACK, 4);
         	    break;
         	}
 
@@ -449,4 +451,14 @@ void processWheelModuleFrame(CanRxMsgTypeDef* rx){
 	}
 
 	car.wheel_rpm = temp_ws;
+}
+
+void send_ack(uint16_t can_id, uint16_t response) {
+  CanTxMsgTypeDef tx;
+  tx.IDE = CAN_ID_STD;
+  tx.RTR = CAN_RTR_DATA;
+  tx.StdId = can_id;
+  tx.DLC = 1;
+  tx.Data[0] = response;
+  xQueueSendToBack(car.q_tx_vcan, &tx, 100);
 }

@@ -79,25 +79,12 @@ void ISR_StartButtonPressed() {
   	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
-			CanTxMsgTypeDef tx;
-			tx.IDE = CAN_ID_STD;
-			tx.RTR = CAN_RTR_DATA;
-			tx.StdId = ID_DASHBOARD_ACK;
-			tx.DLC = 1;
-			tx.Data[0] = 1;
-			xQueueSendToBack(car.q_tx_vcan, &tx, 100);
+			send_ack(ID_DASHBOARD_ACK, 1);
   	}
   }
   else {
     car.state = CAR_STATE_RESET;
-    //Send an acknowledge message to dashboard
-    CanTxMsgTypeDef tx;
-    tx.IDE = CAN_ID_STD;
-    tx.RTR = CAN_RTR_DATA;
-    tx.StdId = ID_DASHBOARD_ACK;
-    tx.DLC = 1;
-    tx.Data[0] = 2;
-    xQueueSendToBack(car.q_tx_vcan, &tx, 100);
+    send_ack(ID_DASHBOARD_ACK, 2);
   }
 }
 

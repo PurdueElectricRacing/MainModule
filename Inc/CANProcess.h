@@ -175,4 +175,6 @@ void processCalibrate(CanRxMsgTypeDef* rx);
 void processCalibratePowerLimit(CanRxMsgTypeDef* rx);
 int process_bms_frame(CanRxMsgTypeDef* rx);
 
+void send_ack(uint16_t can_id, uint16_t response);
+
 #endif /* CANPROCESS_H_ */
