@@ -17,8 +17,6 @@
 
 #include "car.h"
 
-SemaphoreHandle_t g_can_sem;
-
 void carSetBrakeLight(Brake_light_status_t status)
 /***************************************************************************
 *
@@ -71,7 +69,6 @@ void carInit() {
 }
 
 void ISR_StartButtonPressed() {
-
   if (car.state == CAR_STATE_INIT)
   {
     if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
@@ -88,47 +85,7 @@ void ISR_StartButtonPressed() {
   }
 }
 
-//TODO Potential MC ping function
-//TODO BMS functions
-
-int mainModuleWatchdogTask() {
-  /***************************************************************************
-  *
-  *     Function Information
-  *
-  *     Name of Function: mainModuleTimeCheckIdle
-  *
-  *     Programmer's Name: Kai Strubel
-  *                Ben Ng     xbenng@gmail.com
-  *
-  *     Function Return Type: int
-  *
-  *     Parameters (list data type, name, and comment one per line):
-  *       1.
-  *
-  *      Global Dependents:
-  *     1.bool launchControl
-  *   2.float MMPB_TIME time pedal box message handler function was last run
-  *   3.float MMWM_TIME time wheel module handler function was last run
-  *   4.float torque
-  *   5.float currentTime
-  *
-  *     Function Description:
-  *   Checks if wheel module and pedal box are still communicating
-  *
-  ***************************************************************************/
-  while (1) {
-    /*
-    //check how old the wheel module data is, if its too old, then turn off LC
-    if (current_time_ms - MMWM_TIME > LC_THRESHOLD) {
-      launchControl = 0;
-      //error
-    }*/
-    vTaskDelay(500);
-  }
-}
-
-int taskHeartbeat() {
+void taskHeartbeat() {
   /***************************************************************************
   *.
   *     Function Information
@@ -204,11 +161,10 @@ void initRTOSObjects() {
   xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
   xTaskCreate(taskHeartbeat, "heartbeat", 128, NULL, 1, NULL);
 }
-//extern uint8_t variable;
+
 void taskBlink(void* can)
 {
   while (1) {
-    //HAL_GPIO_TogglePin(FRG_RUN_CTRL_GPIO_Port, FRG_RUN_CTRL_Pin);
     HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
     CanTxMsgTypeDef tx;
     tx.IDE = CAN_ID_STD;
@@ -253,7 +209,7 @@ void taskBlink(void* can)
     }
     xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
-    vTaskDelay(250 / portTICK_RATE_MS);
+    vTaskDelay(500 / portTICK_RATE_MS);
   }
 }
 
@@ -301,9 +257,7 @@ void taskCarMainRoutine()
       //do this no matter what state.
       //get current time in ms
       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-      //always active block
-      //Brake
-      //check if brake level is greater than the threshold level
+      //always active block Brake check if brake level is greater than the threshold level
       if (car.brake >= BRAKE_PRESSED_THRESHOLD)
       {
         //brake is presssed
@@ -337,14 +291,10 @@ void taskCarMainRoutine()
       else if (car.state == CAR_STATE_PREREADY2DRIVE)
       {
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
-        //bamocar 5.2
-        //Contacts of the safety device closed,
         enableMotorController();
-        //turn on buzzer
         soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
         car.state = CAR_STATE_READY2DRIVE;  //car is started
-
-        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET); //turn the battery fan on
       }
       else if (car.state == CAR_STATE_READY2DRIVE)
       {
@@ -362,7 +312,6 @@ void taskCarMainRoutine()
           {
             torque_to_send = 0;
             car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
-            //todo send a CAN message to dash?
           }
           else
           {
@@ -380,7 +329,7 @@ void taskCarMainRoutine()
           {
             //nothing
           }
-          //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
+
           if (car.pow_lim.power_lim_en == ASSERTED) {
             torque_to_send = limit_torque(torque_to_send);
           }
