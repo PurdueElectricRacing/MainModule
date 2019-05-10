@@ -175,7 +175,7 @@ void taskPedalBoxMsgHandler();
 void taskCarMainRoutine();
 //int SendTorqueTask();
 int mainModuleWatchdogTask();
-int taskHeartbeat();
+void taskHeartbeat();
 void initRTOSObjects();
 void taskBlink(void* can);
 //void stopCar();

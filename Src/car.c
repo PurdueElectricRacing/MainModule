@@ -137,7 +137,7 @@ int mainModuleWatchdogTask() {
   }
 }
 
-int taskHeartbeat() {
+void taskHeartbeat() {
   /***************************************************************************
   *.
   *     Function Information
@@ -225,6 +225,8 @@ void taskBlink(void* can)
     tx.StdId = 0x200;
     tx.DLC = 3;
     tx.Data[0] = 0;
+    tx.Data[1] = 0;
+    tx.Data[2] = 0;
     switch (car.state) {
       case CAR_STATE_INIT :
         tx.Data[0] |= 0b00000000;
@@ -256,7 +258,7 @@ void taskBlink(void* can)
     if (car.apps_state_timeout == PEDALBOX_STATUS_ERROR) {
       tx.Data[1] |= 0b10000000;
     }
-    if (!(HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == PC_COMPLETE)) {
+    if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
       HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
       tx.Data[2] |= 0b00001000;
     }
@@ -325,7 +327,7 @@ void taskCarMainRoutine()
         carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
       }
 
-      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == GPIO_PIN_SET &&
+      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE &&
           car.state == CAR_STATE_READY2DRIVE)
       {
         car.state = CAR_STATE_RESET;

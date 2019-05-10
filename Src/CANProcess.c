@@ -21,8 +21,6 @@
 #include "car.h"
 #include "PedalBox.h"
 
-extern SemaphoreHandle_t g_can_sem;
-
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
