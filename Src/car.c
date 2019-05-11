@@ -307,6 +307,7 @@ void taskCarMainRoutine()
       //do this no matter what state.
       //get current time in ms
       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
+
       //always active block
       //Brake
       //check if brake level is greater than the threshold level
