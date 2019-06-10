@@ -24,6 +24,11 @@
 #define THROTTLE_2_MIN   0x0EA0
 #define THROTTLE_2_MAX   0x0320
 
+#define BRAKE_1_MIN      0x027c
+#define BRAKE_1_MAX      0x0900
+#define BRAKE_2_MIN      0x026f
+#define BRAKE_2_MAX      0x0900
+
 #define BRAKE_PRESSED_THRESHOLD .3
 #define APPS_BP_PLAUS_RESET_THRESHOLD .05  //EV 2.5
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5

@@ -53,11 +53,11 @@ void carInit() {
   car.throttle1_max = THROTTLE_1_MAX;
   car.throttle2_min = THROTTLE_2_MIN;
   car.throttle2_max = THROTTLE_2_MAX;
-  car.brake1_min = 0x027c;
-  car.brake1_max = 0x0900;
-  car.brake2_min = 0x026f;
-  car.brake2_max = 0x0900;
-  car.pb_msg_rx_time = 4294967295;
+  car.brake1_min = BRAKE_1_MIN;
+  car.brake1_max = BRAKE_1_MAX;
+  car.brake2_min = BRAKE_2_MIN;
+  car.brake2_max = BRAKE_2_MAX;
+  car.pb_msg_rx_time = UINT32_MAX;
   car.apps_state_bp_plaus = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
@@ -159,7 +159,7 @@ void initRTOSObjects() {
   xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
   xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
-  xTaskCreate(taskHeartbeat, "heartbeat", 128, NULL, 1, NULL);
+  xTaskCreate(taskHeartbeat, "Heartbeat", 128, NULL, 1, NULL);
 }
 
 void taskBlink(void* can)
@@ -207,7 +207,7 @@ void taskBlink(void* can)
     }
     if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
       HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-      tx.Data[2] |= 0b00001000;
+      tx.Data[2] |= 0b00000001;
     }
     xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 

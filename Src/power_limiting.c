@@ -13,89 +13,15 @@ void init_pow_lim() {
 	car.pow_lim.power_lim_en = ASSERTED;
 }
 
-uint8_t power_limit_watt(int16_t torque_req) {
-	uint8_t gain = 0;
-	int power_actual = 0;
-	//only throttle if past the threshold
-  power_actual = car.bms_params.pack_current * car.bms_params.pack_volt; //calculate the instantaneous power draw
-
-	//only throttle if past the threshold
-	if (power_actual < car.pow_lim.power_thresh) return 100;
-	//if past the hard lim stop the driving
-	if (power_actual > car.pow_lim.power_hard_lim) {
-		car.bms_params.battery_violation = 1;
-		return 0;
-	}
-
-	if (power_actual < car.pow_lim.power_soft_lim) {
-		//between threshold and soft limit
-		//have linear decrease from 100% -> 50%
-		gain = 100 + (-50 / (car.pow_lim.power_soft_lim - car.pow_lim.power_thresh)) * power_actual;
-	} else {
-		//between soft and hard lim
-		//linear decrease from 50% -> 0%
-		gain = 50 + (-50 / (car.pow_lim.power_hard_lim - car.pow_lim.power_soft_lim)) * power_actual;
-	}
-
-	return gain;
-}
-
-uint8_t power_limit_temp(int16_t torque_req) {
-	uint8_t gain = 0;
-	//only throttle if past the threshold
-	if (car.bms_params.high_temp < TEMP_THRESH) return 100;
-	//if past the hard lim stop the driving
-	if (car.bms_params.high_temp > TEMP_HARD_LIM) {
-		car.bms_params.battery_violation = 2;
-		return 0;
-	}
-
-	if (car.bms_params.high_temp < TEMP_SOFT_LIM) {
-		//between threshold and soft limit
-		//have linear decrease from 100% -> 50%
-		gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * car.bms_params.high_temp;
-	} else {
-		//between soft and hard lim
-		//linear decrease from 50% -> 0%
-		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * car.bms_params.high_temp;
-	}
-
-	return gain;
-}
-
-uint8_t power_limit_volt(int16_t torque_req) {
-	uint8_t gain = 0;
-	//only throttle if past the threshold
-	if (car.bms_params.low_cell_volt > VOLT_THRESH) return 100;
-	//if past the hard lim stop the driving
-	if (car.bms_params.low_cell_volt < VOLT_HARD_LIM) {
-		car.bms_params.battery_violation = 3;
-		return 0;
-	}
-
-	//between thresh hold and hard limit
-	if (car.bms_params.low_cell_volt < TEMP_SOFT_LIM) {
-			//between threshold and soft limit
-			//have linear decrease from 100% -> 50%
-			gain = 100 + (-50 / (TEMP_SOFT_LIM - TEMP_THRESH)) * car.bms_params.low_cell_volt;
-	} else {
-		//between soft and hard lim
-		//linear decrease from 50% -> 0%
-		gain = 50 + (-50 / (TEMP_HARD_LIM - TEMP_SOFT_LIM)) * car.bms_params.low_cell_volt;
-	}
-
-	return gain;
-}
-
 int16_t limit_torque(int16_t torque_req) {
-	int16_t torque_limited = torque_req;
+	int torque_limited = torque_req;
 	int16_t watt_gain = 100; //100 means gain of 1.
 	int16_t temp_gain = 100;
 	int16_t volt_gain = 100;
 
-	watt_gain = power_limit_watt(torque_req);
-	temp_gain = power_limit_temp(torque_req);
-	volt_gain = power_limit_volt(torque_req);
+	watt_gain = power_limit_watt();
+	temp_gain = power_limit_temp();
+	volt_gain = power_limit_volt();
 
 	if (watt_gain < temp_gain && watt_gain < volt_gain) {
 		//power limited by rules
@@ -108,5 +34,87 @@ int16_t limit_torque(int16_t torque_req) {
 		torque_limited = (torque_limited * volt_gain) / 100;
 	}
 
-	return torque_limited;
+	return (int16_t) torque_limited;
+}
+
+int power_limit_volt() {
+  uint8_t gain = 0;
+  float multiplier = 0;
+  //only throttle if past the threshold
+  if (car.bms_params.low_cell_volt > VOLT_THRESH) return 100;
+  //if past the hard lim stop the driving
+  if (car.bms_params.low_cell_volt < VOLT_HARD_LIM) {
+    car.bms_params.battery_violation = 0;
+    return 0;
+  }
+
+  //between thresh hold and hard limit
+  if (car.bms_params.low_cell_volt > VOLT_SOFT_LIM) {
+      //between threshold and soft limit
+      //have linear decrease from 100% -> 50%
+    multiplier = ((float) (VOLT_THRESH - car.bms_params.low_cell_volt) / (VOLT_THRESH - VOLT_SOFT_LIM));
+      gain = 100 - 50 * (multiplier);
+  } else {
+    //between soft and hard lim
+    //linear decrease from 50% -> 0%
+    multiplier = ((float) (VOLT_SOFT_LIM - car.bms_params.low_cell_volt) / (VOLT_SOFT_LIM - VOLT_HARD_LIM));
+      gain = 50 - 50 * (multiplier);
+  }
+
+  return gain;
+}
+
+int power_limit_temp() {
+  uint8_t gain = 0;
+  float multiplier = 0;
+  //only throttle if past the threshold
+  if (car.bms_params.high_temp < TEMP_THRESH) return 100;
+  //if past the hard lim stop the driving
+  if (car.bms_params.high_temp > TEMP_HARD_LIM) {
+    car.bms_params.battery_violation = 1;
+    return 0;
+  }
+
+  if (car.bms_params.high_temp < TEMP_SOFT_LIM) {
+    //between threshold and soft limit
+    //have linear decrease from 100% -> 50%
+    multiplier = ((float) (car.bms_params.high_temp - TEMP_THRESH) / (TEMP_SOFT_LIM - TEMP_THRESH));
+      gain = 100 - 50 * (multiplier);
+  } else {
+    //between soft and hard lim
+    //linear decrease from 50% -> 0%
+    multiplier = ((float) (car.bms_params.high_temp - TEMP_SOFT_LIM) / (TEMP_HARD_LIM - TEMP_SOFT_LIM));
+      gain = 50 - 50 * (multiplier);
+  }
+
+  return gain;
+}
+
+int power_limit_watt() {
+  uint8_t gain = 0;
+  float multiplier = 0;
+  int power_actual = 0;
+  //only throttle if past the threshold
+  power_actual = car.bms_params.pack_current * car.bms_params.pack_volt; //calculate the instantaneous power draw
+
+  if (power_actual < car.pow_lim.power_thresh) return 100;
+  //if past the hard lim stop the driving
+  if (power_actual > 80000) {
+    car.bms_params.battery_violation = 2;
+    return 0;
+  }
+
+  if (power_actual < car.pow_lim.power_soft_lim) {
+    //between threshold and soft limit
+    //have linear decrease from 100% -> 50%
+    multiplier = ((float) (power_actual - car.pow_lim.power_thresh) / (car.pow_lim.power_soft_lim - car.pow_lim.power_thresh));
+    gain = 100 - 50 * (multiplier);
+  } else {
+    //between soft and hard lim
+    //linear decrease from 50% -> 0%
+    multiplier = ((float) (power_actual - car.pow_lim.power_soft_lim) / (car.pow_lim.power_hard_lim - car.pow_lim.power_soft_lim));
+      gain = 50 - 50 * (multiplier);
+  }
+
+  return gain;
 }
