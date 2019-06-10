@@ -6,3 +6,12 @@
 !*.ioc
 !.gitignore
 !*.bat
+!/TraceRecorder/
+!/TraceRecorder/*
+!/TraceRecorder/config/
+!/TraceRecorder/config/*
+!/TraceRecorder/include/
+!/TraceRecorder/include/*
+!/streamports/
+!/streamports/*
+

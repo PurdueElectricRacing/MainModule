@@ -17,6 +17,7 @@
 #include "power_limiting.h"
 #include "PedalBox.h"
 #include "CANProcess.h"
+#include "trcConfig.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,13 +96,19 @@ int main(void)
   carInit();
   DCANFilterConfig();
   VCANFilterConfig();
-  initRTOSObjects();  //start tasks in here
+
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
-  
+
   HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO1_MSG_PENDING);
   
+#ifdef tracing
+  vTraceEnable(TRC_START);
+#endif
+
+  initRTOSObjects();  //start tasks in here
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */

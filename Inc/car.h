@@ -19,6 +19,9 @@
 #include <math.h>
 #include "traction_control.h"
 
+//enable tracing
+#define tracing
+
 #define THROTTLE_1_MIN   0x0FFF
 #define THROTTLE_1_MAX   0x0490
 #define THROTTLE_2_MIN   0x0EA0
