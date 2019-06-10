@@ -18,6 +18,10 @@
 ***************************************************************************/
 #include <CANProcess.h>
 
+#include "car.h"
+#include "PedalBox.h"
+
+
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	CanRxMsgTypeDef rx;

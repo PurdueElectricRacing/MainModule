@@ -20,9 +20,9 @@
 #include "traction_control.h"
 
 #define THROTTLE_1_MIN   0x0FFF
-#define THROTTLE_1_MAX   0x0350
-#define THROTTLE_2_MIN   0x0EFF
-#define THROTTLE_2_MAX   0x0450
+#define THROTTLE_1_MAX   0x0490
+#define THROTTLE_2_MIN   0x0EA0
+#define THROTTLE_2_MAX   0x0320
 
 #define BRAKE_PRESSED_THRESHOLD .3
 #define APPS_BP_PLAUS_RESET_THRESHOLD .05  //EV 2.5
