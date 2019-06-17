@@ -328,11 +328,11 @@ void taskCarMainRoutine()
         carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
       }
 
-      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE &&
-          car.state == CAR_STATE_READY2DRIVE)
-      {
-        car.state = CAR_STATE_RESET;
-      }
+//      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE &&
+//          car.state == CAR_STATE_READY2DRIVE)
+//      {
+//        car.state = CAR_STATE_RESET;
+//      }
 
       //state dependent block
       if (car.state == CAR_STATE_INIT)
@@ -343,6 +343,8 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_PREREADY2DRIVE)
       {
+        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET); //enable the DCDC's
+
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
         //bamocar 5.2
         //Contacts of the safety device closed,
@@ -350,7 +352,7 @@ void taskCarMainRoutine()
         //turn on buzzer
         soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
         car.state = CAR_STATE_READY2DRIVE;  //car is started
-
+        vTaskDelay(500); //account for the DCDC delay turn on
         HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
       }
       else if (car.state == CAR_STATE_READY2DRIVE)
@@ -394,6 +396,7 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_RESET)
       {
+        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET); //disable the DCDC's
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
         disableMotorController();
         HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_RESET);

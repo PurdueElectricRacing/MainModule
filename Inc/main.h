@@ -90,6 +90,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define CS_I2C_SPI_Pin GPIO_PIN_3
 #define CS_I2C_SPI_GPIO_Port GPIOE
+#define DCDC_ENABLE_Pin GPIO_PIN_5
+#define DCDC_ENABLE_GPIO_Port GPIOE
 #define P_AIR_STATUS_Pin GPIO_PIN_6
 #define P_AIR_STATUS_GPIO_Port GPIOE
 #define BATTERY_CHARGER_ENABLE_Pin GPIO_PIN_13
