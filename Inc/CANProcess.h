@@ -14,6 +14,8 @@
 #include "PedalBox.h"
 //#include "WheelModule.h"
 
+#define MAIN_ACK_ID 0x360
+
 //defines for reading data from RxCanMsgTypeDef
 #define ID_PEDALBOX1              0x500
 #define ID_PEDALBOX2              0x501
@@ -169,6 +171,7 @@ void taskRXCAN();
 void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);
 void processPedalboxFrame(CanRxMsgTypeDef* rx);
+void prchg_led_enbl(uint8_t val);
 void process_IMU(CanRxMsgTypeDef* rx);
 
 void processCalibrate(CanRxMsgTypeDef* rx);

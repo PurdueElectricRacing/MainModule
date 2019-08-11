@@ -62,6 +62,7 @@ void carInit() {
   car.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
+  HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET);
   car.traction_en = DEASSERTED; //default traction control to off
 
   init_bms_struct(); //setup the bms data
@@ -242,6 +243,17 @@ void soundBuzzer(int time_ms) {
 }
 
 
+void prchg_led_enbl(uint8_t val)
+{
+	CanTxMsgTypeDef tx;
+	tx.RTR = CAN_RTR_DATA;
+	tx.IDE = CAN_ID_STD;
+	tx.StdId = MAIN_ACK_ID;
+	tx.DLC = 1;
+	tx.Data[0] = val;
+
+	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+}
 
 
 void taskCarMainRoutine()
@@ -256,10 +268,24 @@ void taskCarMainRoutine()
       TickType_t current_tick_time = xTaskGetTickCount();
       uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
       int16_t torque_to_send = 0;
+      uint8_t pc_low = 0;
       //do this no matter what state.
       //get current time in ms
       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-      //always active block Brake check if brake level is greater than the threshold level
+
+			//check that precharge is on, send CAN to dash precharge led
+//		  if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
+//		  {
+//		  	pchg_led_enbl(0);
+//		  }
+//		  else
+//		  {
+//		  	pchg_led_enbl(1);
+//		  }
+
+      //always active block
+      //Brake
+      //check if brake level is greater than the threshold level
       if (car.brake >= BRAKE_PRESSED_THRESHOLD)
       {
         //brake is presssed
@@ -277,11 +303,11 @@ void taskCarMainRoutine()
         carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
       }
 
-      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE &&
-          car.state == CAR_STATE_READY2DRIVE)
-      {
-        car.state = CAR_STATE_RESET;
-      }
+//      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE &&
+//          car.state == CAR_STATE_READY2DRIVE)
+//      {
+//        car.state = CAR_STATE_RESET;
+//      }
 
       //state dependent block
       if (car.state == CAR_STATE_INIT)
@@ -292,21 +318,31 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_PREREADY2DRIVE)
       {
+        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET); //enable the DCDC's
+
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
         enableMotorController();
         soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
         car.state = CAR_STATE_READY2DRIVE;  //car is started
-        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET); //turn the battery fan on
+        vTaskDelay(500); //account for the DCDC delay turn on
+        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
       }
       else if (car.state == CAR_STATE_READY2DRIVE)
       {
         //confirm the PC is not broken
-        if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
+        if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE
+        		&& !pc_low)
         {
-          car.state = CAR_STATE_RESET;  //car is started
+        	pc_low = 1;
+        }
+        else if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE
+        		&& pc_low)
+        {
+					car.state = CAR_STATE_RESET;  //car is started
         }
         else
         {
+        	pc_low = 0;
           //assert these pins during r2d
           //check if the age of the pedalbox message is greater than the timeout
           //T.6.2.10 b
@@ -346,6 +382,7 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_RESET)
       {
+        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET); //disable the DCDC's
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
         disableMotorController();
         HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_RESET);

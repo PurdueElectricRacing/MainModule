@@ -288,8 +288,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, CS_I2C_SPI_Pin|BRAKE_LIGHT_Pin|BATT_FAN_Pin|RFE_Pin 
-                          |FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, CS_I2C_SPI_Pin|DCDC_ENABLE_Pin|BRAKE_LIGHT_Pin|BATT_FAN_Pin 
+                          |RFE_Pin|FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
@@ -304,10 +304,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOD, LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin 
                           |Audio_RST_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : CS_I2C_SPI_Pin BRAKE_LIGHT_Pin BATT_FAN_Pin RFE_Pin 
-                           FRG_RUN_Pin PUMP_Pin SDC_CTRL_Pin */
-  GPIO_InitStruct.Pin = CS_I2C_SPI_Pin|BRAKE_LIGHT_Pin|BATT_FAN_Pin|RFE_Pin 
-                          |FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin;
+  /*Configure GPIO pins : CS_I2C_SPI_Pin DCDC_ENABLE_Pin BRAKE_LIGHT_Pin BATT_FAN_Pin 
+                           RFE_Pin FRG_RUN_Pin PUMP_Pin SDC_CTRL_Pin */
+  GPIO_InitStruct.Pin = CS_I2C_SPI_Pin|DCDC_ENABLE_Pin|BRAKE_LIGHT_Pin|BATT_FAN_Pin 
+                          |RFE_Pin|FRG_RUN_Pin|PUMP_Pin|SDC_CTRL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
