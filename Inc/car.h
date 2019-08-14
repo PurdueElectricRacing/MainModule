@@ -17,17 +17,8 @@
 #include "motor_controller_functions.h"
 #include <math.h>
 
-////gpio aliases
-//#define BUZZER_PORT     GPIOB //todo
-//#define BUZZER_PIN      GPIO_PIN_10
-//#define FRG_RUN_PORT    GPIOE
-//#define FRG_RUN_PIN     GPIO_PIN_11
-//#define RFE_PORT      GPIOE
-//#define RFE_PIN       GPIO_PIN_12
-//#define BRAKE_LIGHT_PORT  GPIOE
-//#define BRAKE_LIGHT_PIN   GPIO_PIN_7
-//#define HEARTBEAT_PORT    GPIOE
-//#define HEARTBEAT_PIN   GPIO_PIN_1
+//Can comment/uncomment as required
+#define PERCEPIO_TRACE
 
 #define THROTTLE_1_MIN   0x0FFF
 #define THROTTLE_1_MAX   0x0490

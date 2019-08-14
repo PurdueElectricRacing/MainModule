@@ -95,6 +95,11 @@ int main(void)
   carInit();
   DCANFilterConfig();
   VCANFilterConfig();
+
+  //Call Trace Start here
+#ifdef PERCEPIO_TRACE
+  vTraceEnable(TRC_START);
+#endif
   initRTOSObjects();  //start tasks in here
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
