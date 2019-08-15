@@ -6,3 +6,4 @@
 !*.ioc
 !.gitignore
 !*.bat
+!TraceRecorder/
