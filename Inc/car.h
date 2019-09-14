@@ -18,26 +18,27 @@
 #include <math.h>
 
 //Can comment/uncomment as required
-#define PERCEPIO_TRACE
+//#define PERCEPIO_TRACE
 
 #define THROTTLE_1_MIN   0x0FFF
-#define THROTTLE_1_MAX   0x0490
+#define THROTTLE_1_MAX   0x04D2
 #define THROTTLE_2_MIN   0x0EA0
-#define THROTTLE_2_MAX   0x0320
+#define THROTTLE_2_MAX   0x032F
 
 #define BRAKE_PRESSED_THRESHOLD .3
 #define APPS_BP_PLAUS_RESET_THRESHOLD .05  //EV 2.5
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
 
 
-#define PERIOD_ACCELRO        50 / portTICK_RATE_MS
 #define PERIOD_TORQUE_SEND    25
 #define HEARTBEAT_PULSEWIDTH  200 / portTICK_RATE_MS
 #define HEARTBEAT_PERIOD      100 / portTICK_RATE_MS
 #define PEDALBOX_TIMEOUT      1000 / portTICK_RATE_MS
 #define POLL_DELAY            50 / portTICK_RATE_MS
 #define MAX_BRAKE_LEVEL       0xFFF
-#define MAX_THROTTLE_LEVEL    880     //88 Nm
+#define BOOST_MODE_TORQUE     2400 //240 Nm NOT SURE IF THIS IS RIGHT
+#define MAX_CONTINUOUS_TORQUE    1600 // 125 Nm continuous
+#define MAX_REGEN_TORQUE      -35
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS  10
 #define DONT_CARE             0
@@ -54,6 +55,9 @@
 #define QUEUE_SIZE_TXCAN_1      10
 #define QUEUE_SIZE_TXCAN_2      10
 #define QUEUE_SIZE_MCFRAME      3
+
+#define DAQ_SCALAR 10000
+#define REGEN_CUTOFF_SPEED  200.0f
 
 
 typedef enum {
@@ -152,6 +156,8 @@ typedef struct {
   CAN_HandleTypeDef*    phdcan;           //pointer to car's CAN peripheral handle
   CAN_HandleTypeDef*    phvcan;
   
+  float rl_spd, rr_spd, fl_spd, fr_spd;
+
 } Car_t;
 
 extern volatile Car_t car;
@@ -173,6 +179,8 @@ void taskBlink(void* can);
 //void taskSendAccelero();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
+void calc_wheel_speed(uint32_t id, uint8_t * data);
+
 
 
 #endif /* CAR_H_ */

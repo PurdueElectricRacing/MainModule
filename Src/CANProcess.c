@@ -220,6 +220,11 @@ void taskRXCANProcess() {
           HAL_GPIO_TogglePin(PUMP_GPIO_Port, PUMP_Pin);
           break;
         }
+        case  ID_WHEEL_REAR || ID_WHEEL_FRONT:
+        {
+        	calc_wheel_speed(rx.StdId, rx.Data);
+        	break;
+        }
       }
     }
     

@@ -10,6 +10,7 @@
 
 #include "stm32f4xx_hal.h"
 
+
 typedef enum {
   PEDALBOX_STATUS_ERROR = 1, //generic error
   PEDALBOX_STATUS_ERROR_EOR, // encoder out of range

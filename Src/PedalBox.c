@@ -7,6 +7,7 @@
 
 #include "PedalBox.h"
 #include "car.h"
+#include "stdlib.h"
 
 
 void taskPedalBoxMsgHandler() {
@@ -57,6 +58,7 @@ void taskPedalBoxMsgHandler() {
                                   (car.brake2_max - car.brake2_min);  //value 0-1, brake 2 calibrated between min and max
       float     throttle_avg  = (throttle1_cal + throttle2_cal) / 2.0;
       float     brake_avg     = (brake1_cal + brake2_cal) / 2.0;
+      float     avg_spd  = (car.rl_spd + car.rr_spd) / 2.0;
       
       
       // T 6.2.8: Any failure of APPS must be detectable and treated as an implausibility
@@ -131,19 +133,27 @@ void taskPedalBoxMsgHandler() {
       {
         if (throttle_avg >= 0.9)
         {
-          car.throttle_acc = MAX_THROTTLE_LEVEL;
+          car.throttle_acc = MAX_CONTINUOUS_TORQUE;
         }
         else
         {
           //no errors, set throttle to value received from pedalbox
-          car.throttle_acc = ((throttle_avg - 0.1) * MAX_THROTTLE_LEVEL / 0.8);
+          car.throttle_acc = ((throttle_avg - 0.1) * MAX_CONTINUOUS_TORQUE / 0.8);
         }
+
       }
       else
+			{
+				car.throttle_acc = 0;
+			}
+
+      // test for regen. if on brakes and above a certain speed, regen based on percentage of brake pressed
+// && brake_avg > 0.3
+      if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg <= 0.08  )
       {
-        car.throttle_acc = 0;
+      	//brake_avg *
+				car.throttle_acc = MAX_REGEN_TORQUE;
       }
-      
     }
   }
   
