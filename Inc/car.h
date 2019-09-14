@@ -30,12 +30,12 @@
 #define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
 
 
-#define PERIOD_ACCELRO        50 / portTICK_RATE_MS
+#define PERIOD_ACCELRO        50
 #define PERIOD_TORQUE_SEND    25
-#define HEARTBEAT_PULSEWIDTH  200 / portTICK_RATE_MS
-#define HEARTBEAT_PERIOD      100 / portTICK_RATE_MS
-#define PEDALBOX_TIMEOUT      1000 / portTICK_RATE_MS
-#define POLL_DELAY            50 / portTICK_RATE_MS
+#define HEARTBEAT_PULSEWIDTH  200
+#define HEARTBEAT_PERIOD      100
+#define PEDALBOX_TIMEOUT      1000
+#define POLL_DELAY            50
 #define MAX_BRAKE_LEVEL       0xFFF
 #define MAX_THROTTLE_LEVEL    880     //88 Nm
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
