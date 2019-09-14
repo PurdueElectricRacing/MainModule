@@ -94,27 +94,6 @@ typedef enum {
   CALIBRATE_BRAKE_MAX
 } Calibrate_flag_t;
 
-
-int BCparam;
-int actualTorque0700;
-int actualTorque1508;
-int actualDC;
-int actualV;
-int DCLimit;
-int calcTorqueLimit;
-int pedalTorque;
-int actualTorque;
-int torque_to_send;
-int speedActual;
-int currentActual;
-int commandCurrent;
-int dcBusVoltage;
-int motorTemperature;
-int powerStageTemperature;
-int airTemperature;
-int actualCurrentLimit;
-int errBitMap1;
-
 typedef struct {
   Car_state_t       state;
   uint8_t         errorFlags;
