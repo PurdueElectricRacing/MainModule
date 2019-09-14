@@ -321,15 +321,6 @@ void taskCarMainRoutine()
       //get current time in ms
       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 
-			//check that precharge is on, send CAN to dash precharge led
-//		  if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
-//		  {
-//		  	pchg_led_enbl(0);
-//		  }
-//		  else
-//		  {
-//		  	pchg_led_enbl(1);
-//		  }
 
       //always active block
       //Brake
