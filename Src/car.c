@@ -17,8 +17,6 @@
 
 #include "car.h"
 
-SemaphoreHandle_t g_can_sem;
-
 void carSetBrakeLight(Brake_light_status_t status)
 /***************************************************************************
 *
@@ -48,27 +46,30 @@ void carInit() {
   car.pb_mode = PEDALBOX_MODE_DIGITAL;
   car.throttle_acc = 0;
   car.brake = 0;
-  car.phdcan = &hcan1;
-  car.phvcan = &hcan2;
+  car.phvcan = &hcan1;
+  car.phdcan = &hcan2;
   car.calibrate_flag = CALIBRATE_NONE;
   car.throttle1_min = THROTTLE_1_MIN;
   car.throttle1_max = THROTTLE_1_MAX;
   car.throttle2_min = THROTTLE_2_MIN;
   car.throttle2_max = THROTTLE_2_MAX;
-  car.brake1_min = 0x027c;
-  car.brake1_max = 0x0900;
-  car.brake2_min = 0x026f;
-  car.brake2_max = 0x0900;
-  car.pb_msg_rx_time = 4294967295;
+  car.brake1_min = BRAKE_1_MIN;
+  car.brake1_max = BRAKE_1_MAX;
+  car.brake2_min = BRAKE_2_MIN;
+  car.brake2_max = BRAKE_2_MAX;
+  car.pb_msg_rx_time = UINT32_MAX;
   car.apps_state_bp_plaus = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
   car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
   HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET);
+  car.traction_en = DEASSERTED; //default traction control to off
+
+  init_bms_struct(); //setup the bms data
+	init_pow_lim(); //setup the power limiting
 }
 
 void ISR_StartButtonPressed() {
-
   if (car.state == CAR_STATE_INIT)
   {
     if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
@@ -76,67 +77,15 @@ void ISR_StartButtonPressed() {
   	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
-			CanTxMsgTypeDef tx;
-			tx.IDE = CAN_ID_STD;
-			tx.RTR = CAN_RTR_DATA;
-			tx.StdId = ID_DASHBOARD_ACK;
-			tx.DLC = 1;
-			tx.Data[0] = 1;
-			xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+			send_ack(ID_DASHBOARD_ACK, 1);
   	}
   }
   else {
     car.state = CAR_STATE_RESET;
-    //Send an acknowledge message to dashboard
-    CanTxMsgTypeDef tx;
-    tx.IDE = CAN_ID_STD;
-    tx.RTR = CAN_RTR_DATA;
-    tx.StdId = ID_DASHBOARD_ACK;
-    tx.DLC = 1;
-    tx.Data[0] = 2;
-    xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+    send_ack(ID_DASHBOARD_ACK, 2);
   }
 }
 
-//TODO Potential MC ping function
-//TODO BMS functions
-
-int mainModuleWatchdogTask() {
-  /***************************************************************************
-  *
-  *     Function Information
-  *
-  *     Name of Function: mainModuleTimeCheckIdle
-  *
-  *     Programmer's Name: Kai Strubel
-  *                Ben Ng     xbenng@gmail.com
-  *
-  *     Function Return Type: int
-  *
-  *     Parameters (list data type, name, and comment one per line):
-  *       1.
-  *
-  *      Global Dependents:
-  *     1.bool launchControl
-  *   2.float MMPB_TIME time pedal box message handler function was last run
-  *   3.float MMWM_TIME time wheel module handler function was last run
-  *   4.float torque
-  *   5.float currentTime
-  *
-  *     Function Description:
-  *   Checks if wheel module and pedal box are still communicating
-  *
-  ***************************************************************************/
-  while (1) {
-    /*
-    //check how old the wheel module data is, if its too old, then turn off LC
-    if (current_time_ms - MMWM_TIME > LC_THRESHOLD) {
-      launchControl = 0;
-      //error
-    }*/
-    vTaskDelay(500);
-  }
-}
 
 void taskHeartbeat() {
   /***************************************************************************
@@ -212,13 +161,12 @@ void initRTOSObjects() {
   xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
   xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
-  xTaskCreate(taskHeartbeat, "heartbeat", 128, NULL, 1, NULL);
+  xTaskCreate(taskHeartbeat, "Heartbeat", 128, NULL, 1, NULL);
 }
-//extern uint8_t variable;
+
 void taskBlink(void* can)
 {
   while (1) {
-    //HAL_GPIO_TogglePin(FRG_RUN_CTRL_GPIO_Port, FRG_RUN_CTRL_Pin);
     HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
     CanTxMsgTypeDef tx;
     tx.IDE = CAN_ID_STD;
@@ -261,11 +209,11 @@ void taskBlink(void* can)
     }
     if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
       HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-      tx.Data[2] |= 0b00001000;
+      tx.Data[2] |= 0b00000001;
     }
     xQueueSendToBack(car.q_tx_dcan, &tx, 100);
 
-    vTaskDelay(250 / portTICK_RATE_MS);
+    vTaskDelay(500 / portTICK_RATE_MS);
   }
 }
 
@@ -311,6 +259,11 @@ void prchg_led_enbl(uint8_t val)
 
 void taskCarMainRoutine()
 {
+  //Initializations for Traction Control
+  uint32_t last_time_tc = 0;
+  uint16_t int_term_tc = 0;
+  uint16_t prev_trq_tc = 0;
+
   while (1)
   {
       TickType_t current_tick_time = xTaskGetTickCount();
@@ -321,6 +274,15 @@ void taskCarMainRoutine()
       //get current time in ms
       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 
+			//check that precharge is on, send CAN to dash precharge led
+//		  if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
+//		  {
+//		  	pchg_led_enbl(0);
+//		  }
+//		  else
+//		  {
+//		  	pchg_led_enbl(1);
+//		  }
 
       //always active block
       //Brake
@@ -360,10 +322,7 @@ void taskCarMainRoutine()
         HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET); //enable the DCDC's
 
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
-        //bamocar 5.2
-        //Contacts of the safety device closed,
         enableMotorController();
-        //turn on buzzer
         soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
         car.state = CAR_STATE_READY2DRIVE;  //car is started
         vTaskDelay(500); //account for the DCDC delay turn on
@@ -392,7 +351,6 @@ void taskCarMainRoutine()
           {
             torque_to_send = 0;
             car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
-            //todo send a CAN message to dash?
           }
           else
           {
@@ -410,8 +368,16 @@ void taskCarMainRoutine()
           {
             //nothing
           }
-          mcCmdTorqueFake(car.throttle_acc);
-          //TODO confirm that this is fine and sends within 2 seconds always to Rinehart
+
+          if (car.pow_lim.power_lim_en == ASSERTED) {
+            torque_to_send = limit_torque(torque_to_send);
+          }
+
+          if (car.traction_en == ASSERTED) {
+            torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
+          }
+
+          mcCmdTorqueFake(torque_to_send);
           mcCmdTorque(torque_to_send);  //command the MC to move the motor
         }
       }

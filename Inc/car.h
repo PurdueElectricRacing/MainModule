@@ -20,31 +20,20 @@
 //Can comment/uncomment as required
 #define PERCEPIO_TRACE
 
-#define THROTTLE_1_MIN   0x0FFF
-#define THROTTLE_1_MAX   0x0490
-#define THROTTLE_2_MIN   0x0EA0
-#define THROTTLE_2_MAX   0x0320
-
-#define BRAKE_PRESSED_THRESHOLD .3
-#define APPS_BP_PLAUS_RESET_THRESHOLD .05  //EV 2.5
-#define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
-
-
-#define PERIOD_ACCELRO        50
 #define PERIOD_TORQUE_SEND    25
 #define HEARTBEAT_PULSEWIDTH  200
 #define HEARTBEAT_PERIOD      100
 #define PEDALBOX_TIMEOUT      1000
 #define POLL_DELAY            50
 #define MAX_BRAKE_LEVEL       0xFFF
-#define MAX_THROTTLE_LEVEL    880     //88 Nm
+#define MAX_THROTTLE_LEVEL    1600     //88 Nm
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS  10
 #define DONT_CARE             0
 #define BUZZER_DELAY          2000
 
 //#define TEST_MC
-#define MC_TEST_TORQUE MAX_THROTTLE_LEVEL / 5
+#define MC_TEST_TORQUE (MAX_THROTTLE_LEVEL / 5)
 
 
 //rtos parameter defines
@@ -81,10 +70,6 @@ typedef enum {
   CAR_STATE_RECOVER
 } Car_state_t;
 
-typedef enum {
-  PEDALBOX_MODE_ANALOG,
-  PEDALBOX_MODE_DIGITAL
-} Pedalbox_mode_t;
 
 typedef enum {
   CALIBRATE_NONE,
@@ -98,14 +83,6 @@ typedef struct {
   Car_state_t       state;
   uint8_t         errorFlags;
   //calibration values
-  int32_t       throttle1_min; //this is a higher value than max
-  int32_t       throttle1_max; //this is a lower value than min
-  int32_t       throttle2_min;
-  int32_t       throttle2_max;
-  int32_t       brake1_min;
-  int32_t       brake1_max;
-  int32_t       brake2_min;
-  int32_t       brake2_max;
   int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
   uint32_t        pb_msg_rx_time;       //indicates when a pedalbox message was last received
@@ -149,7 +126,6 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskBlink(void* can);
 //void stopCar();
-//void taskSendAccelero();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
 
