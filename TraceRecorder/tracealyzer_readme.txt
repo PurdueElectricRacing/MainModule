@@ -23,6 +23,7 @@ In case you have any questions, don't hesitate to contact support@percepio.com
 Tracealyzer supports FreeRTOS v7.3 and newer, including Amazon FreeRTOS.
 
 -------------------------------------------------------------------------------
+<<<<<<< HEAD
 
 Changes, v4.2.12 -> v4.3.0
 - Improved Streaming stability in regards to starting/stopping.
@@ -58,6 +59,8 @@ Changes, v4.1.5 -> v4.1.7
 
 -------------------------------------------------------------------------------
 
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 Changes, v4.1.4 -> v4.1.5
 
 - Fixed a bug in the ITM stream port, that required Port 0 to be enabled.

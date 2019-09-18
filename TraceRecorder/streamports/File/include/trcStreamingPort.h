@@ -1,5 +1,9 @@
 /*******************************************************************************
+<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
+=======
+ * Trace Recorder Library for Tracealyzer v4.1.5
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcStreamingPort.h

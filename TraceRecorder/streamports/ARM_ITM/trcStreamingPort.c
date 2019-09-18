@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*******************************************************************************
  * Trace Recorder Library for Tracealyzer v4.3.1
  * Percepio AB, www.percepio.com
@@ -91,6 +92,8 @@
  * Copyright Percepio AB, 2018.
  * www.percepio.com
  ******************************************************************************/
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 #include "trcRecorder.h"
 
@@ -99,12 +102,16 @@
 
 static void itm_write_32(uint32_t data);
 
+<<<<<<< HEAD
 /* These variables are used for reading commands from the host, using read_from_host().
  * This is not required if using vTraceEnable(TRC_START).
  * A debugger IDE may write to these functions using a macro. 
  * An example for Keil is included (Keil-uVision-Tracealyzer-ITM-Exporter.ini). */
  
 volatile int32_t tz_host_command_bytes_to_read = 0;
+=======
+volatile int32_t tz_host_command_bytes_to_read = 0; // This is set by the Tracealyzer host application (to the number of bytes written), after having written to tz_host_commands. Set to zero by the read function after the message in tz_host_commands has been read.
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 volatile char tz_host_command_data[32];
 
 /* This reads "command" data from a RAM buffer, written by a host macro in the debugger */

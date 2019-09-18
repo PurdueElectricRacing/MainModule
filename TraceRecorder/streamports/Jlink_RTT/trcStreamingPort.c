@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*******************************************************************************
  * Trace Recorder Library for Tracealyzer v4.3.1
  * Percepio AB, www.percepio.com
@@ -48,6 +49,9 @@
  * www.percepio.com
  ******************************************************************************/
  
+=======
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #include "trcRecorder.h"
 
 #if (TRC_USE_TRACEALYZER_RECORDER == 1)
@@ -63,6 +67,14 @@ int32_t readFromRTT(void* ptrData, uint32_t size, int32_t* ptrBytesRead)
 	
 		if (ptrBytesRead != NULL)
 			*ptrBytesRead = (int32_t)bytesRead;
+<<<<<<< HEAD
+=======
+	
+		if (bytesRead != size)
+		{
+			return -1;
+		}
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 	}
 
@@ -76,6 +88,14 @@ int32_t writeToRTT(void* ptrData, uint32_t size, int32_t* ptrBytesWritten)
 	if (ptrBytesWritten != NULL)
 		*ptrBytesWritten = (int32_t)bytesWritten;
 
+<<<<<<< HEAD
+=======
+	if (bytesWritten != size)
+	{
+		return -1;
+	}
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	return 0;
 }
 

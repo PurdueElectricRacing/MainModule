@@ -1,5 +1,9 @@
 /*******************************************************************************
+<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
+=======
+ * Trace Recorder Library for Tracealyzer v4.1.5
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcStreamingPort.c
@@ -9,7 +13,11 @@
  * Existing ports can easily be modified to fit another setup, e.g., a 
  * different TCP/IP stack, or to define your own stream port.
  *
+<<<<<<< HEAD
  * Terms of Use
+=======
+  * Terms of Use
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * This file is part of the trace recorder library (RECORDER), which is the 
  * intellectual property of Percepio AB (PERCEPIO) and provided under a
  * license as follows.
@@ -92,6 +100,7 @@ int32_t trcSocketReceive( void* data, int32_t size, int32_t* bytesRead )
 {
   if (new_sd < 0)
     return -1;
+<<<<<<< HEAD
 
   *bytesRead = recv( new_sd, data, size, 0 );
   /* EWOULDBLOCK may be expected when there is no data to receive */
@@ -100,6 +109,21 @@ int32_t trcSocketReceive( void* data, int32_t size, int32_t* bytesRead )
     closesocket(new_sd);
     new_sd = -1;
     return -1;
+=======
+  
+  *bytesRead = recv( new_sd, data, size, 0 );
+  if ( *bytesRead < 0 )
+  {
+    /* EWOULDBLOCK may be expected when there is no data to receive */
+    if (errno != 0 && errno != EWOULDBLOCK)
+    {
+      closesocket(new_sd);
+      new_sd = -1;
+      return -1;
+    }
+    else
+        *bytesRead = 0;
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
   }
 
   return 0;
@@ -110,8 +134,11 @@ int32_t trcSocketInitializeListener()
   if (sock >= 0)
 	return 0;
   
+<<<<<<< HEAD
   errno = 0;
 
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
   sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
 
   if (sock < 0)
@@ -149,6 +176,12 @@ int32_t trcSocketAccept()
   remoteSize = sizeof( remote );
   new_sd = accept( sock, (struct sockaddr *)&remote, (socklen_t*)&remoteSize );
 
+<<<<<<< HEAD
+=======
+  flags = fcntl( new_sd, F_GETFL, 0 );
+  fcntl( new_sd, F_SETFL, flags | O_NONBLOCK );
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
   if( new_sd < 0 )
   {
    	closesocket(new_sd);
@@ -158,9 +191,12 @@ int32_t trcSocketAccept()
     return -1;
   }
 
+<<<<<<< HEAD
   flags = fcntl( new_sd, F_GETFL, 0 );
   fcntl( new_sd, F_SETFL, flags | O_NONBLOCK );
 
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
   return 0;
 }
 /************** MODIFY THE ABOVE PART TO USE YOUR TPC/IP STACK ****************/

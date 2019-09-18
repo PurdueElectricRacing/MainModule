@@ -1,5 +1,9 @@
 /*******************************************************************************
+<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
+=======
+ * Trace Recorder Library for Tracealyzer v4.1.5
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcStreamingPort.c
@@ -61,6 +65,10 @@ struct sockaddr_in server, client;
 
 int initServerSocketIfNeeded(void);
 int initWinsockIfNeeded(void);
+<<<<<<< HEAD
+=======
+void closeSocket(void);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 int initWinsockIfNeeded(void)
 {
@@ -80,6 +88,11 @@ int initWinsockIfNeeded(void)
 
 int initServerSocketIfNeeded(void)
 {
+<<<<<<< HEAD
+=======
+	int c;
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	if (initWinsockIfNeeded() < 0)
 	{
 		return -1;
@@ -88,6 +101,12 @@ int initServerSocketIfNeeded(void)
 	if (server_socket)
 		return 0;
 
+<<<<<<< HEAD
+=======
+	if (trace_socket)
+		return 0;
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
 	{
 		return -1;
@@ -99,6 +118,7 @@ int initServerSocketIfNeeded(void)
 
 	if (bind(server_socket, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
 	{
+<<<<<<< HEAD
 		closesocket(server_socket);
 		WSACleanup();
 		server_socket = (UINT_PTR)NULL;
@@ -125,17 +145,26 @@ int initTraceSocketIfNeeded(void)
 
 	if (trace_socket)
 		return 0;
+=======
+		return -1;
+	}
+
+	listen(server_socket, 3);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 	c = sizeof(struct sockaddr_in);
 	trace_socket = accept(server_socket, (struct sockaddr *)&client, &c);
 	if (trace_socket == INVALID_SOCKET)
 	{
+<<<<<<< HEAD
 		trace_socket = (UINT_PTR)NULL;
 		
 		closesocket(server_socket);
 		WSACleanup();
 		server_socket = (UINT_PTR)NULL;
 		
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 		return -1;
 	}
 
@@ -146,7 +175,11 @@ int32_t writeToSocket(void* data, uint32_t size, int32_t *ptrBytesWritten)
 {
 	int ret;
 
+<<<<<<< HEAD
 	if (!trace_socket)
+=======
+	if (! trace_socket)
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	{
 		if (ptrBytesWritten != NULL)
 		{
@@ -177,6 +210,7 @@ int32_t writeToSocket(void* data, uint32_t size, int32_t *ptrBytesWritten)
 
 int32_t readFromSocket(void* data, uint32_t bufsize, int32_t *ptrBytesRead)
 {
+<<<<<<< HEAD
 	unsigned long bytesAvailable = 0;
 
 	if (initServerSocketIfNeeded() < 0)
@@ -199,6 +233,19 @@ int32_t readFromSocket(void* data, uint32_t bufsize, int32_t *ptrBytesRead)
 		{
 			closesocket(trace_socket);
 			trace_socket = (UINT_PTR)NULL;
+=======
+
+	initServerSocketIfNeeded();
+
+	unsigned long bytesAvailable;
+	ioctlsocket(trace_socket, FIONREAD, &bytesAvailable);
+
+	if (bytesAvailable > 0)
+	{
+
+		if ((*ptrBytesRead = recv(trace_socket, data, bufsize, 0)) == SOCKET_ERROR)
+		{
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 			return -1;
 		}
 	}
@@ -206,5 +253,14 @@ int32_t readFromSocket(void* data, uint32_t bufsize, int32_t *ptrBytesRead)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+void closeSocket(void)
+{
+	closesocket(server_socket);
+	WSACleanup();
+}
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #endif /*(TRC_USE_TRACEALYZER_RECORDER == 1)*/
 #endif /*(TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING)*/

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*******************************************************************************
  * Trace Recorder Library for Tracealyzer v4.3.1
  * Percepio AB, www.percepio.com
@@ -43,6 +44,8 @@
  * Copyright Percepio AB, 2018.
  * www.percepio.com
  ******************************************************************************/
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 #include "trcRecorder.h"
 

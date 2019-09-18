@@ -20,29 +20,6 @@ void enableMotorController();
 void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data);
 
 
-//Broadcast ID's
-// @TODO REMOVE THE BELOW BULL CRAP
-// #define ID_RINEHART_TEMP1						0x0A0
-// #define ID_RINEHART_TEMP2						0x0A1
-// #define ID_RINEHART_TEMP3						0x0A2
-// #define ID_RINEHART_AIN_VOLT				0x0A3
-// #define ID_RINEHART_DIGIN_STATUS		0x0A4
-// #define ID_RINEHART_MOTOR_POS				0x0A5
-// #define ID_RINEHART_I_INFO					0x0A6
-// #define ID_RINEHART_V_INFO					0x0A7
-// #define ID_RINEHART_FLUX_INFO				0x0A8
-// #define ID_RINEHART_INTERN_VOLT			0x0A9
-// #define ID_RINEHART_INTERN_STATE		0x0AA
-// #define ID_RINEHART_FAULT_CODE			0x0AB
-// #define ID_RINEHART_TORQUE_TIM			0x0AC
-// #define ID_RINEHART_MOD_FLUX				0x0AD
-// #define ID_RINEHART_FIRMWARE				0x0AE
-// #define ID_RINEHART_DIAGNOSTIC			0x0AF
-
-// //Param Messages
-// #define ID_RINEHART_PARAM_CMD				0x0C1
-// #define ID_RINEHART_PARAM_RESP			0x0C2
-
 enum 
 {
   //CAN Defines

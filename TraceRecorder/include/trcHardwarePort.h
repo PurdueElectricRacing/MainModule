@@ -1,5 +1,9 @@
 /*******************************************************************************
+<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
+=======
+ * Trace Recorder Library for Tracealyzer v4.1.5
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcHardwarePort.h
@@ -240,7 +244,11 @@
 	#define TRC_HWTC_PERIOD (PR1 + 1)
 	#define TRC_HWTC_DIVISOR 1
 	#define TRC_HWTC_FREQ_HZ (TRACE_TICK_RATE_HZ * TRC_HWTC_PERIOD)
+<<<<<<< HEAD
 	#define TRC_IRQ_PRIORITY_ORDER 1
+=======
+	#define TRC_IRQ_PRIORITY_ORDER 0
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 #elif (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_TEXAS_INSTRUMENTS_TMS570_RM48)
 
@@ -359,6 +367,7 @@
     #define TRC_IRQ_PRIORITY_ORDER 0
 
 #elif (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_ARM_CORTEX_A9)
+<<<<<<< HEAD
 
 	/**************************************************************************
 	* This hardware port only supports FreeRTOS and the GCC compiler at the
@@ -384,6 +393,12 @@
 		#error "Please specify TRC_CA9_MPCORE_PERIPHERAL_BASE_ADDRESS."
 	#endif
 
+=======
+	
+	/* INPUT YOUR PERIPHERAL BASE ADDRESS HERE */
+	#define TRC_CA9_MPCORE_PERIPHERAL_BASE_ADDRESS	0xSOMETHING
+	
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	#define TRC_CA9_MPCORE_PRIVATE_MEMORY_OFFSET	0x0600
 	#define TRC_CA9_MPCORE_PRIVCTR_PERIOD_REG	(*(volatile uint32_t*)(TRC_CA9_MPCORE_PERIPHERAL_BASE_ADDRESS + TRC_CA9_MPCORE_PRIVATE_MEMORY_OFFSET + 0x00))
 	#define TRC_CA9_MPCORE_PRIVCTR_COUNTER_REG	(*(volatile uint32_t*)(TRC_CA9_MPCORE_PERIPHERAL_BASE_ADDRESS + TRC_CA9_MPCORE_PRIVATE_MEMORY_OFFSET + 0x04))
@@ -408,6 +423,7 @@
 	#define TRC_HWTC_FREQ_HZ (TRACE_TICK_RATE_HZ * TRC_HWTC_PERIOD)
     #define TRC_IRQ_PRIORITY_ORDER 0
 
+<<<<<<< HEAD
 	#ifdef __GNUC__
 	/* For Arm Cortex-A and Cortex-R in general. */
 	static inline uint32_t prvGetCPSR(void)
@@ -422,6 +438,8 @@
 	#endif
 
 
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #elif (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_POWERPC_Z4)
 
     /* UNOFFICIAL PORT - NOT YET VERIFIED BY PERCEPIO */

@@ -14,8 +14,10 @@
 /* USER CODE BEGIN Includes */
 #include "car.h"
 #include "BMS.h"
+#include "power_limiting.h"
 #include "PedalBox.h"
 #include "CANProcess.h"
+#include "trcConfig.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +43,6 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 volatile Car_t car;
-BMS_t BMS;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,12 +104,16 @@ int main(void)
   initRTOSObjects();  //start tasks in here
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
+
+  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
+  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO1_MSG_PENDING);
   
-  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-//  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO1_MSG_PENDING);
-//  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
-  
+#ifdef tracing
+  vTraceEnable(TRC_START);
+#endif
+
+  initRTOSObjects();  //start tasks in here
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */

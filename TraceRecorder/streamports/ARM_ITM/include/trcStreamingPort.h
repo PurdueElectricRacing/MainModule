@@ -1,5 +1,9 @@
 /*******************************************************************************
+<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
+=======
+ * Trace Recorder Library for Tracealyzer v4.1.5
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcStreamingPort.h
@@ -7,6 +11,7 @@
  * The interface definitions for trace streaming ("stream ports").
  * This "stream port" sets up the recorder to use ARM ITM as streaming channel.
  *
+<<<<<<< HEAD
  * To setup Keil uVision for ITM tracing with a Keil ULINKpro (or ULINKplus),
  * see Percepio Application Note PA-021, available at
  * https://percepio.com/2018/05/04/keil-itm-support/
@@ -53,6 +58,8 @@
  * (Keil-uVision-Tracealyzer-ITM-Exporter.ini).
  *
  * 
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Terms of Use
  * This file is part of the trace recorder library (RECORDER), which is the 
  * intellectual property of Percepio AB (PERCEPIO) and provided under a

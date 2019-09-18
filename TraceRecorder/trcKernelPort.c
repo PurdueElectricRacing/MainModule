@@ -1,9 +1,5 @@
 /*******************************************************************************
-<<<<<<< HEAD
- * Trace Recorder Library for Tracealyzer v4.3.1
-=======
  * Trace Recorder Library for Tracealyzer v4.1.5
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcKernelPort.c
@@ -106,36 +102,6 @@
 #include "task.h"
 #include "queue.h"
 
-<<<<<<< HEAD
-#if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING) || (defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0))
-
-static TaskType HandleTzCtrl = NULL;       /* TzCtrl task TCB */
-
-#if defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1)
-
-#if (TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_9_X)
-static StackType_t stackTzCtrl[TRC_CFG_CTRL_TASK_STACK_SIZE];
-static StaticTask_t tcbTzCtrl;
-#else
-#error "configSUPPORT_STATIC_ALLOCATION not supported before FreeRTOS v9"
-#endif
-
-#endif /* defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1) */
-
-
-/* The TzCtrl task - receives commands from Tracealyzer (start/stop) */
-static portTASK_FUNCTION(TzCtrl, pvParameters);
-
-#if defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)
-void prvReportStackUsage(void);
-#else /* defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0) */
-#define prvReportStackUsage()
-#endif /* defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0) */
-
-#endif /* (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING) || (defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)) */
-
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #if (TRC_CFG_INCLUDE_TIMER_EVENTS == 1 && TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_8_X)
 /* If the project does not include the FreeRTOS timers, TRC_CFG_INCLUDE_TIMER_EVENTS must be set to 0 */
 #include "timers.h"
@@ -286,153 +252,6 @@ void prvTraceSetStreamBufferNumberHigh16(void* handle, uint16_t value)
 }
 #endif /* (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1 && TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_10_0_0) */
 
-<<<<<<< HEAD
-
-#if (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_ARM_CORTEX_A9)
-
-#define CS_TYPE_NONE 0
-#define CS_TYPE_TASK 1
-#define CS_TYPE_ISR_MASK_CHANGED 2
-#define CS_TYPE_ISR_MASK_NOT_CHANGED 3
-
-#define CS_TYPE_INVALID 0xFFFFFFFF
-
-int cortex_a9_enter_critical(void)
-{
-	uint32_t cs_type = CS_TYPE_INVALID;
-
-    if ((prvGetCPSR() & 0x001F) == 0x13) // CSPR (ASPR) mode = SVC
-    {
-    	/* Executing in an ISR other than the context-switch (where interrupts might have been enabled, motivating a critical section). */
-    	if (ulPortSetInterruptMask() == pdTRUE)
-    	{
-    		cs_type = CS_TYPE_ISR_MASK_NOT_CHANGED;
-    	}
-    	else
-    	{
-    		cs_type = CS_TYPE_ISR_MASK_CHANGED;
-    	}
-    }
-    else if (uiTraceSystemState == TRC_STATE_IN_TASKSWITCH)
-    {
-    	// In the context-switch code. All interrupts are already masked here, so don't modify the mask.
-    	cs_type = CS_TYPE_NONE;
-    }
-    else if (uiTraceSystemState != TRC_STATE_IN_TASKSWITCH)
-    {
-    	// Not within ISR or task-switch context, use a regular critical section.
-    	vPortEnterCritical();
-    	cs_type = CS_TYPE_TASK;
-    }
-
-	return cs_type;
-}
-
-void cortex_a9_exit_critical(int cs_type)
-{
-	switch (cs_type)
-	{
-		case CS_TYPE_TASK:
-			vPortExitCritical();
-			break;
-
-		case CS_TYPE_ISR_MASK_CHANGED:
-			vPortClearInterruptMask(pdFALSE);	// pdFALSE means it will reset the IRQ mask.
-			break;
-
-		case CS_TYPE_ISR_MASK_NOT_CHANGED:
-		case CS_TYPE_NONE:
-			// No action in these two cases.
-			break;
-
-		default:
-			// Error, should not be possible;
-			for (;;);
-	}
-}
-#endif
-
-#if defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)
-
-typedef struct {
-	void* tcb;
-	uint32_t uiPreviousLowMark;
-} TaskStackMonitorEntry_t;
-
-TaskStackMonitorEntry_t tasksInStackMonitor[TRC_CFG_STACK_MONITOR_MAX_TASKS] = { NULL };
-
-int tasksNotIncluded = 0;
-
-void prvAddTaskToStackMonitor(void* task)
-{
-	int foundEmptySlot = 0;
-
-	// find an empty slot
-	for (int i = 0; i < TRC_CFG_STACK_MONITOR_MAX_TASKS; i++)
-	{
-		if (tasksInStackMonitor[i].tcb == NULL)
-		{
-			tasksInStackMonitor[i].tcb = task;
-			tasksInStackMonitor[i].uiPreviousLowMark = 0xFFFFFFFF;
-			foundEmptySlot = 1;
-			break;
-		}
-	}
-
-	if (foundEmptySlot == 0)
-	{
-		tasksNotIncluded++;
-	}
-}
-
-void prvRemoveTaskFromStackMonitor(void* task)
-{
-	for (int i = 0; i < TRC_CFG_STACK_MONITOR_MAX_TASKS; i++)
-	{
-		if (tasksInStackMonitor[i].tcb == task)
-		{
-			tasksInStackMonitor[i].tcb = NULL;
-			tasksInStackMonitor[i].uiPreviousLowMark = 0;
-		}
-	}
-}
-
-void prvReportStackUsage()
-{
-	static int i = 0;	/* Static index used to loop over the monitored tasks */
-	int count = 0;		/* The number of generated reports */
-	int initial = i;	/* Used to make sure we break if we are back at the inital value */
-	
-	do
-	{
-		/* Check the current spot */
-		if (tasksInStackMonitor[i].tcb != NULL)
-		{
-			/* Get the amount of unused stack */
-			uint32_t unusedStackSpace = uxTaskGetStackHighWaterMark((TaskType)tasksInStackMonitor[i].tcb);
-
-			/* Store for later use */
-			if (tasksInStackMonitor[i].uiPreviousLowMark > unusedStackSpace)
-				tasksInStackMonitor[i].uiPreviousLowMark = unusedStackSpace;
-
-#if TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_SNAPSHOT
-			prvTraceStoreKernelCallWithParam(TRACE_UNUSED_STACK, TRACE_CLASS_TASK, TRACE_GET_TASK_NUMBER(tasksInStackMonitor[i].tcb), tasksInStackMonitor[i].uiPreviousLowMark);
-#else /* TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_SNAPSHOT */
-			prvTraceStoreEvent2(PSF_EVENT_UNUSED_STACK, (uint32_t)tasksInStackMonitor[i].tcb, tasksInStackMonitor[i].uiPreviousLowMark);
-#endif /* TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_SNAPSHOT */
-
-			count++;
-		}
-
-		i = (i + 1) % TRC_CFG_STACK_MONITOR_MAX_TASKS; // Move i beyond this task
-	} while (count < TRC_CFG_STACK_MONITOR_MAX_REPORTS && i != initial);
-}
-#endif /* defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0) */
-
-#if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING)
-	
-static void* pCurrentTCB = NULL;
-=======
 #if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING)
 	
 static void* pCurrentTCB = NULL;
@@ -450,7 +269,6 @@ static StackType_t stackTzCtrl[TRC_CFG_CTRL_TASK_STACK_SIZE];
 static StaticTask_t tcbTzCtrl;
 #endif
 #endif
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Monitored by TzCtrl task, that give warnings as User Events */
 extern volatile uint32_t NoRoomForSymbol;
@@ -458,15 +276,12 @@ extern volatile uint32_t NoRoomForObjectData;
 extern volatile uint32_t LongestSymbolName;
 extern volatile uint32_t MaxBytesTruncated;
 
-<<<<<<< HEAD
-=======
 /* Keeps track of previous values, to only react on changes. */
 static uint32_t NoRoomForSymbol_last = 0;
 static uint32_t NoRoomForObjectData_last = 0;
 static uint32_t LongestSymbolName_last = 0;
 static uint32_t MaxBytesTruncated_last = 0;
 
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /* User Event Channel for giving warnings regarding NoRoomForSymbol etc. */
 traceString trcWarningChannel;
 
@@ -479,12 +294,9 @@ static void prvCheckRecorderStatus(void);
 
 extern void prvTraceWarning(int errCode);
 
-<<<<<<< HEAD
-=======
 /* The TzCtrl task - receives commands from Tracealyzer (start/stop) */
 static portTASK_FUNCTION( TzCtrl, pvParameters );
 
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*******************************************************************************
  * vTraceEnable
  *
@@ -504,21 +316,8 @@ void vTraceEnable(int startOption)
 	{
 		TRC_STREAM_PORT_INIT();
 		
-<<<<<<< HEAD
-	   /* The #WFR channel means "Warnings from Recorder" and
-		* is used to store warnings and errors from the recorder.
-		* The abbreviation #WFR is used instead of the longer full name,
-		* to avoid truncation by small slots in the symbol table. 
-		* This is translated in Tracealyzer and shown as the full name,
-		* "Warnings from Recorder".
-		*
-		* Note: Requires that TRC_CFG_INCLUDE_USER_EVENTS is 1. */
-		
-		trcWarningChannel = xTraceRegisterString("#WFR"); 
-=======
 		/* Note: Requires that TRC_CFG_INCLUDE_USER_EVENTS is 1. */
 		trcWarningChannel = xTraceRegisterString("Warnings from Recorder");
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 		/* Creates the TzCtrl task - receives trace commands (start, stop, ...) */
 		#if defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1)
@@ -706,10 +505,7 @@ unsigned char prvTraceIsSchedulerSuspended(void)
 	return xTaskGetSchedulerState() == taskSCHEDULER_SUSPENDED;
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*******************************************************************************
  * prvCheckRecorderStatus
  *
@@ -719,38 +515,6 @@ unsigned char prvTraceIsSchedulerSuspended(void)
  ******************************************************************************/
 static void prvCheckRecorderStatus(void)
 {
-<<<<<<< HEAD
-#if defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)
-	if (tasksNotIncluded > 0)
-	{
-		prvTraceWarning(PSF_WARNING_STACKMON_NO_SLOTS);
-		tasksNotIncluded = 0;
-	}
-#endif /* defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0) */
-
-	if (NoRoomForSymbol > 0)
-	{
-		prvTraceWarning(PSF_WARNING_SYMBOL_TABLE_SLOTS);
-		NoRoomForSymbol = 0;
-	}
-
-	if (NoRoomForObjectData > 0)
-	{
-		prvTraceWarning(PSF_WARNING_OBJECT_DATA_SLOTS);
-		NoRoomForObjectData = 0;
-	}
-
-	if (LongestSymbolName > (TRC_CFG_SYMBOL_MAX_LENGTH))
-	{
-		prvTraceWarning(PSF_WARNING_SYMBOL_MAX_LENGTH);
-		LongestSymbolName = 0;
-	}
-
-	if (MaxBytesTruncated > 0)
-	{
-		prvTraceWarning(PSF_WARNING_STRING_TOO_LONG);
-		MaxBytesTruncated = 0;
-=======
 	if (NoRoomForSymbol > NoRoomForSymbol_last)
 	{
 		if (NoRoomForSymbol > 0)
@@ -785,7 +549,6 @@ static void prvCheckRecorderStatus(void)
 			prvTraceWarning(PSF_WARNING_STRING_TOO_LONG);
 		}
 		MaxBytesTruncated_last = MaxBytesTruncated;
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	}
 }
 
@@ -813,12 +576,7 @@ static portTASK_FUNCTION( TzCtrl, pvParameters )
 
 			if (status != 0)
 			{
-<<<<<<< HEAD
-				/* The connection has failed, stop tracing */
-				vTraceStop();
-=======
 				prvTraceWarning(PSF_WARNING_STREAM_PORT_READ);
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 			}
 
 			if ((status == 0) && (bytes == sizeof(TracealyzerCommandType)))
@@ -841,15 +599,7 @@ static portTASK_FUNCTION( TzCtrl, pvParameters )
 		
 		} while (bytes != 0);
 
-<<<<<<< HEAD
-		if (xTraceIsRecordingEnabled())
-		{
-			prvCheckRecorderStatus();
-			prvReportStackUsage();
-		}
-=======
 		prvCheckRecorderStatus();
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 		vTaskDelay(TRC_CFG_CTRL_TASK_DELAY);
 	}
@@ -966,98 +716,6 @@ void* prvTraceGetCurrentTaskHandle()
 	return xTaskGetCurrentTaskHandle();
 }
 
-<<<<<<< HEAD
-/******************************************************************************
-* vTraceEnable(int startOption) - snapshot mode
-*
-* Initializes and optionally starts the trace, depending on the start option.
-* To use the trace recorder, the startup must call vTraceEnable before any RTOS
-* calls are made (including "create" calls). Three start options are provided:
-*
-* TRC_START: Starts the tracing directly. In snapshot mode this allows for
-* starting the trace at any point in your code, assuming vTraceEnable(TRC_INIT)
-* has been called in the startup.
-* Can also be used for streaming without Tracealyzer control, e.g. to a local
-* flash file system (assuming such a "stream port", see trcStreamingPort.h).
-*
-* TRC_INIT: Initializes the trace recorder, but does not start the tracing.
-* In snapshot mode, this must be followed by a vTraceEnable(TRC_START) sometime
-* later.
-*
-* Usage examples, in snapshot mode:
-*
-* Snapshot trace, from startup:
-* 	<board init>
-* 	vTraceEnable(TRC_START);
-* 	<RTOS init>
-*
-* Snapshot trace, from a later point:
-* 	<board init>
-* 	vTraceEnable(TRC_INIT);
-* 	<RTOS init>
-* 	...
-* 	vTraceEnable(TRC_START); // e.g., in task context, at some relevant event
-*
-*
-* Note: See other implementation of vTraceEnable in trcStreamingRecorder.c
-******************************************************************************/
-void vTraceEnable(int startOption)
-{
-	prvTraceInitTraceData();
-
-	if (startOption == TRC_START)
-	{
-		vTraceStart();
-	}
-	else if (startOption == TRC_START_AWAIT_HOST)
-	{
-		prvTraceError("vTraceEnable(TRC_START_AWAIT_HOST) not allowed in Snapshot mode");
-	}
-	else if (startOption != TRC_INIT)
-	{
-		prvTraceError("Unexpected argument to vTraceEnable (snapshot mode)");
-	}
-
-#if defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)
-	/* Creates the TzCtrl task - reports unsed stack */
-	if (HandleTzCtrl == NULL)
-	{
-#if defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1)
-		HandleTzCtrl = xTaskCreateStatic(TzCtrl, STRING_CAST("TzCtrl"), TRC_CFG_CTRL_TASK_STACK_SIZE, NULL, TRC_CFG_CTRL_TASK_PRIORITY, stackTzCtrl, &tcbTzCtrl);
-#else /* defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1) */
-		xTaskCreate(TzCtrl, STRING_CAST("TzCtrl"), TRC_CFG_CTRL_TASK_STACK_SIZE, NULL, TRC_CFG_CTRL_TASK_PRIORITY, &HandleTzCtrl);
-#endif /* defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1) */
-	}
-
-#endif /* defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0) */
-}
-
-/*******************************************************************************
-* TzCtrl
-*
-* Task for sending the trace data from the internal buffer to the stream
-* interface (assuming TRC_STREAM_PORT_USE_INTERNAL_BUFFER == 1) and for
-* receiving commands from Tracealyzer. Also does some diagnostics.
-******************************************************************************/
-#if defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)
-static portTASK_FUNCTION(TzCtrl, pvParameters)
-{
-	(void)pvParameters;
-
-	while (1)
-	{
-		if (xTraceIsRecordingEnabled())
-		{
-			prvReportStackUsage();
-		}
-
-		vTaskDelay(TRC_CFG_CTRL_TASK_DELAY);
-	}
-}
-#endif
-
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /* Initialization of the object property table */
 void vTraceInitObjectPropertyTable()
 {

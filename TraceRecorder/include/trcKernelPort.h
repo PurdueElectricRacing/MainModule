@@ -1,5 +1,9 @@
 /*******************************************************************************
+<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
+=======
+ * Trace Recorder Library for Tracealyzer v4.1.5
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * Terms of Use
@@ -81,14 +85,21 @@ extern "C" {
 /* Added mainly for our internal testing. This makes it easier to create test applications that 
    runs on multiple FreeRTOS versions. */
 #if (TRC_CFG_FREERTOS_VERSION < TRC_FREERTOS_VERSION_8_X)
+<<<<<<< HEAD
 	/* FreeRTOS v7.x */	
 	#define STRING_CAST(x) ( (signed char*) x )
 	#define TickType portTickType
 	#define TaskType xTaskHandle
+=======
+	/* FreeRTOS v7.0 and later */	
+	#define STRING_CAST(x) ( (signed char*) x )
+	#define TickType portTickType
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #else
 	/* FreeRTOS v8.0 and later */
 	#define STRING_CAST(x) x
 	#define TickType TickType_t
+<<<<<<< HEAD
 	#define TaskType TaskHandle_t
 #endif
 
@@ -102,6 +113,12 @@ extern "C" {
 #define INCLUDE_uxTaskGetStackHighWaterMark 1
 #endif /* defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0) */
 
+=======
+#endif
+
+#if (defined(TRC_USE_TRACEALYZER_RECORDER)) && (TRC_USE_TRACEALYZER_RECORDER == 1)
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*******************************************************************************
  * INCLUDE_xTaskGetCurrentTaskHandle must be set to 1 for tracing to work properly
  ******************************************************************************/
@@ -181,6 +198,7 @@ void vTraceSetMessageBufferName(void* object, const char* name);
 #define vTraceSetMessageBufferName(object, name) /* Do nothing */
 #endif /* (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1) */
 
+<<<<<<< HEAD
 #if defined (TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1)
 void prvAddTaskToStackMonitor(void* task);
 void prvRemoveTaskFromStackMonitor(void* task);
@@ -189,6 +207,8 @@ void prvRemoveTaskFromStackMonitor(void* task);
 #define prvRemoveTaskFromStackMonitor(task)
 #endif /* defined (TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) */
 
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #else /* (TRC_CFG_SCHEDULING_ONLY == 0) */
 
 #define vTraceSetQueueName(object, name) /* Do nothing */
@@ -197,8 +217,11 @@ void prvRemoveTaskFromStackMonitor(void* task);
 #define vTraceSetEventGroupName(object, name) /* Do nothing */
 #define vTraceSetStreamBufferName(object, name) /* Do nothing */
 #define vTraceSetMessageBufferName(object, name) /* Do nothing */
+<<<<<<< HEAD
 #define prvAddTaskToStackMonitor(task) /* Do nothing */
 #define prvRemoveTaskFromStackMonitor(task) /* Do nothing */
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 #endif /* (TRC_CFG_SCHEDULING_ONLY == 0) */
 
@@ -247,6 +270,7 @@ unsigned char prvTraceIsSchedulerSuspended(void);
 	#define TRACE_EXIT_CRITICAL_SECTION() {__set_PRIMASK(__irq_status);}
 #endif
 
+<<<<<<< HEAD
 #if (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_ARM_CORTEX_A9)
 
 	/**************************************************************************
@@ -267,6 +291,9 @@ unsigned char prvTraceIsSchedulerSuspended(void);
 #endif
 
 #if ( (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_Renesas_RX600) || (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_MICROCHIP_PIC24_PIC32) || (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_Altera_NiosII))
+=======
+#if ((TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_ARM_CORTEX_A9) || (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_Renesas_RX600) || (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_MICROCHIP_PIC24_PIC32) || (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_Altera_NiosII))
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	#define TRACE_ALLOC_CRITICAL_SECTION() int __irq_status;
 	#define TRACE_ENTER_CRITICAL_SECTION() {__irq_status = portSET_INTERRUPT_MASK_FROM_ISR();}
 	#define TRACE_EXIT_CRITICAL_SECTION() {portCLEAR_INTERRUPT_MASK_FROM_ISR(__irq_status);}
@@ -337,6 +364,10 @@ extern uint16_t CurrentFilterMask;
 extern uint16_t CurrentFilterGroup;
 
 uint8_t prvTraceGetQueueType(void* handle);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 uint16_t prvTraceGetTaskNumberLow16(void* handle);
 uint16_t prvTraceGetTaskNumberHigh16(void* handle);
 void prvTraceSetTaskNumberLow16(void* handle, uint16_t value);
@@ -395,12 +426,21 @@ void prvTraceSetStreamBufferNumberHigh16(void* handle, uint16_t value);
 #define TRACE_GET_STREAMBUFFER_FILTER(pxObject) prvTraceGetStreamBufferNumberHigh16((void*)pxObject)
 #define TRACE_SET_STREAMBUFFER_FILTER(pxObject, group) prvTraceSetStreamBufferNumberHigh16((void*)pxObject, group)
 
+<<<<<<< HEAD
 /* We can only support filtering if FreeRTOS is at least v8.0 */
 #if (TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_8_X)
 #define TRACE_GET_OBJECT_FILTER(CLASS, pxObject) TRACE_GET_##CLASS##_FILTER(pxObject)
 #define TRACE_SET_OBJECT_FILTER(CLASS, pxObject, group) TRACE_SET_##CLASS##_FILTER(pxObject, group)
 #else /* (TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_7_4) */
 #define TRACE_GET_OBJECT_FILTER(CLASS, pxObject) 0xFFFF
+=======
+/* We can only support filtering if FreeRTOS is at least v7.4 */
+#if (TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_7_4)
+#define TRACE_GET_OBJECT_FILTER(CLASS, pxObject) TRACE_GET_##CLASS##_FILTER(pxObject)
+#define TRACE_SET_OBJECT_FILTER(CLASS, pxObject, group) TRACE_SET_##CLASS##_FILTER(pxObject, group)
+#else /* (TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_7_4) */
+#define TRACE_GET_OBJECT_FILTER(CLASS, pxObject) 1
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define TRACE_SET_OBJECT_FILTER(CLASS, pxObject, group) 
 #endif /* (TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_7_4) */
 
@@ -514,10 +554,17 @@ extern traceObjectClass TraceQueueClassTable[5];
  * generated if the task/interrupt is already marked active.
  ******************************************************************************/
 #define EVENTGROUP_TS				(EVENTGROUP_DIV + 3UL)				/*0x04*/
+<<<<<<< HEAD
 #define TS_ISR_BEGIN				(EVENTGROUP_TS + 0UL)				/*0x04*/
 #define TS_ISR_RESUME				(EVENTGROUP_TS + 1UL)				/*0x05*/
 #define TS_TASK_BEGIN				(EVENTGROUP_TS + 2UL)				/*0x06*/
 #define TS_TASK_RESUME				(EVENTGROUP_TS + 3UL)				/*0x07*/
+=======
+#define TS_ISR_BEGIN				(EVENTGROUP_TS + 0UL)					/*0x04*/
+#define TS_ISR_RESUME				(EVENTGROUP_TS + 1UL)					/*0x05*/
+#define TS_TASK_BEGIN				(EVENTGROUP_TS + 2UL)					/*0x06*/
+#define TS_TASK_RESUME				(EVENTGROUP_TS + 3UL)					/*0x07*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /*******************************************************************************
  * EVENTGROUP_OBJCLOSE_NAME
@@ -528,7 +575,11 @@ extern traceObjectClass TraceQueueClassTable[5];
  * EVENTGROUP_OBJCLOSE_PROP), containing the handle-name mapping and object
  * properties valid up to this point.
  ******************************************************************************/
+<<<<<<< HEAD
 #define EVENTGROUP_OBJCLOSE_NAME_TRCSUCCESS	(EVENTGROUP_TS + 4UL)		/*0x08*/
+=======
+#define EVENTGROUP_OBJCLOSE_NAME_TRCSUCCESS	(EVENTGROUP_TS + 4UL)					/*0x08*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /*******************************************************************************
  * EVENTGROUP_OBJCLOSE_PROP
@@ -545,7 +596,11 @@ extern traceObjectClass TraceQueueClassTable[5];
  * handle. The lower three bits are not used (always zero) when queues are
  * closed since the queue type is given in the previous OBJCLOSE_NAME event.
  ******************************************************************************/
+<<<<<<< HEAD
 #define EVENTGROUP_OBJCLOSE_PROP_TRCSUCCESS	(EVENTGROUP_OBJCLOSE_NAME_TRCSUCCESS + 8UL)	/*0x10*/
+=======
+#define EVENTGROUP_OBJCLOSE_PROP_TRCSUCCESS	(EVENTGROUP_OBJCLOSE_NAME_TRCSUCCESS + 8UL)		/*0x10*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /*******************************************************************************
  * EVENTGROUP_CREATE
@@ -564,7 +619,11 @@ extern traceObjectClass TraceQueueClassTable[5];
  * object class, i.e., what type of object that is operated on (queue, semaphore
  * or mutex).
  ******************************************************************************/
+<<<<<<< HEAD
 #define EVENTGROUP_SEND_TRCSUCCESS	(EVENTGROUP_CREATE_OBJ_TRCSUCCESS + 8UL)	/*0x20*/
+=======
+#define EVENTGROUP_SEND_TRCSUCCESS	(EVENTGROUP_CREATE_OBJ_TRCSUCCESS + 8UL)		/*0x20*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /*******************************************************************************
  * EVENTGROUP_RECEIVE
@@ -578,6 +637,7 @@ extern traceObjectClass TraceQueueClassTable[5];
 
 /* Send/Give operations, from ISR */
 #define EVENTGROUP_SEND_FROM_ISR_TRCSUCCESS \
+<<<<<<< HEAD
 									(EVENTGROUP_RECEIVE_TRCSUCCESS + 8UL)		/*0x30*/
 
 /* Receive/Take operations, from ISR */
@@ -590,6 +650,20 @@ extern traceObjectClass TraceQueueClassTable[5];
 
 /* Failed create calls - memory allocation failed */
 #define EVENTGROUP_CREATE_OBJ_TRCFAILED	(EVENTGROUP_KSE_TRCFAILED)				/*0x40*/
+=======
+									(EVENTGROUP_RECEIVE_TRCSUCCESS + 8UL)	/*0x30*/
+
+/* Receive/Take operations, from ISR */
+#define EVENTGROUP_RECEIVE_FROM_ISR_TRCSUCCESS \
+							(EVENTGROUP_SEND_FROM_ISR_TRCSUCCESS + 8UL)		/*0x38*/
+
+/* "Failed" event type versions of above (timeout, failed allocation, etc) */
+#define EVENTGROUP_KSE_TRCFAILED \
+							(EVENTGROUP_RECEIVE_FROM_ISR_TRCSUCCESS + 8UL)	/*0x40*/
+
+/* Failed create calls - memory allocation failed */
+#define EVENTGROUP_CREATE_OBJ_TRCFAILED	(EVENTGROUP_KSE_TRCFAILED)			/*0x40*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Failed send/give - timeout! */
 #define EVENTGROUP_SEND_TRCFAILED		(EVENTGROUP_CREATE_OBJ_TRCFAILED + 8UL)	/*0x48*/
@@ -602,17 +676,29 @@ extern traceObjectClass TraceQueueClassTable[5];
 
 /* Failed non-blocking receive/take - queue empty */
 #define EVENTGROUP_RECEIVE_FROM_ISR_TRCFAILED \
+<<<<<<< HEAD
 								 (EVENTGROUP_SEND_FROM_ISR_TRCFAILED + 8UL)		/*0x60*/
 
 /* Events when blocking on receive/take */
 #define EVENTGROUP_RECEIVE_TRCBLOCK \
 							(EVENTGROUP_RECEIVE_FROM_ISR_TRCFAILED + 8UL)		/*0x68*/
+=======
+								 (EVENTGROUP_SEND_FROM_ISR_TRCFAILED + 8UL)	/*0x60*/
+
+/* Events when blocking on receive/take */
+#define EVENTGROUP_RECEIVE_TRCBLOCK \
+							(EVENTGROUP_RECEIVE_FROM_ISR_TRCFAILED + 8UL)	/*0x68*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Events when blocking on send/give */
 #define EVENTGROUP_SEND_TRCBLOCK	(EVENTGROUP_RECEIVE_TRCBLOCK + 8UL)			/*0x70*/
 
 /* Events on queue peek (receive) */
+<<<<<<< HEAD
 #define EVENTGROUP_PEEK_TRCSUCCESS	(EVENTGROUP_SEND_TRCBLOCK + 8UL)			/*0x78*/
+=======
+#define EVENTGROUP_PEEK_TRCSUCCESS	(EVENTGROUP_SEND_TRCBLOCK + 8UL)				/*0x78*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Events on object delete (vTaskDelete or vQueueDelete) */
 #define EVENTGROUP_DELETE_OBJ_TRCSUCCESS	(EVENTGROUP_PEEK_TRCSUCCESS + 8UL)	/*0x80*/
@@ -635,8 +721,13 @@ extern traceObjectClass TraceQueueClassTable[5];
 #define PEND_FUNC_CALL_FROM_ISR_TRCFAILED (EVENTGROUP_MISC_PLACEHOLDER+3UL)	/*0x93*/
 #define MEM_MALLOC_SIZE (EVENTGROUP_MISC_PLACEHOLDER+4UL)					/*0x94*/
 #define MEM_MALLOC_ADDR (EVENTGROUP_MISC_PLACEHOLDER+5UL)					/*0x95*/
+<<<<<<< HEAD
 #define MEM_FREE_SIZE (EVENTGROUP_MISC_PLACEHOLDER+6UL)						/*0x96*/
 #define MEM_FREE_ADDR (EVENTGROUP_MISC_PLACEHOLDER+7UL)						/*0x97*/
+=======
+#define MEM_FREE_SIZE (EVENTGROUP_MISC_PLACEHOLDER+6UL)					/*0x96*/
+#define MEM_FREE_ADDR (EVENTGROUP_MISC_PLACEHOLDER+7UL)					/*0x97*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* User events */
 #define EVENTGROUP_USEREVENT (EVENTGROUP_MISC_PLACEHOLDER + 8UL)			/*0x98*/
@@ -667,6 +758,7 @@ extern traceObjectClass TraceQueueClassTable[5];
  ******************************************************************************/
 
 #define EVENTGROUP_SYS (EVENTGROUP_USEREVENT + 16UL)						/*0xA8*/
+<<<<<<< HEAD
 #define XTS8 (EVENTGROUP_SYS + 0UL)											/*0xA8*/
 #define XTS16 (EVENTGROUP_SYS + 1UL)										/*0xA9*/
 #define EVENT_BEING_WRITTEN (EVENTGROUP_SYS + 2UL)							/*0xAA*/
@@ -683,6 +775,24 @@ extern traceObjectClass TraceQueueClassTable[5];
 #define TIMER_STOP (EVENTGROUP_TIMER + 3UL)									/*0xB3*/
 #define TIMER_CHANGE_PERIOD (EVENTGROUP_TIMER + 4UL)						/*0xB4*/
 #define TIMER_DELETE_OBJ (EVENTGROUP_TIMER + 5UL)							/*0xB5*/
+=======
+#define XTS8 (EVENTGROUP_SYS + 0UL)										/*0xA8*/
+#define XTS16 (EVENTGROUP_SYS + 1UL)										/*0xA9*/
+#define EVENT_BEING_WRITTEN (EVENTGROUP_SYS + 2UL)						/*0xAA*/
+#define RESERVED_DUMMY_CODE (EVENTGROUP_SYS + 3UL)						/*0xAB*/
+#define LOW_POWER_BEGIN (EVENTGROUP_SYS + 4UL)							/*0xAC*/
+#define LOW_POWER_END (EVENTGROUP_SYS + 5UL)								/*0xAD*/
+#define XID (EVENTGROUP_SYS + 6UL)										/*0xAE*/
+#define XTS16L (EVENTGROUP_SYS + 7UL)										/*0xAF*/
+
+#define EVENTGROUP_TIMER (EVENTGROUP_SYS + 8UL)							/*0xB0*/
+#define TIMER_CREATE (EVENTGROUP_TIMER + 0UL)								/*0xB0*/
+#define TIMER_START (EVENTGROUP_TIMER + 1UL)								/*0xB1*/
+#define TIMER_RST (EVENTGROUP_TIMER + 2UL)								/*0xB2*/
+#define TIMER_STOP (EVENTGROUP_TIMER + 3UL)								/*0xB3*/
+#define TIMER_CHANGE_PERIOD (EVENTGROUP_TIMER + 4UL)						/*0xB4*/
+#define TIMER_DELETE_OBJ (EVENTGROUP_TIMER + 5UL)								/*0xB5*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define TIMER_START_FROM_ISR (EVENTGROUP_TIMER + 6UL)						/*0xB6*/
 #define TIMER_RESET_FROM_ISR (EVENTGROUP_TIMER + 7UL)						/*0xB7*/
 #define TIMER_STOP_FROM_ISR (EVENTGROUP_TIMER + 8UL)						/*0xB8*/
@@ -692,6 +802,7 @@ extern traceObjectClass TraceQueueClassTable[5];
 #define TIMER_RESET_TRCFAILED (EVENTGROUP_TIMER + 11UL)						/*0xBB*/
 #define TIMER_STOP_TRCFAILED (EVENTGROUP_TIMER + 12UL)						/*0xBC*/
 #define TIMER_CHANGE_PERIOD_TRCFAILED (EVENTGROUP_TIMER + 13UL)				/*0xBD*/
+<<<<<<< HEAD
 #define TIMER_DELETE_TRCFAILED (EVENTGROUP_TIMER + 14UL)					/*0xBE*/
 #define TIMER_START_FROM_ISR_TRCFAILED (EVENTGROUP_TIMER + 15UL)			/*0xBF*/
 #define TIMER_RESET_FROM_ISR_TRCFAILED (EVENTGROUP_TIMER + 16UL)			/*0xC0*/
@@ -708,11 +819,30 @@ extern traceObjectClass TraceQueueClassTable[5];
 #define EVENT_GROUP_CLEAR_BITS_FROM_ISR (EVENTGROUP_EG + 7UL)				/*0xC9*/
 #define EVENT_GROUP_SET_BITS (EVENTGROUP_EG + 8UL)							/*0xCA*/
 #define EVENT_GROUP_DELETE_OBJ (EVENTGROUP_EG + 9UL)						/*0xCB*/
+=======
+#define TIMER_DELETE_TRCFAILED (EVENTGROUP_TIMER + 14UL)						/*0xBE*/
+#define TIMER_START_FROM_ISR_TRCFAILED (EVENTGROUP_TIMER + 15UL)				/*0xBF*/
+#define TIMER_RESET_FROM_ISR_TRCFAILED (EVENTGROUP_TIMER + 16UL)				/*0xC0*/
+#define TIMER_STOP_FROM_ISR_TRCFAILED (EVENTGROUP_TIMER + 17UL)				/*0xC1*/
+
+#define EVENTGROUP_EG (EVENTGROUP_TIMER + 18UL)							/*0xC2*/
+#define EVENT_GROUP_CREATE (EVENTGROUP_EG + 0UL)							/*0xC2*/
+#define EVENT_GROUP_CREATE_TRCFAILED (EVENTGROUP_EG + 1UL)					/*0xC3*/
+#define EVENT_GROUP_SYNC_TRCBLOCK (EVENTGROUP_EG + 2UL)						/*0xC4*/
+#define EVENT_GROUP_SYNC_END (EVENTGROUP_EG + 3UL)						/*0xC5*/
+#define EVENT_GROUP_WAIT_BITS_TRCBLOCK (EVENTGROUP_EG + 4UL)					/*0xC6*/
+#define EVENT_GROUP_WAIT_BITS_END (EVENTGROUP_EG + 5UL)					/*0xC7*/
+#define EVENT_GROUP_CLEAR_BITS (EVENTGROUP_EG + 6UL)						/*0xC8*/
+#define EVENT_GROUP_CLEAR_BITS_FROM_ISR (EVENTGROUP_EG + 7UL)				/*0xC9*/
+#define EVENT_GROUP_SET_BITS (EVENTGROUP_EG + 8UL)						/*0xCA*/
+#define EVENT_GROUP_DELETE_OBJ (EVENTGROUP_EG + 9UL)							/*0xCB*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define EVENT_GROUP_SYNC_END_TRCFAILED (EVENTGROUP_EG + 10UL)				/*0xCC*/
 #define EVENT_GROUP_WAIT_BITS_END_TRCFAILED (EVENTGROUP_EG + 11UL)			/*0xCD*/
 #define EVENT_GROUP_SET_BITS_FROM_ISR (EVENTGROUP_EG + 12UL)				/*0xCE*/
 #define EVENT_GROUP_SET_BITS_FROM_ISR_TRCFAILED (EVENTGROUP_EG + 13UL)		/*0xCF*/
 
+<<<<<<< HEAD
 #define TASK_INSTANCE_FINISHED_NEXT_KSE (EVENTGROUP_EG + 14UL)				/*0xD0*/
 #define TASK_INSTANCE_FINISHED_DIRECT (EVENTGROUP_EG + 15UL)				/*0xD1*/
 
@@ -728,6 +858,23 @@ extern traceObjectClass TraceQueueClassTable[5];
 #define TRACE_TASK_NOTIFY_GIVE_FROM_ISR (TRACE_TASK_NOTIFY_GROUP + 8UL)		/*0xDA*/
 
 #define TIMER_EXPIRED (TRACE_TASK_NOTIFY_GROUP + 9UL)						/*0xDB*/
+=======
+#define TASK_INSTANCE_FINISHED_NEXT_KSE (EVENTGROUP_EG + 14UL)			/*0xD0*/
+#define TASK_INSTANCE_FINISHED_DIRECT (EVENTGROUP_EG + 15UL)				/*0xD1*/
+
+#define TRACE_TASK_NOTIFY_GROUP (EVENTGROUP_EG + 16UL)					/*0xD2*/
+#define TRACE_TASK_NOTIFY (TRACE_TASK_NOTIFY_GROUP + 0UL)					/*0xD2*/
+#define TRACE_TASK_NOTIFY_TAKE (TRACE_TASK_NOTIFY_GROUP + 1UL)			/*0xD3*/
+#define TRACE_TASK_NOTIFY_TAKE_TRCBLOCK (TRACE_TASK_NOTIFY_GROUP + 2UL)		/*0xD4*/
+#define TRACE_TASK_NOTIFY_TAKE_TRCFAILED (TRACE_TASK_NOTIFY_GROUP + 3UL)		/*0xD5*/
+#define TRACE_TASK_NOTIFY_WAIT (TRACE_TASK_NOTIFY_GROUP + 4UL)			/*0xD6*/
+#define TRACE_TASK_NOTIFY_WAIT_TRCBLOCK (TRACE_TASK_NOTIFY_GROUP + 5UL)		/*0xD7*/
+#define TRACE_TASK_NOTIFY_WAIT_TRCFAILED (TRACE_TASK_NOTIFY_GROUP + 6UL)		/*0xD8*/
+#define TRACE_TASK_NOTIFY_FROM_ISR (TRACE_TASK_NOTIFY_GROUP + 7UL)		/*0xD9*/
+#define TRACE_TASK_NOTIFY_GIVE_FROM_ISR (TRACE_TASK_NOTIFY_GROUP + 8UL)	/*0xDA*/
+
+#define TIMER_EXPIRED (TRACE_TASK_NOTIFY_GROUP + 9UL)		/* 0xDB */
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
  /* Events on queue peek (receive) */
 #define EVENTGROUP_PEEK_TRCBLOCK	(TRACE_TASK_NOTIFY_GROUP + 10UL)		/*0xDC*/
@@ -741,6 +888,7 @@ extern traceObjectClass TraceQueueClassTable[5];
 /* peek failed on semaphore:	0xE0	*/
 /* peek failed on mutex:		0xE1	*/
 
+<<<<<<< HEAD
 #define EVENTGROUP_STREAMBUFFER_DIV							(EVENTGROUP_PEEK_TRCFAILED + 3UL)			/*0xE2*/
 #define TRACE_STREAMBUFFER_RESET							(EVENTGROUP_STREAMBUFFER_DIV + 0)			/*0xE2*/
 #define TRACE_MESSAGEBUFFER_RESET							(EVENTGROUP_STREAMBUFFER_DIV + 1UL)			/*0xE3*/
@@ -756,20 +904,40 @@ extern traceObjectClass TraceQueueClassTable[5];
 /* The following are using previously "lost" event codes */
 #define TRACE_STREAMBUFFER_CREATE_OBJ_TRCSUCCESS			(EVENTGROUP_CREATE_OBJ_TRCSUCCESS + 4UL)		/*0x1C*/
 #define TRACE_STREAMBUFFER_CREATE_OBJ_TRCFAILED				(EVENTGROUP_CREATE_OBJ_TRCFAILED + 4UL)			/*0x44*/
+=======
+#define EVENTGROUP_STREAMBUFFER_DIV						(EVENTGROUP_PEEK_TRCFAILED + 3UL)				/*0xE2*/
+#define TRACE_STREAMBUFFER_RESET						(EVENTGROUP_STREAMBUFFER_DIV + 0)			/*0xE2*/
+#define TRACE_MESSAGEBUFFER_RESET						(EVENTGROUP_STREAMBUFFER_DIV + 1UL)			/*0xE3*/
+#define TRACE_STREAMBUFFER_OBJCLOSE_NAME_TRCSUCCESS		(EVENTGROUP_STREAMBUFFER_DIV + 2UL)			/*0xE4*/
+#define TRACE_MESSAGEBUFFER_OBJCLOSE_NAME_TRCSUCCESS		(EVENTGROUP_STREAMBUFFER_DIV + 3UL)			/*0xE5*/
+#define TRACE_STREAMBUFFER_OBJCLOSE_PROP_TRCSUCCESS		(EVENTGROUP_STREAMBUFFER_DIV + 4UL)			/*0xE6*/
+#define TRACE_MESSAGEBUFFER_OBJCLOSE_PROP_TRCSUCCESS		(EVENTGROUP_STREAMBUFFER_DIV + 5UL)			/*0xE7*/
+
+/* The following are using previously "lost" event codes */
+#define TRACE_STREAMBUFFER_CREATE_OBJ_TRCSUCCESS			(EVENTGROUP_CREATE_OBJ_TRCSUCCESS + 4UL)		/*0x1C*/
+#define TRACE_STREAMBUFFER_CREATE_OBJ_TRCFAILED			(EVENTGROUP_CREATE_OBJ_TRCFAILED + 4UL)		/*0x44*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define TRACE_STREAMBUFFER_DELETE_OBJ_TRCSUCCESS			(EVENTGROUP_DELETE_OBJ_TRCSUCCESS + 4UL)		/*0x84*/
 #define TRACE_STREAMBUFFER_SEND_TRCSUCCESS					(EVENTGROUP_SEND_TRCSUCCESS + 3UL)				/*0x23*/
 #define TRACE_STREAMBUFFER_SEND_TRCBLOCK					(EVENTGROUP_SEND_TRCBLOCK + 3UL)				/*0x73*/
 #define TRACE_STREAMBUFFER_SEND_TRCFAILED					(EVENTGROUP_SEND_TRCFAILED + 3UL)				/*0x4B*/
 #define TRACE_STREAMBUFFER_RECEIVE_TRCSUCCESS				(EVENTGROUP_RECEIVE_TRCSUCCESS + 3UL)			/*0x2B*/
+<<<<<<< HEAD
 #define TRACE_STREAMBUFFER_RECEIVE_TRCBLOCK					(EVENTGROUP_RECEIVE_TRCBLOCK + 3UL)				/*0x6B*/
 #define TRACE_STREAMBUFFER_RECEIVE_TRCFAILED				(EVENTGROUP_RECEIVE_TRCFAILED + 3UL)			/*0x53*/
 #define TRACE_STREAMBUFFER_SEND_FROM_ISR_TRCSUCCESS			(EVENTGROUP_SEND_FROM_ISR_TRCSUCCESS + 3UL)		/*0x33*/
+=======
+#define TRACE_STREAMBUFFER_RECEIVE_TRCBLOCK				(EVENTGROUP_RECEIVE_TRCBLOCK + 3UL)			/*0x6B*/
+#define TRACE_STREAMBUFFER_RECEIVE_TRCFAILED				(EVENTGROUP_RECEIVE_TRCFAILED + 3UL)			/*0x53*/
+#define TRACE_STREAMBUFFER_SEND_FROM_ISR_TRCSUCCESS		(EVENTGROUP_SEND_FROM_ISR_TRCSUCCESS + 3UL)	/*0x33*/
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define TRACE_STREAMBUFFER_SEND_FROM_ISR_TRCFAILED			(EVENTGROUP_SEND_FROM_ISR_TRCFAILED + 3UL)		/*0x5B*/
 #define TRACE_STREAMBUFFER_RECEIVE_FROM_ISR_TRCSUCCESS		(EVENTGROUP_RECEIVE_FROM_ISR_TRCSUCCESS + 3UL)	/*0x3B*/
 #define TRACE_STREAMBUFFER_RECEIVE_FROM_ISR_TRCFAILED		(EVENTGROUP_RECEIVE_FROM_ISR_TRCFAILED + 3UL)	/*0x63*/
 
 /* The following are using previously "lost" event codes. These macros aren't even directly referenced, instead we do (equivalent STREAMBUFFER code) + 1. */
 #define TRACE_MESSAGEBUFFER_CREATE_OBJ_TRCSUCCESS			(EVENTGROUP_CREATE_OBJ_TRCSUCCESS + 5UL)		/*0x1D*/
+<<<<<<< HEAD
 #define TRACE_MESSAGEBUFFER_CREATE_OBJ_TRCFAILED			(EVENTGROUP_CREATE_OBJ_TRCFAILED + 5UL)			/*0x45*/
 #define TRACE_MESSAGEBUFFER_DELETE_OBJ_TRCSUCCESS			(EVENTGROUP_DELETE_OBJ_TRCSUCCESS + 5UL)		/*0x85*/
 #define TRACE_MESSAGEBUFFER_SEND_TRCSUCCESS					(EVENTGROUP_SEND_TRCSUCCESS + 4UL)				/*0x24*/
@@ -792,6 +960,22 @@ extern traceObjectClass TraceQueueClassTable[5];
 #define TRACE_UNUSED_STACK									(EVENTGROUP_MALLOC_FAILED + 2UL)				/*0xEA*/
 
 /* LAST EVENT (0xEA) */
+=======
+#define TRACE_MESSAGEBUFFER_CREATE_OBJ_TRCFAILED			(EVENTGROUP_CREATE_OBJ_TRCFAILED + 5UL)		/*0x45*/
+#define TRACE_MESSAGEBUFFER_DELETE_OBJ_TRCSUCCESS			(EVENTGROUP_DELETE_OBJ_TRCSUCCESS + 5UL)		/*0x85*/
+#define TRACE_MESSAGEBUFFER_SEND_TRCSUCCESS				(EVENTGROUP_SEND_TRCSUCCESS + 4UL)				/*0x24*/
+#define TRACE_MESSAGEBUFFER_SEND_TRCBLOCK					(EVENTGROUP_SEND_TRCBLOCK + 4UL)				/*0x74*/
+#define TRACE_MESSAGEBUFFER_SEND_TRCFAILED					(EVENTGROUP_SEND_TRCFAILED + 4UL)				/*0x4C*/
+#define TRACE_MESSAGEBUFFER_RECEIVE_TRCSUCCESS				(EVENTGROUP_RECEIVE_TRCSUCCESS + 4UL)			/*0x2C*/
+#define TRACE_MESSAGEBUFFER_RECEIVE_TRCBLOCK				(EVENTGROUP_RECEIVE_TRCBLOCK + 4UL)			/*0x6C*/
+#define TRACE_MESSAGEBUFFER_RECEIVE_TRCFAILED				(EVENTGROUP_RECEIVE_TRCFAILED + 4UL)			/*0x54*/
+#define TRACE_MESSAGEBUFFER_SEND_FROM_ISR_TRCSUCCESS		(EVENTGROUP_SEND_FROM_ISR_TRCSUCCESS + 4UL)	/*0x34*/
+#define TRACE_MESSAGEBUFFER_SEND_FROM_ISR_TRCFAILED		(EVENTGROUP_SEND_FROM_ISR_TRCFAILED + 4UL)		/*0x5C*/
+#define TRACE_MESSAGEBUFFER_RECEIVE_FROM_ISR_TRCSUCCESS	(EVENTGROUP_RECEIVE_FROM_ISR_TRCSUCCESS + 4UL)	/*0x3C*/
+#define TRACE_MESSAGEBUFFER_RECEIVE_FROM_ISR_TRCFAILED		(EVENTGROUP_RECEIVE_FROM_ISR_TRCFAILED + 4UL)	/*0x64*/
+
+/* LAST EVENT (0xE7) */
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /****************************
 * MACROS TO GET TRACE CLASS *
@@ -913,7 +1097,10 @@ extern traceObjectClass TraceQueueClassTable[5];
 	if (pxNewTCB != NULL) \
 	{ \
 		trcKERNEL_HOOKS_TASK_CREATE(TRACE_GET_OBJECT_EVENT_CODE(CREATE_OBJ, TRCSUCCESS, TASK, pxNewTCB), TASK, pxNewTCB); \
+<<<<<<< HEAD
 		prvAddTaskToStackMonitor(pxNewTCB); \
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	}
 
 /* Called in vTaskCreate, if it fails (typically if the stack can not be allocated) */
@@ -927,7 +1114,10 @@ extern traceObjectClass TraceQueueClassTable[5];
 	{ TRACE_ALLOC_CRITICAL_SECTION(); \
 	TRACE_ENTER_CRITICAL_SECTION(); \
 	trcKERNEL_HOOKS_TASK_DELETE(TRACE_GET_OBJECT_EVENT_CODE(DELETE_OBJ, TRCSUCCESS, TASK, pxTaskToDelete), TRACE_GET_OBJECT_EVENT_CODE(OBJCLOSE_NAME, TRCSUCCESS, TASK, pxTaskToDelete), TRACE_GET_OBJECT_EVENT_CODE(OBJCLOSE_PROP, TRCSUCCESS, TASK, pxTaskToDelete), pxTaskToDelete); \
+<<<<<<< HEAD
 	prvRemoveTaskFromStackMonitor(pxTaskToDelete); \
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	TRACE_EXIT_CRITICAL_SECTION(); }
 
 #if (TRC_CFG_SCHEDULING_ONLY == 0)
@@ -1022,18 +1212,30 @@ extern traceObjectClass TraceQueueClassTable[5];
 /* Called when a message is sent to a queue */	/* CS IS NEW ! */
 #undef traceQUEUE_SEND
 #define traceQUEUE_SEND( pxQueue ) \
+<<<<<<< HEAD
 	trcKERNEL_HOOKS_KERNEL_SERVICE(xCopyPosition == queueSEND_TO_BACK ? (TRACE_GET_OBJECT_EVENT_CODE(SEND, TRCSUCCESS, QUEUE, pxQueue)) : TRACE_QUEUE_SEND_TO_FRONT_TRCSUCCESS, QUEUE, pxQueue); \
+=======
+	trcKERNEL_HOOKS_KERNEL_SERVICE(TRACE_GET_OBJECT_EVENT_CODE(SEND, TRCSUCCESS, QUEUE, pxQueue), QUEUE, pxQueue); \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	trcKERNEL_HOOKS_SET_OBJECT_STATE(QUEUE, pxQueue, TRACE_GET_OBJECT_TRACE_CLASS(QUEUE, pxQueue) == TRACE_CLASS_MUTEX ? (uint8_t)0 : (uint8_t)(pxQueue->uxMessagesWaiting + 1));
 
 /* Called when a message failed to be sent to a queue (timeout) */
 #undef traceQUEUE_SEND_FAILED
 #define traceQUEUE_SEND_FAILED( pxQueue ) \
+<<<<<<< HEAD
 	trcKERNEL_HOOKS_KERNEL_SERVICE(xCopyPosition == queueSEND_TO_BACK ? (TRACE_GET_OBJECT_EVENT_CODE(SEND, TRCFAILED, QUEUE, pxQueue)) : TRACE_QUEUE_SEND_TO_FRONT_TRCFAILED, QUEUE, pxQueue);
+=======
+	trcKERNEL_HOOKS_KERNEL_SERVICE(TRACE_GET_OBJECT_EVENT_CODE(SEND, TRCFAILED, QUEUE, pxQueue), QUEUE, pxQueue);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Called when the task is blocked due to a send operation on a full queue */
 #undef traceBLOCKING_ON_QUEUE_SEND
 #define traceBLOCKING_ON_QUEUE_SEND( pxQueue ) \
+<<<<<<< HEAD
 	trcKERNEL_HOOKS_KERNEL_SERVICE(xCopyPosition == queueSEND_TO_BACK ? (TRACE_GET_OBJECT_EVENT_CODE(SEND, TRCBLOCK, QUEUE, pxQueue)) : TRACE_QUEUE_SEND_TO_FRONT_TRCBLOCK, QUEUE, pxQueue);
+=======
+	trcKERNEL_HOOKS_KERNEL_SERVICE(TRACE_GET_OBJECT_EVENT_CODE(SEND, TRCBLOCK, QUEUE, pxQueue), QUEUE, pxQueue);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Called when a message is received from a queue */
 #undef traceQUEUE_RECEIVE
@@ -1095,6 +1297,7 @@ extern traceObjectClass TraceQueueClassTable[5];
 		trcKERNEL_HOOKS_SET_TASK_INSTANCE_FINISHED(); \
 	}
 
+<<<<<<< HEAD
 
 /**************************************************************************/
 /* Makes sure xQueueGiveFromISR also has a xCopyPosition parameter        */
@@ -1122,12 +1325,22 @@ BaseType_t MyWrapper(__a, __b, const BaseType_t xCopyPosition)
 #undef traceQUEUE_SEND_FROM_ISR
 #define traceQUEUE_SEND_FROM_ISR( pxQueue ) \
 	trcKERNEL_HOOKS_KERNEL_SERVICE_FROM_ISR(xCopyPosition == queueSEND_TO_BACK ? (TRACE_GET_OBJECT_EVENT_CODE(SEND_FROM_ISR, TRCSUCCESS, QUEUE, pxQueue)) : TRACE_QUEUE_SEND_TO_FRONT_FROM_ISR_TRCSUCCESS, QUEUE, pxQueue); \
+=======
+/* Called when a message is sent from interrupt context, e.g., using xQueueSendFromISR */
+#undef traceQUEUE_SEND_FROM_ISR
+#define traceQUEUE_SEND_FROM_ISR( pxQueue ) \
+	trcKERNEL_HOOKS_KERNEL_SERVICE_FROM_ISR(TRACE_GET_OBJECT_EVENT_CODE(SEND_FROM_ISR, TRCSUCCESS, QUEUE, pxQueue), QUEUE, pxQueue); \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	trcKERNEL_HOOKS_SET_OBJECT_STATE(QUEUE, pxQueue, (uint8_t)(pxQueue->uxMessagesWaiting + 1));
 
 /* Called when a message send from interrupt context fails (since the queue was full) */
 #undef traceQUEUE_SEND_FROM_ISR_FAILED
 #define traceQUEUE_SEND_FROM_ISR_FAILED( pxQueue ) \
+<<<<<<< HEAD
 	trcKERNEL_HOOKS_KERNEL_SERVICE_FROM_ISR(xCopyPosition == queueSEND_TO_BACK ? (TRACE_GET_OBJECT_EVENT_CODE(SEND_FROM_ISR, TRCFAILED, QUEUE, pxQueue)) : TRACE_QUEUE_SEND_TO_FRONT_FROM_ISR_TRCFAILED, QUEUE, pxQueue);
+=======
+	trcKERNEL_HOOKS_KERNEL_SERVICE_FROM_ISR(TRACE_GET_OBJECT_EVENT_CODE(SEND_FROM_ISR, TRCFAILED, QUEUE, pxQueue), QUEUE, pxQueue);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Called when a message is received in interrupt context, e.g., using xQueueReceiveFromISR */
 #undef traceQUEUE_RECEIVE_FROM_ISR
@@ -1179,6 +1392,7 @@ extern void vTraceStoreMemMangEvent(uint32_t ecode, uint32_t address, int32_t si
 #undef traceMALLOC
 #define traceMALLOC( pvAddress, uiSize ) \
 	if (pvAddress != 0) \
+<<<<<<< HEAD
 	{ \
 		vTraceStoreMemMangEvent(MEM_MALLOC_SIZE, ( uint32_t ) pvAddress, (int32_t)uiSize); \
 	} \
@@ -1186,6 +1400,9 @@ extern void vTraceStoreMemMangEvent(uint32_t ecode, uint32_t address, int32_t si
 	{ \
 		vTraceStoreMemMangEvent(MEM_MALLOC_SIZE_TRCFAILED, ( uint32_t ) pvAddress, (int32_t)uiSize); \
 	}
+=======
+		vTraceStoreMemMangEvent(MEM_MALLOC_SIZE, ( uint32_t ) pvAddress, (int32_t)uiSize);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 #undef traceFREE
 #define traceFREE( pvAddress, uiSize ) \
@@ -1696,10 +1913,13 @@ uint32_t prvIsNewTCB(void* pNewTCB);
 #define PSF_EVENT_MESSAGEBUFFER_RECEIVE_FROM_ISR_FAILED		0xE7
 #define PSF_EVENT_MESSAGEBUFFER_RESET						0xE8
 
+<<<<<<< HEAD
 #define PSF_EVENT_MALLOC_FAILED								0xE9
 
 #define PSF_EVENT_UNUSED_STACK								0xEA
 
+=======
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*** The trace macros for streaming ******************************************/
 
 /* A macro that will update the tick count when returning from tickless idle */
@@ -1725,20 +1945,30 @@ uint32_t prvIsNewTCB(void* pNewTCB);
 	OS_TICK_EVENT(uxSchedulerSuspended, xTickCount)
 #endif /* TRC_CFG_FREERTOS_VERSION <= TRC_FREERTOS_VERSION_7_4 */
 
+<<<<<<< HEAD
 extern volatile uint32_t uiTraceSystemState;
 
 /* Called on each task-switch */
 #undef traceTASK_SWITCHED_IN
 #define traceTASK_SWITCHED_IN() \
 	uiTraceSystemState = TRC_STATE_IN_TASKSWITCH; \
+=======
+/* Called on each task-switch */
+#undef traceTASK_SWITCHED_IN
+#define traceTASK_SWITCHED_IN() \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	if (TRACE_GET_OBJECT_FILTER(TASK, TRACE_GET_CURRENT_TASK()) & CurrentFilterMask) \
 	{ \
 		if (prvIsNewTCB(pxCurrentTCB)) \
 		{ \
 			prvTraceStoreEvent2(PSF_EVENT_TASK_ACTIVATE, (uint32_t)pxCurrentTCB, pxCurrentTCB->uxPriority); \
 		} \
+<<<<<<< HEAD
 	} \
 	uiTraceSystemState = TRC_STATE_IN_APPLICATION;
+=======
+	}
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Called for each task that becomes ready */
 #if (TRC_CFG_INCLUDE_READY_EVENTS == 1)
@@ -1753,8 +1983,12 @@ extern volatile uint32_t uiTraceSystemState;
 #define traceTASK_CREATE(pxNewTCB) \
 	if (pxNewTCB != NULL) \
 	{ \
+<<<<<<< HEAD
 		prvAddTaskToStackMonitor(pxNewTCB); \
 		prvTraceSaveObjectSymbol(pxNewTCB, pxNewTCB->pcTaskName); \
+=======
+		prvTraceSaveSymbol(pxNewTCB, pxNewTCB->pcTaskName); \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 		prvTraceSaveObjectData(pxNewTCB, pxNewTCB->uxPriority); \
 		prvTraceStoreStringEvent(1, PSF_EVENT_OBJ_NAME, pxNewTCB->pcTaskName, pxNewTCB); \
 		TRACE_SET_OBJECT_FILTER(TASK, pxNewTCB, CurrentFilterGroup); \
@@ -1766,8 +2000,12 @@ extern volatile uint32_t uiTraceSystemState;
 #define traceTASK_CREATE(pxNewTCB) \
 	if (pxNewTCB != NULL) \
 	{ \
+<<<<<<< HEAD
 		prvAddTaskToStackMonitor(pxNewTCB); \
 		prvTraceSaveObjectSymbol(pxNewTCB, (const char*)pcName); \
+=======
+		prvTraceSaveSymbol(pxNewTCB, (const char*)pcName); \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 		prvTraceSaveObjectData(pxNewTCB, uxPriority); \
 		prvTraceStoreStringEvent(1, PSF_EVENT_OBJ_NAME, (const char*)pcName, pxNewTCB); \
 		TRACE_SET_OBJECT_FILTER(TASK, pxNewTCB, CurrentFilterGroup); \
@@ -1790,8 +2028,12 @@ extern volatile uint32_t uiTraceSystemState;
 		if (TRACE_GET_OBJECT_FILTER(TASK, pxTaskToDelete) & CurrentFilterMask) \
 			prvTraceStoreEvent2(PSF_EVENT_TASK_DELETE, (uint32_t)pxTaskToDelete, (pxTaskToDelete != NULL) ? (pxTaskToDelete->uxPriority) : 0); \
 	prvTraceDeleteSymbol(pxTaskToDelete); \
+<<<<<<< HEAD
 	prvTraceDeleteObjectData(pxTaskToDelete); \
 	prvRemoveTaskFromStackMonitor(pxTaskToDelete);
+=======
+	prvTraceDeleteObjectData(pxTaskToDelete);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 #if (TRC_CFG_SCHEDULING_ONLY == 0)
 
@@ -2310,6 +2552,7 @@ BaseType_t MyWrapper(__a, __b, const BaseType_t xCopyPosition)
 
 #if (TRC_CFG_INCLUDE_MEMMANG_EVENTS == 1)
 
+<<<<<<< HEAD
 extern uint32_t trcHeapCounter;
 
 #undef traceMALLOC
@@ -2333,6 +2576,15 @@ extern uint32_t trcHeapCounter;
 #undef traceFREE
 #define traceFREE( pvAddress, uiSize ) \
 	trcHeapCounter -= uiSize; \
+=======
+#undef traceMALLOC
+#define traceMALLOC( pvAddress, uiSize ) \
+	if (TRACE_GET_OBJECT_FILTER(TASK, TRACE_GET_CURRENT_TASK()) & CurrentFilterMask) \
+		prvTraceStoreEvent2(PSF_EVENT_MALLOC, (uint32_t)pvAddress, uiSize);
+
+#undef traceFREE
+#define traceFREE( pvAddress, uiSize ) \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	if (TRACE_GET_OBJECT_FILTER(TASK, TRACE_GET_CURRENT_TASK()) & CurrentFilterMask) \
 		prvTraceStoreEvent2(PSF_EVENT_FREE, (uint32_t)pvAddress, (uint32_t)(0 - uiSize)); /* "0 -" instead of just "-" to get rid of a warning... */
 
@@ -2344,8 +2596,13 @@ extern uint32_t trcHeapCounter;
 #undef traceTIMER_CREATE
 #define traceTIMER_CREATE(tmr) \
 	TRACE_SET_OBJECT_FILTER(TIMER, tmr, CurrentFilterGroup); \
+<<<<<<< HEAD
 	prvTraceSaveObjectSymbol(tmr, (const char*)tmr->pcTimerName); \
 	prvTraceStoreStringEvent(1, PSF_EVENT_OBJ_NAME, (const char*)tmr->pcTimerName, tmr); \
+=======
+	prvTraceSaveSymbol(tmr, tmr->pcTimerName); \
+	prvTraceStoreStringEvent(1, PSF_EVENT_OBJ_NAME, tmr->pcTimerName, tmr); \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	if (TRACE_GET_OBJECT_FILTER(TASK, TRACE_GET_CURRENT_TASK()) & CurrentFilterMask) \
 		if (TRACE_GET_OBJECT_FILTER(TIMER, tmr) & CurrentFilterMask) \
 			prvTraceStoreEvent2(PSF_EVENT_TIMER_CREATE, (uint32_t)tmr, tmr->xTimerPeriodInTicks);
@@ -2550,7 +2807,11 @@ extern uint32_t trcHeapCounter;
 
 #undef traceQUEUE_REGISTRY_ADD
 #define traceQUEUE_REGISTRY_ADD(object, name) \
+<<<<<<< HEAD
 	prvTraceSaveObjectSymbol(object, (const char*)name); \
+=======
+	prvTraceSaveSymbol(object, (const char*)name); \
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	prvTraceStoreStringEvent(1, PSF_EVENT_OBJ_NAME, name, object);
 
 #if (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1)

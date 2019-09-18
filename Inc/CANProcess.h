@@ -10,6 +10,8 @@
 
 //includes
 #include "motor_controller_functions.h"
+#include "car.h"
+#include "PedalBox.h"
 //#include "WheelModule.h"
 
 #define MAIN_ACK_ID 0x360
@@ -41,6 +43,33 @@
 #define IMU_ACCEL										0
 #define IMU_8G_VAL									0x3FFF
 #define IMU_8G_NEG									0xC001 //negative 0x3FFF
+
+
+//Power Limiting
+#define ID_POWER_LIMIT                0x352
+#define ID_BMS_MACRO                  0x6B1
+//Wheel Speed Defines
+//Front Left
+#define WHEEL_FL_7_0_BYTE 3
+#define WHEEL_FL_15_8_BYTE 2
+#define WHEEL_FL_23_16_BYTE 1
+#define WHEEL_FL_31_24_BYTE 0
+//Front Right
+#define WHEEL_FR_7_0_BYTE 7
+#define WHEEL_FR_15_8_BYTE 6
+#define WHEEL_FR_23_16_BYTE 5
+#define WHEEL_FR_31_24_BYTE 4
+//Rear Left
+#define WHEEL_RL_7_0_BYTE 3
+#define WHEEL_RL_15_8_BYTE 2
+#define WHEEL_RL_23_16_BYTE 1
+#define WHEEL_RL_31_24_BYTE 0
+//Rear Right
+#define WHEEL_RR_7_0_BYTE 7
+#define WHEEL_RR_15_8_BYTE 6
+#define WHEEL_RR_23_16_BYTE 5
+#define WHEEL_RR_31_24_BYTE 4
+
 
 
 
@@ -109,8 +138,16 @@ void processBamoCar(CanRxMsgTypeDef* rx);
 void processWheelModuleFrame(CanRxMsgTypeDef* rx);
 void processPedalboxFrame(CanRxMsgTypeDef* rx);
 void prchg_led_enbl(uint8_t val);
+<<<<<<< HEAD
 
+=======
+void process_IMU(CanRxMsgTypeDef* rx);
+>>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 void processCalibrate(CanRxMsgTypeDef* rx);
+void processCalibratePowerLimit(CanRxMsgTypeDef* rx);
+int process_bms_frame(CanRxMsgTypeDef* rx);
+
+void send_ack(uint16_t can_id, uint16_t response);
 
 #endif /* CANPROCESS_H_ */
