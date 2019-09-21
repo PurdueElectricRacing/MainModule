@@ -30,8 +30,6 @@ typedef enum {
 
 // Structure to hold data passed through the queue to pedalBoxMsgHandler
 typedef struct _pedalbox_msg {
-  //Pedalbox_status_t     EOR;        // EV 2.4.6: Encoder out of range
-  //Pedalbox_status_t     APPS_Implausible;   // EV 2.3.5
   int         throttle1_raw;    // raw throttle data from pedalbox
   int         throttle2_raw;
   int         brake1_raw;

@@ -18,42 +18,18 @@
 #include "power_limiting.h"
 #include <math.h>
 #include "traction_control.h"
+#include <bool.h>
 
-<<<<<<< HEAD
 //Can comment/uncomment as required
 #define PERCEPIO_TRACE
 
-=======
-//enable tracing
-#define tracing
-
-#define THROTTLE_1_MIN   0x0FFF
-#define THROTTLE_1_MAX   0x0490
-#define THROTTLE_2_MIN   0x0EA0
-#define THROTTLE_2_MAX   0x0320
-
-#define BRAKE_1_MIN      0x027c
-#define BRAKE_1_MAX      0x0900
-#define BRAKE_2_MIN      0x026f
-#define BRAKE_2_MAX      0x0900
-
-#define BRAKE_PRESSED_THRESHOLD .3
-#define APPS_BP_PLAUS_RESET_THRESHOLD .05  //EV 2.5
-#define APPS_BP_PLAUS_THRESHOLD .25  //EV 2.5
-
-
-#define PERIOD_ACCELRO        50 / portTICK_RATE_MS
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define PERIOD_TORQUE_SEND    25
 #define HEARTBEAT_PULSEWIDTH  200
 #define HEARTBEAT_PERIOD      100
 #define PEDALBOX_TIMEOUT      1000
 #define POLL_DELAY            50
 #define MAX_BRAKE_LEVEL       0xFFF
-<<<<<<< HEAD
 #define MAX_THROTTLE_LEVEL    1600     //88 Nm
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS  10
 #define MAX_THROTTLE_LEVEL    1600     //160 Nm
@@ -107,13 +83,6 @@ typedef enum {
   CALIBRATE_BRAKE_MAX
 } Calibrate_flag_t;
 
-<<<<<<< HEAD
-=======
-typedef enum{
-	ENABLED = 1,
-	DISABLED = 0
-}CURR_STATE;
-
 
 
 int BCparam;
@@ -132,19 +101,7 @@ int airTemperature;
 int actualCurrentLimit;
 int errBitMap1;
 
-typedef enum flag_state {
-  ASSERTED = 1,
-  DEASSERTED = 0,
-} flag_t;
 
-typedef struct {
-  uint16_t pack_current;      //Most recent pack current from the BMS
-  uint16_t pack_volt;       //Most recent pack voltage
-  uint8_t pack_soc;       //pack SOC
-  uint8_t  high_temp;     //the current highest temperature of a cell
-  uint16_t low_cell_volt;     //the lowest cell voltage
-  uint8_t battery_violation;    //flag that tells what limit was broken 1 -> Power, 2 -> Temp, 3 -> Volt
-} bms_data_t;
 
 typedef struct {
   int power_thresh;
@@ -153,7 +110,6 @@ typedef struct {
   flag_t power_lim_en;
 }power_lim_t;
 
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 typedef struct {
   Car_state_t       state;
   uint8_t         errorFlags;
@@ -167,16 +123,14 @@ typedef struct {
   Pedalbox_status_t   apps_state_eor;       //apps-brake plausibility status
   Pedalbox_status_t   apps_state_timeout;       //apps-brake plausibility status
   Pedalbox_mode_t     pb_mode;          //determines whether pb will be analog or CAN
-  Calibrate_flag_t    calibrate_flag;
   
   LC_status_t         lc_status;
-  //Pedalbox_msg_t      pb_current_msg;
-  bms_data_t          bms_params;
+  BMS_t               bms_params;
   power_lim_t         pow_lim;
 
 	//Wheel Speed (Traction Control)
 	wheel_speed_t				wheel_rpm;
-	flag_t              traction_en; //parameter to enable and disable traction control
+	bool              traction_en; //parameter to enable and disable traction control
 
 	//RTOS objects, initialized in initRTOSObjects
 	QueueHandle_t			q_rx_dcan;
@@ -207,10 +161,6 @@ int mainModuleWatchdogTask();
 void taskHeartbeat();
 void initRTOSObjects();
 void taskBlink(void* can);
-<<<<<<< HEAD
-//void stopCar();
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
 
