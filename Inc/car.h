@@ -44,6 +44,8 @@
 #define DONT_CARE             0
 #define BUZZER_DELAY          2000
 
+#define THROTTLE_LOWER_BOUND 0.15f
+
 //#define TEST_MC
 #define MC_TEST_TORQUE MAX_THROTTLE_LEVEL / 5
 

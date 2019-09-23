@@ -129,7 +129,7 @@ void taskPedalBoxMsgHandler() {
       
 // set car variables
       car.brake = brake_avg;
-      if (throttle_avg >= 0.1)
+      if (throttle_avg > THROTTLE_LOWER_BOUND)
       {
         if (throttle_avg >= 0.9)
         {
@@ -148,8 +148,8 @@ void taskPedalBoxMsgHandler() {
 			}
 
       // test for regen. if on brakes and above a certain speed, regen based on percentage of brake pressed
-// && brake_avg > 0.3
-      if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg <= 0.08  )
+//
+      if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg <= THROTTLE_LOWER_BOUND)
       {
       	//brake_avg *
 				car.throttle_acc = MAX_REGEN_TORQUE;

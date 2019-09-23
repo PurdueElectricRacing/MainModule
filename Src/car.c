@@ -366,17 +366,18 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_PREREADY2DRIVE)
       {
+
         HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET); //enable the DCDC's
         vTaskDelay(500); //account for the DCDC delay turn on
 
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
-        //bamocar 5.2
         //Contacts of the safety device closed,
         enableMotorController();
         //turn on buzzer
-        soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
         car.state = CAR_STATE_READY2DRIVE;  //car is started
 //        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
+        soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
+
       }
       else if (car.state == CAR_STATE_READY2DRIVE)
       {
@@ -445,6 +446,8 @@ void taskCarMainRoutine()
     }
 }
 
+
+
 void calc_wheel_speed(uint32_t id, uint8_t * data)
 {
 	volatile float *left;
@@ -464,14 +467,14 @@ void calc_wheel_speed(uint32_t id, uint8_t * data)
   }
 
   left_raw = ((uint32_t) data[0]) << 24
-  		& ((uint32_t) data[1] << 16)
-			& ((uint32_t) data[2] << 8)
-			& data[3];
+  		| ((uint32_t) data[1] << 16)
+			| ((uint32_t) data[2] << 8)
+			| data[3];
 
   right_raw = ((uint32_t) data[4]) << 24
-  		& ((uint32_t) data[5] << 16)
-			& ((uint32_t) data[6] << 8)
-			& data[7];
+  		| ((uint32_t) data[5] << 16)
+			| ((uint32_t) data[6] << 8)
+			| data[7];
 
   // 10000 is the scalar from DAQ
   *left = left_raw / DAQ_SCALAR;
