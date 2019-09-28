@@ -318,14 +318,16 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_PREREADY2DRIVE)
       {
+
         HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET); //enable the DCDC's
+        vTaskDelay(500); //account for the DCDC delay turn on
 
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
         enableMotorController();
-        soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
         car.state = CAR_STATE_READY2DRIVE;  //car is started
-        vTaskDelay(500); //account for the DCDC delay turn on
-        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
+//        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
+        soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
+
       }
       else if (car.state == CAR_STATE_READY2DRIVE)
       {
@@ -399,4 +401,40 @@ void taskCarMainRoutine()
       //wait until Constant 50 Hz rate
       vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
     }
+}
+
+
+
+void calc_wheel_speed(uint32_t id, uint8_t * data)
+{
+	volatile float *left;
+	volatile float *right;
+	uint32_t left_raw;
+	uint32_t right_raw;
+
+  if (id == ID_WHEEL_FRONT)
+  {
+  	left = &car.fl_spd;
+  	right = &car.fr_spd;
+  }
+  else
+  {
+  	left = &car.rl_spd;
+  	right = &car.rr_spd;
+  }
+
+  left_raw = ((uint32_t) data[0]) << 24
+  		| ((uint32_t) data[1] << 16)
+			| ((uint32_t) data[2] << 8)
+			| data[3];
+
+  right_raw = ((uint32_t) data[4]) << 24
+  		| ((uint32_t) data[5] << 16)
+			| ((uint32_t) data[6] << 8)
+			| data[7];
+
+  // 10000 is the scalar from DAQ
+  *left = left_raw / DAQ_SCALAR;
+  *right = right_raw / DAQ_SCALAR;
+
 }

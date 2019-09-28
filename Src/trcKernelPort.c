@@ -49,7 +49,7 @@
 #include "FreeRTOS.h"
 
 #if (!defined(TRC_USE_TRACEALYZER_RECORDER) && configUSE_TRACE_FACILITY == 1)
-#error Trace Recorder: You need to include trcRecorder.h at the end of your FreeRTOSConfig.h!
+//#error Trace Recorder: You need to include trcRecorder.h at the end of your FreeRTOSConfig.h!
 #endif
 
 #if (defined(TRC_USE_TRACEALYZER_RECORDER) && TRC_USE_TRACEALYZER_RECORDER == 1)

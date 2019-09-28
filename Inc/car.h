@@ -21,7 +21,7 @@
 #include <bool.h>
 
 //Can comment/uncomment as required
-#define PERCEPIO_TRACE
+//#define PERCEPIO_TRACE
 
 #define PERIOD_TORQUE_SEND    25
 #define HEARTBEAT_PULSEWIDTH  200
@@ -29,12 +29,16 @@
 #define PEDALBOX_TIMEOUT      1000
 #define POLL_DELAY            50
 #define MAX_BRAKE_LEVEL       0xFFF
-#define MAX_THROTTLE_LEVEL    1600     //88 Nm
+#define BOOST_MODE_TORQUE     2400 //240 Nm NOT SURE IF THIS IS RIGHT
+#define MAX_CONTINUOUS_TORQUE    1600 // 125 Nm continuous
+#define MAX_REGEN_TORQUE      -35
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS  10
 #define MAX_THROTTLE_LEVEL    1600     //160 Nm
 #define DONT_CARE             0
 #define BUZZER_DELAY          2000
+
+#define THROTTLE_LOWER_BOUND 0.15f
 
 //#define TEST_MC
 #define MC_TEST_TORQUE (MAX_THROTTLE_LEVEL / 5)
@@ -47,6 +51,9 @@
 #define QUEUE_SIZE_TXCAN_1      10
 #define QUEUE_SIZE_TXCAN_2      10
 #define QUEUE_SIZE_MCFRAME      3
+
+#define DAQ_SCALAR 10000
+#define REGEN_CUTOFF_SPEED  200.0f
 
 
 typedef enum {
@@ -124,25 +131,7 @@ typedef struct {
   Pedalbox_status_t   apps_state_timeout;       //apps-brake plausibility status
   Pedalbox_mode_t     pb_mode;          //determines whether pb will be analog or CAN
   
-  LC_status_t         lc_status;
-  BMS_t               bms_params;
-  power_lim_t         pow_lim;
-
-	//Wheel Speed (Traction Control)
-	wheel_speed_t				wheel_rpm;
-	bool              traction_en; //parameter to enable and disable traction control
-
-	//RTOS objects, initialized in initRTOSObjects
-	QueueHandle_t			q_rx_dcan;
-	QueueHandle_t			q_tx_dcan;
-	QueueHandle_t			q_rx_vcan;
-	QueueHandle_t			q_tx_vcan;
-	QueueHandle_t	 		q_pedalboxmsg;
-	QueueHandle_t			q_mc_frame;
-
-	CAN_HandleTypeDef *		phdcan;						//pointer to car's CAN peripheral handle
-	CAN_HandleTypeDef *		phvcan;
-
+  float rl_spd, rr_spd, fl_spd, fr_spd;
 
 } Car_t;
 
@@ -163,6 +152,8 @@ void initRTOSObjects();
 void taskBlink(void* can);
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
+void calc_wheel_speed(uint32_t id, uint8_t * data);
+
 
 
 #endif /* CAR_H_ */

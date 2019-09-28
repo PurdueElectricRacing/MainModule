@@ -10,6 +10,7 @@
 
 #include "stm32f4xx_hal.h"
 
+<<<<<<< HEAD
 #define THROTTLE_1_MIN   0x0FFF
 #define THROTTLE_1_MAX   0x0490
 #define THROTTLE_2_MIN   0x0EA0
@@ -18,6 +19,8 @@
 #define BRAKE_PRESSED_THRESHOLD .3f
 #define APPS_BP_PLAUS_RESET_THRESHOLD .05f  //EV 2.5
 #define APPS_BP_PLAUS_THRESHOLD .25f //EV 2.5
+=======
+>>>>>>> 6cfe6107c9fff6952c1497fe90ebd5fd5aaebf97
 
 typedef enum {
   PEDALBOX_STATUS_ERROR = 1, //generic error

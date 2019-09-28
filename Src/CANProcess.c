@@ -20,6 +20,7 @@
 
 #include "car.h"
 #include "PedalBox.h"
+#include <string.h>
 
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
@@ -46,10 +47,10 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
 
-  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // 2 num
-  FilterConf.FilterIdLow =          ID_PEDALBOX2 << 5; // 0
-  FilterConf.FilterMaskIdHigh =     ID_DASHBOARD << 5;       // 3
-  FilterConf.FilterMaskIdLow =      ID_WHEEL_FRONT << 5;       // 1
+  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // left shift because the ID is in the high bits of the actual registers
+  FilterConf.FilterIdLow =          ID_DASHBOARD << 5;
+  FilterConf.FilterMaskIdHigh =     ID_PEDALBOX2 << 5;
+  FilterConf.FilterMaskIdLow =      ID_WHEEL_REAR << 5;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -71,10 +72,10 @@ void DCANFilterConfig() {
 
 void DCANFilterConfig() {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_BMS_MACRO << 5; // 2 num
-  FilterConf.FilterIdLow =          0 << 5; // 0
-  FilterConf.FilterMaskIdHigh =     0x000;       // 3
-  FilterConf.FilterMaskIdLow =      0x000;       // 1
+  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5;
+  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5;
+  FilterConf.FilterMaskIdHigh =     0x7FF;
+  FilterConf.FilterMaskIdLow =      0x7FF;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
   FilterConf.FilterBank = 1;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -239,7 +240,13 @@ void taskRXCANProcess() {
           process_bms_frame(&rx);
           break;
         }
-    	}
+        case ID_WHEEL_REAR:
+        {
+          // TODO move this to can ISR
+        	calc_wheel_speed(rx.StdId, rx.Data);
+        	break;
+        }
+      }
     }
 
     vTaskDelay(10);

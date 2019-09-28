@@ -46,7 +46,7 @@
  * www.percepio.com
  ******************************************************************************/
 
-#include "trcRecorder.h"
+//#include "trcRecorder.h"
 
 #if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_SNAPSHOT)
 

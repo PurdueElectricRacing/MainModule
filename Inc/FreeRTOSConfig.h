@@ -169,14 +169,10 @@ standard names. */
 
 /* USER CODE BEGIN Defines */   	      
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-/* Integrates the Tracealyzer recorder with FreeRTOS */
-#if ( configUSE_TRACE_FACILITY == 1 )
-  #include "trcRecorder.h"
-#endif
-/* USER CODE` END Defines */
+/* USER CODE END Defines */ 
 
 #endif /* FREERTOS_CONFIG_H */
-=======
+
 /* USER CODE BEGIN Header */
 /*
     FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
@@ -356,4 +352,3 @@ standard names. */
 
 
 #endif /* FREERTOS_CONFIG_H */
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
