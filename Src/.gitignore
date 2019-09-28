@@ -1,0 +1,6 @@
+# Ignore generated files
+freertos.c
+stm32f4xx_*.c
+system_stm32f4xx.c
+syscalls.c
+sysmem.c
