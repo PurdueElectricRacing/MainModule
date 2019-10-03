@@ -84,6 +84,8 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+#define LV_BATT_CHARGER_ENABLE_Pin GPIO_PIN_13
+#define LV_BATT_CHARGER_ENABLE_GPIO_Port GPIOC
 
 /* USER CODE END EFP */
 

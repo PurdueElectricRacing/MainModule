@@ -1,5 +1,4 @@
 /*******************************************************************************
-<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
 =======
  * Trace Recorder Library for Tracealyzer v4.1.4
@@ -56,7 +55,7 @@
 extern "C" {
 #endif
 
-#include "trcPortDefines.h"
+//#include "trcPortDefines.h"
 
 /******************************************************************************
  * Include of processor header file
@@ -175,7 +174,6 @@ extern "C" {
  * Macro which should be defined as either zero (0) or one (1).
  *
  * If this is zero (0), the code for recording Interrupt Service Routines is
-<<<<<<< HEAD
  * excluded, in order to reduce code size. This means that any calls to
  * vTraceStoreISRBegin/vTraceStoreISREnd will be ignored.
  * This does not completely disable ISR tracing, in cases where an ISR is
@@ -184,9 +182,6 @@ extern "C" {
  * "ISR sending to <queue name>".
  * To disable such tracing, please refer to vTraceSetFilterGroup and 
  * vTraceSetFilterMask.
-=======
- * excluded, in order to reduce code size.
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  *
  * Default value is 1.
  *
@@ -269,7 +264,6 @@ extern "C" {
  ******************************************************************************/
 #define TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS 0
 
-<<<<<<< HEAD
  /******************************************************************************
  * TRC_CFG_ENABLE_STACK_MONITOR
  *
@@ -354,8 +348,6 @@ extern "C" {
  ******************************************************************************/
 #define TRC_CFG_CTRL_TASK_STACK_SIZE (configMINIMAL_STACK_SIZE * 2)
 
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*******************************************************************************
  * Configuration Macro: TRC_CFG_RECORDER_BUFFER_ALLOCATION
  *

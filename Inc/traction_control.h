@@ -10,12 +10,7 @@
 #ifndef TRACTION_CONTROL_H_
 #define TRACTION_CONTROL_H_
 
-typedef struct{
-	float FL_rpm;
-	float FR_rpm;
-	float RR_rpm;
-	float RL_rpm;
-} wheel_speed_t;
+
 
 #define MAX_TORQUE MAX_THROTTLE_LEVEL / 10 //Maximum Torque Allowed
 #define MIN_TORQUE 0 //Minimum Torque Allowed

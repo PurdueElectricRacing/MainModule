@@ -1,9 +1,5 @@
 /*******************************************************************************
-<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
-=======
- * Trace Recorder Library for Tracealyzer v4.1.5
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcStreamingRecorder.c
@@ -53,7 +49,6 @@
 #if (TRC_USE_TRACEALYZER_RECORDER == 1)
 
 #include <stdio.h>
-<<<<<<< HEAD
 #include <string.h>
 #include <stdarg.h>
 
@@ -61,10 +56,6 @@
 
 uint32_t trcHeapCounter = 0;
 
-=======
-#include <stdarg.h>
-
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 typedef struct{
 	uint16_t EventID;
 	uint16_t EventCount;
@@ -101,15 +92,9 @@ typedef struct{
   uint16_t version;
   uint16_t platform;
   uint32_t options;
-<<<<<<< HEAD
   uint32_t heapCounter;
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
   uint16_t symbolSize;
-  uint16_t symbolCount;
   uint16_t objectDataSize;
-  uint16_t objectDataCount;
-} PSFHeaderInfo;
 
 
 /* The size of each slot in the Symbol Table */
@@ -147,17 +132,11 @@ typedef struct{
 	char* WritePointer;
 } PageType;
 
-<<<<<<< HEAD
 /* Code used for "task address" when no task has started, to indicate "(startup)".
  * This value was used since NULL/0 was already reserved for the idle task. */
 #define HANDLE_NO_TASK 2
 
 /* The status codes for the pages of the internal trace buffer. */
-=======
-/* Code used for "task address" when no task has started. (NULL = idle task) */
-#define HANDLE_NO_TASK 2
-
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #define PAGE_STATUS_FREE 0
 #define PAGE_STATUS_WRITE 1
 #define PAGE_STATUS_READ 2

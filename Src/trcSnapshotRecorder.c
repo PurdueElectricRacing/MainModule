@@ -1,9 +1,5 @@
 /*******************************************************************************
-<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
-=======
- * Trace Recorder Library for Tracealyzer v4.1.5
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcSnapshotRecorder.c
@@ -65,10 +61,7 @@
 #if (TRC_CFG_INCLUDE_ISR_TRACING == 1)
 static traceHandle isrstack[TRC_CFG_MAX_ISR_NESTING];
 int32_t isPendingContextSwitch = 0;
-<<<<<<< HEAD
 volatile uint32_t uiTraceSystemState = 0;
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #endif /* (TRC_CFG_INCLUDE_ISR_TRACING == 1) */
 
 #if !defined TRC_CFG_INCLUDE_READY_EVENTS || TRC_CFG_INCLUDE_READY_EVENTS == 1
@@ -161,18 +154,6 @@ static uint32_t prvTraceGetParam(uint32_t, uint32_t);
 #endif
 
 /*******************************************************************************
-<<<<<<< HEAD
-=======
- * prvTraceInitTraceData
- *
- * Allocates and initializes the recorder data structure, based on the constants
- * in trcConfig.h. This allows for allocating the data on the heap, instead of
- * using a static declaration.
- ******************************************************************************/
-static void prvTraceInitTraceData(void);
-
-/*******************************************************************************
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * prvTracePortGetTimeStamp
  *
  * Returns the current time based on the HWTC macros which provide a hardware
@@ -188,89 +169,11 @@ void prvTracePortGetTimeStamp(uint32_t *puiTimestamp);
 static void prvTraceTaskInstanceFinish(int8_t direct);
 
 #if ((TRC_CFG_SCHEDULING_ONLY == 0) && (TRC_CFG_INCLUDE_USER_EVENTS == 1))
-<<<<<<< HEAD
-=======
-static void vTracePrintF_Helper(traceString eventLabel, const char* formatStr, va_list vl);
-
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #if (TRC_CFG_USE_SEPARATE_USER_EVENT_BUFFER == 1)
 static void vTraceUBData_Helper(traceUBChannel channelPair, va_list vl);
 static void prvTraceUBHelper1(traceUBChannel channel, traceString eventLabel, traceString formatLabel, va_list vl);
 static void prvTraceUBHelper2(traceUBChannel channel, uint32_t* data, uint32_t noOfSlots);
-<<<<<<< HEAD
 #endif /* (TRC_CFG_USE_SEPARATE_USER_EVENT_BUFFER == 1) */
-=======
-#endif /*(TRC_CFG_USE_SEPARATE_USER_EVENT_BUFFER == 1)*/
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
-#endif /* ((TRC_CFG_SCHEDULING_ONLY == 0) && (TRC_CFG_INCLUDE_USER_EVENTS == 1)) */
-
-/********* Public Functions **************************************************/
-
-uint16_t uiIndexOfObject(traceHandle objecthandle, uint8_t objectclass);
-
-/*******************************************************************************
- * prvTraceError
- *
- * Called by various parts in the recorder. Stops the recorder and stores a
- * pointer to an error message, which is printed by the monitor task.
- ******************************************************************************/
-void prvTraceError(const char* msg);
-
-<<<<<<< HEAD
-=======
-/******************************************************************************
-* vTraceEnable(int startOption) - snapshot mode
-*
-* Initializes and optionally starts the trace, depending on the start option.
-* To use the trace recorder, the startup must call vTraceEnable before any RTOS
-* calls are made (including "create" calls). Three start options are provided:
-* 
-* TRC_START: Starts the tracing directly. In snapshot mode this allows for 
-* starting the trace at any point in your code, assuming vTraceEnable(TRC_INIT)
-* has been called in the startup.
-* Can also be used for streaming without Tracealyzer control, e.g. to a local
-* flash file system (assuming such a "stream port", see trcStreamingPort.h).
-* 
-* TRC_INIT: Initializes the trace recorder, but does not start the tracing.
-* In snapshot mode, this must be followed by a vTraceEnable(TRC_START) sometime
-* later.
-*
-* Usage examples, in snapshot mode:
-* 
-* Snapshot trace, from startup:
-* 	<board init>
-* 	vTraceEnable(TRC_START);
-* 	<RTOS init>
-*
-* Snapshot trace, from a later point:
-* 	<board init>
-* 	vTraceEnable(TRC_INIT);
-* 	<RTOS init>
-* 	...
-* 	vTraceEnable(TRC_START); // e.g., in task context, at some relevant event
-* 
-*
-* Note: See other implementation of vTraceEnable in trcStreamingRecorder.c
-******************************************************************************/
-void vTraceEnable(int startOption)
-{
-	prvTraceInitTraceData();
-	
-	if (startOption == TRC_START)
-	{
-		vTraceStart();
-	}
-	else if (startOption == TRC_START_AWAIT_HOST)
-	{
-		prvTraceError("vTraceEnable(TRC_START_AWAIT_HOST) not allowed in Snapshot mode");
-	}
-	else if (startOption != TRC_INIT)
-	{
-		prvTraceError("Unexpected argument to vTraceEnable (snapshot mode)");
-	}	
-}
-
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*******************************************************************************
  * vTraceSetRecorderDataBuffer
  *
@@ -946,7 +849,6 @@ static uint8_t prvTraceUserEventFormat(const char* formatStr, va_list vl, uint8_
 	{
 		if (formatStr[formatStrIndex] == '%')
 		{
-<<<<<<< HEAD
 			if (formatStr[formatStrIndex + 1] == '%')
 			{
 				formatStrIndex += 2;
@@ -956,30 +858,16 @@ static uint8_t prvTraceUserEventFormat(const char* formatStr, va_list vl, uint8_
 			/* We found a possible argument */
 			argCounter++;
 
-=======
-			argCounter++;
-
-			if (argCounter > 15)
-			{
-				prvTraceError("vTracePrintF - Too many arguments, max 15 allowed!");
-				return 0;
-			}
-
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 			formatStrIndex++;
 
 			while ((formatStr[formatStrIndex] >= '0' && formatStr[formatStrIndex] <= '9') || formatStr[formatStrIndex] == '#' || formatStr[formatStrIndex] == '.')
 				formatStrIndex++;
 
-<<<<<<< HEAD
 			/* This check is necessary to avoid moving past end of string. */
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 			if (formatStr[formatStrIndex] != '\0')
 			{
 				switch (formatStr[formatStrIndex])
 				{
-<<<<<<< HEAD
 					case 'd':
 						i = writeInt32(	buffer,
 										i,
@@ -997,46 +885,22 @@ static uint8_t prvTraceUserEventFormat(const char* formatStr, va_list vl, uint8_
 										i,
 										xTraceRegisterString((char*)va_arg(vl, char*)));
 						break;
-=======
-					case 'd':	i = writeInt32(	buffer,
-												i,
-												(uint32_t)va_arg(vl, uint32_t));
-								break;
-					case 'x':
-					case 'X':
-					case 'u':	i = writeInt32(	buffer,
-												i,
-												(uint32_t)va_arg(vl, uint32_t));
-								break;
-					case 's':	i = writeInt16(	buffer,
-												i,
-												xTraceRegisterString((char*)va_arg(vl, char*)));
-								break;
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 #if (TRC_CFG_INCLUDE_FLOAT_SUPPORT)
 					/* Yes, "double" as type also in the float
 					case. This since "float" is promoted into "double"
 					by the va_arg stuff. */
-<<<<<<< HEAD
 					case 'f':
 						i = writeFloat(	buffer,
 										i,
 										(float)va_arg(vl, double));
 						break;
-=======
-					case 'f':	i = writeFloat(	buffer,
-												i,
-												(float)va_arg(vl, double));
-								break;
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #else
 					/* No support for floats, but attempt to store a float user event
 					avoid a possible crash due to float reference. Instead store the
 					data on uint_32 format (will not be displayed anyway). This is just
 					to keep va_arg and i consistent. */
 
-<<<<<<< HEAD
 					case 'f':
 						i = writeInt32(	buffer,
 										i,
@@ -1111,68 +975,6 @@ static uint8_t prvTraceUserEventFormat(const char* formatStr, va_list vl, uint8_
 				{
 					prvTraceError("vTracePrintF - Too many arguments, max 15 allowed!");
 					return 0;
-=======
-					case 'f':	i = writeInt32(	buffer,
-												i,
-												(uint32_t)va_arg(vl, double));
-								break;
-#endif
-					case 'l':
-								formatStrIndex++;
-								switch (formatStr[formatStrIndex])
-								{
-#if (TRC_CFG_INCLUDE_FLOAT_SUPPORT)
-									case 'f':	i = writeDouble(buffer,
-																i,
-																(double)va_arg(vl, double));
-												break;
-#else
-									/* No support for floats, but attempt to store a float user event
-									avoid a possible crash due to float reference. Instead store the
-									data on uint_32 format (will not be displayed anyway). This is just
-									to keep va_arg and i consistent. */
-									case 'f':	i = writeInt32(	buffer, /* In this case, the value will not be shown anyway */
-																i,
-																(uint32_t)va_arg(vl, double));
-
-												i = writeInt32(	buffer, /* Do it twice, to write in total 8 bytes */
-																i,
-																(uint32_t)va_arg(vl, double));
-										break;
-#endif
-
-								}
-								break;
-					case 'h':
-								formatStrIndex++;
-								switch (formatStr[formatStrIndex])
-								{
-									case 'd':	i = writeInt16(	buffer,
-																i,
-																(uint16_t)va_arg(vl, uint32_t));
-												break;
-									case 'u':	i = writeInt16(	buffer,
-																i,
-																(uint16_t)va_arg(vl, uint32_t));
-												break;
-								}
-								break;
-					case 'b':
-								formatStrIndex++;
-								switch (formatStr[formatStrIndex])
-								{
-									case 'd':	i = writeInt8(	buffer,
-																i,
-																(uint8_t)va_arg(vl, uint32_t));
-												break;
-
-									case 'u':	i = writeInt8(	buffer,
-																i,
-																(uint8_t)va_arg(vl, uint32_t));
-												break;
-								}
-								break;
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 				}
 			}
 			else
@@ -1475,16 +1277,11 @@ void vTracePrintF(traceString eventLabel, const char* formatStr, ...)
 	va_list vl;
 
 	va_start(vl, formatStr);
-<<<<<<< HEAD
 	vTraceVPrintF(eventLabel, formatStr, vl);
-=======
-	vTracePrintF_Helper(eventLabel, formatStr, vl);
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	va_end(vl);
 }
 #endif
 
-<<<<<<< HEAD
 /******************************************************************************
  * vTraceVPrintF
  *
@@ -1494,10 +1291,6 @@ void vTracePrintF(traceString eventLabel, const char* formatStr, ...)
  ******************************************************************************/
 #if ((TRC_CFG_SCHEDULING_ONLY == 0) && (TRC_CFG_INCLUDE_USER_EVENTS == 1))
 void vTraceVPrintF(traceString eventLabel, const char* formatStr, va_list vl)
-=======
-#if ((TRC_CFG_SCHEDULING_ONLY == 0) && (TRC_CFG_INCLUDE_USER_EVENTS == 1))
-void vTracePrintF_Helper(traceString eventLabel, const char* formatStr, va_list vl)
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 {
 #if (TRC_CFG_USE_SEPARATE_USER_EVENT_BUFFER == 0)
 	uint32_t noOfSlots;
@@ -1505,11 +1298,7 @@ void vTracePrintF_Helper(traceString eventLabel, const char* formatStr, va_list 
 	uint32_t tempDataBuffer[(3 + MAX_ARG_SIZE) / 4];
 	TRACE_ALLOC_CRITICAL_SECTION();
 
-<<<<<<< HEAD
 	TRACE_ASSERT(formatStr != NULL, "vTraceVPrintF: formatStr == NULL", TRC_UNUSED);
-=======
-	TRACE_ASSERT(formatStr != NULL, "vTracePrintF_Helper: formatStr == NULL", TRC_UNUSED);
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 	trcCRITICAL_SECTION_BEGIN();
 
@@ -1841,13 +1630,9 @@ void vTraceStoreMemMangEvent(uint32_t ecode, uint32_t address, int32_t signed_si
 
 	trcCRITICAL_SECTION_BEGIN();
 	
-<<<<<<< HEAD
 	/* Only update heapMemUsage if we have a valid address */
 	if (address != 0)
 		heapMemUsage += (uint32_t)signed_size;
-=======
-	heapMemUsage = heapMemUsage + (uint32_t)signed_size;
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	
 	if (RecorderDataPtr->recorderActive)
 	{

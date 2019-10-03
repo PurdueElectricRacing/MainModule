@@ -29,15 +29,27 @@ enum
   ID_BMS_PACK_CUR_VOL    = 0x03B,
   
   ID_BMS_DCL    = 0x03C,
+  ID_MAIN       = 0x200,
   ID_DASHBOARD  = 0x350,
   ID_DASHBOARD1 = 0x351,
-  ID_DASHBOARD2 = 0x352,
+  ID_POWER_LIMIT = 0x352,
   ID_DASHBOARD_ACK = 0x360,
   MAIN_ACK_ID  = 0x360,
+  // BMS IDs
+  ID_BMS_AVGCELLVOLTAGE  = 0x401,
+  ID_BMS_HIGHCELLVOLTAGE = 0x402,
+  ID_BMS_LOWCELLVOLTAGE  = 0x403,
+  ID_BMS_AVGTemperature  = 0x404,
+  ID_BMS_HIGHTemperature = 0x405,
+  ID_BMS_LOWTemperature  = 0x406,
+  ID_BMS_PACKCURRENT     = 0x407,
+  ID_BMS_PACKINSTVOLTAGE = 0x408,
+
   ID_PEDALBOX1 = 0x500,
   ID_PEDALBOX2 = 0x501,
   ID_PEDALBOXCALIBRATE = 0x503,
   ID_PEDALBOX_ERRORS   = 0x601,
+	ID_BMS = 0x6B1,
   ID_WHEEL_FRONT = 0x700,
   ID_WHEEL_REAR  = 0x701,
   ID_F_TIRE_TEMP = 0x710,
@@ -59,7 +71,6 @@ enum
   ID_ENABLE_DAQ  = 0x7E0,
   ID_FRONT_ERROR = 0x7F0,
   ID_REAR_ERROR  = 0x7F1,
-
   
 } CAN_IDs_t;
 
@@ -119,8 +130,12 @@ typedef struct
 typedef struct
 {
   CAN_HandleTypeDef *hcan;
-  QueueHandle_t *rx;
-  QueueHandle_t *tx;
+  QueueHandle_t q_rx;
+  QueueHandle_t q_tx;
 } CAN_Bus_TypeDef;
 
+void DCANFilterConfig();
+void VCANFilterConfig();
+
+HAL_StatusTypeDef broadcast_can_msg(CanTxMsgTypeDef * tx, CAN_HandleTypeDef * can);
 #endif

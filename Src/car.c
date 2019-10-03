@@ -16,57 +16,37 @@
 ***************************************************************************/
 
 #include "car.h"
+#include <math.h>
 
+#include "motor_controller_functions.h"
+
+// @author: Ben Ng
+//          Chris Fallon
+// @brief: set brake light on or off
 void carSetBrakeLight(Brake_light_status_t status)
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: setBrakeLight
-*
-*     Programmer's Name: Ben Ng xbenng@gmail.com
-*
-*     Function Return Type: void
-*
-*     Parameters (list data type, name, and comment one per line):
-*       1. Brake_light_status_t status, value to write to GPIO pin
-*
-*      Global Dependents:
-*
-*     Function Description:
-*     turns brakelight on or off
-***************************************************************************/
 {
   HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, status);
 }
 
 
 void carInit() {
+   // set dcdc pin high, active low logic
+  HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET);
+
   car.state = CAR_STATE_INIT;
-  car.pb_mode = PEDALBOX_MODE_DIGITAL;
   car.throttle_acc = 0;
   car.brake = 0;
-  car.phvcan = &hcan1;
-  car.phdcan = &hcan2;
-  car.calibrate_flag = CALIBRATE_NONE;
-  car.throttle1_min = THROTTLE_1_MIN;
-  car.throttle1_max = THROTTLE_1_MAX;
-  car.throttle2_min = THROTTLE_2_MIN;
-  car.throttle2_max = THROTTLE_2_MAX;
-  car.brake1_min = BRAKE_1_MIN;
-  car.brake1_max = BRAKE_1_MAX;
-  car.brake2_min = BRAKE_2_MIN;
-  car.brake2_max = BRAKE_2_MAX;
-  car.pb_msg_rx_time = UINT32_MAX;
-  car.apps_state_bp_plaus = PEDALBOX_STATUS_NO_ERROR;
-  car.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
-  car.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
-  car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
-  HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET);
-  car.traction_en = DEASSERTED; //default traction control to off
 
-  init_bms_struct(); //setup the bms data
-	init_pow_lim(); //setup the power limiting
+  car.vcan.hcan = &hcan1;
+  car.dcan.hcan = &hcan2;
+
+  car.pb_msg_rx_time = UINT32_MAX;
+  car.tract_cont_en = false; //default traction control to off
+
+  // set accelerator pedal position sensor errors to no errors
+  pedalbox_init(&car.pedalbox);
+  init_bms_struct(&car.bms); //setup the bms data
+	init_pow_lim(&car.power_limit); //setup the power limiting
 }
 
 void ISR_StartButtonPressed() {
@@ -86,71 +66,71 @@ void ISR_StartButtonPressed() {
   }
 }
 
-void taskHeartbeat() {
-  /***************************************************************************
-  *.
-  *     Function Information
-  *
-  *     Name of Function: heartbeatIdle
-  *
-  *     Programmer's Name: Kai Strubel
-  *
-  *     Function Return Type: int
-  *
-  *     Parameters (list data type, name, and comment one per line):
-  *       1.
-  *
-  *      Global Dependents:
-  *
-  *     Function Description:
-  *   Heart beat to communicate that main module is alive
-  *
-  ***************************************************************************/
-  // write to GPIO
-  while (1) {
+// @authors: Kai Strubel
+//           Ben Ng
+//           Chris Fallon
+// @brief: function to communicte Main is alive
+//         also handles enabling charging of LV batteries
+void taskHeartbeat(void * params) {
+  
+  TickType_t last_wake;
+
+  while (1) 
+  {
+    last_wake = xTaskGetTickCount();
+
     HAL_GPIO_TogglePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin);
-    int batteryStatus;
-    batteryStatus = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
-    if(batteryStatus == GPIO_PIN_SET)
+    int hv_active_status = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
+    // if HV is on, enable LV charging circuit
+    if(hv_active_status == GPIO_PIN_SET)
     {
-      HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
     }
     else
     {
-      HAL_GPIO_WritePin(BATTERY_CHARGER_ENABLE_GPIO_Port, BATTERY_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
       vTaskDelay(500);
     }
-    vTaskDelay(HEARTBEAT_PERIOD);
+    // blink LED to show main is alive
+    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    // create Main status message and add to queue
+    CanTxMsgTypeDef tx;
+    tx.IDE = CAN_ID_STD;
+    tx.RTR = CAN_RTR_DATA;
+    tx.StdId = ID_MAIN;
+    tx.DLC = 3;
+    tx.Data[0] = car.state;
+    tx.Data[1] = (car.pedalbox.apps_state_imp
+    		| car.pedalbox.apps_state_brake_plaus
+				| car.pedalbox.apps_state_eor
+				| car.pedalbox.apps_state_timeout);
+    tx.Data[2] = 0;
+
+    if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
+      HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+      tx.Data[2] = 1;
+    }
+    xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+
+
+    vTaskDelayUntil(&last_wake, HEARTBEAT_PERIOD);
   }
+  // if returns kill task
+  vTaskDelete(NULL);
 }
 
+
+// @authors: Ben Ng
+//           Chris Fallon
+// @brief: initialize all queues and tasks
 void initRTOSObjects() {
-  /***************************************************************************
-  *
-  *     Function Information
-  *
-  *     Name of Function: startTasks
-  *
-  *     Programmer's Name: Ben Ng
-  *
-  *     Function Return Type: int
-  *
-  *     Parameters (list data type, name, and comment one per line):
-  *       1.
-  *
-  *     Global Dependents:
-  *
-  *     Function Description:
-  *   all xTaskCreate calls
-  *   all xQueueCreate calls
-  *
-  ***************************************************************************/
   /* Create Queues */
-  car.q_rx_dcan =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
-  car.q_tx_dcan =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
-  car.q_rx_vcan =       xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
-  car.q_tx_vcan =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
-  car.q_pedalboxmsg =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
+  // TODO create wheel speed queue
+  car.dcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
+  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
+  car.vcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
+  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
+  car.pedalbox.pb_msg_q =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
 
   /* Create Tasks */
   //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
@@ -159,84 +139,14 @@ void initRTOSObjects() {
   xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
   xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
-  xTaskCreate(taskBlink, "blink", 256, NULL, 1, NULL);
-  xTaskCreate(taskHeartbeat, "Heartbeat", 128, NULL, 1, NULL);
+  xTaskCreate(taskHeartbeat, "Heartbeat", 256, NULL, 1, NULL);
 }
 
-void taskBlink(void* can)
+
+// @funcname soundBuzzer
+// @return none
+void soundBuzzer(int time_ms) 
 {
-  while (1) {
-    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-    CanTxMsgTypeDef tx;
-    tx.IDE = CAN_ID_STD;
-    tx.RTR = CAN_RTR_DATA;
-    tx.StdId = 0x200;
-    tx.DLC = 3;
-    tx.Data[0] = 0;
-    tx.Data[1] = 0;
-    tx.Data[2] = 0;
-    switch (car.state) {
-      case CAR_STATE_INIT :
-        tx.Data[0] |= 0b00000000;
-        break;
-      case CAR_STATE_PREREADY2DRIVE:
-        tx.Data[0] |= 0b00000001;
-        break;
-      case CAR_STATE_READY2DRIVE :
-        tx.Data[0] |= 0b00000010;
-        break;
-      case CAR_STATE_RESET :
-        tx.Data[0] |= 0b00000011;
-        break;
-      case CAR_STATE_ERROR :
-        tx.Data[0] |=  0b00000100;
-        break;
-      case CAR_STATE_RECOVER :
-        tx.Data[0] |= 0b00000101;
-    }
-    if (car.apps_state_imp == PEDALBOX_STATUS_ERROR) {
-      tx.Data[1] |= 0b00010000;
-    }
-    if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR) {
-      tx.Data[1] |= 0b00100000;
-    }
-    if (car.apps_state_eor == PEDALBOX_STATUS_ERROR) {
-      tx.Data[1] |= 0b01000000;
-    }
-    if (car.apps_state_timeout == PEDALBOX_STATUS_ERROR) {
-      tx.Data[1] |= 0b10000000;
-    }
-    if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
-      HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-      tx.Data[2] |= 0b00000001;
-    }
-    xQueueSendToBack(car.q_tx_dcan, &tx, 100);
-
-    vTaskDelay(500 / portTICK_RATE_MS);
-  }
-}
-
-
-void soundBuzzer(int time_ms) {
-  /***************************************************************************
-  *
-  *     Function Information
-  *
-  *     Name of Function: taskSoundBuzzer
-  *
-  *     Programmer's Name: Ben Ng
-  *
-  *     Function Return Type: void
-  *
-  *     Parameters (list data type, name, and comment one per line):
-  *       1.
-  *
-  *     Global Dependents:
-  *
-  *     Function Description:
-  *   ready to drive sound task
-  *
-  ***************************************************************************/
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
 	vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
@@ -252,7 +162,7 @@ void prchg_led_enbl(uint8_t val)
 	tx.DLC = 1;
 	tx.Data[0] = val;
 
-	xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+	xQueueSendToBack(car.dcan.q_tx, &tx, 100);
 }
 
 
@@ -262,10 +172,11 @@ void taskCarMainRoutine()
   uint32_t last_time_tc = 0;
   uint16_t int_term_tc = 0;
   uint16_t prev_trq_tc = 0;
+  TickType_t current_tick_time;
 
   while (1)
   {
-      TickType_t current_tick_time = xTaskGetTickCount();
+      current_tick_time = xTaskGetTickCount();
       uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
       int16_t torque_to_send = 0;
       uint8_t pc_low = 0;
@@ -294,7 +205,7 @@ void taskCarMainRoutine()
         if (car.throttle_acc > APPS_BP_PLAUS_THRESHOLD)
         {
           //set apps-brake pedal plausibility error
-          car.apps_state_bp_plaus = PEDALBOX_STATUS_ERROR;
+          car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR;
         }
       }
       else
@@ -302,12 +213,6 @@ void taskCarMainRoutine()
         //brake is not pressed
         carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
       }
-
-//      if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE &&
-//          car.state == CAR_STATE_READY2DRIVE)
-//      {
-//        car.state = CAR_STATE_RESET;
-//      }
 
       //state dependent block
       if (car.state == CAR_STATE_INIT)
@@ -351,30 +256,30 @@ void taskCarMainRoutine()
           if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
           {
             torque_to_send = 0;
-            car.apps_state_timeout = PEDALBOX_STATUS_ERROR;
+            car.pedalbox.apps_state_timeout = PEDALBOX_STATUS_ERROR;
           }
           else
           {
-            car.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
+            car.pedalbox.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
           }
 
-          if (car.apps_state_bp_plaus == PEDALBOX_STATUS_NO_ERROR &&
-              car.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
-              car.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
-              car.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
+          if (car.pedalbox.apps_state_brake_plaus == PEDALBOX_STATUS_NO_ERROR &&
+              car.pedalbox.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
+              car.pedalbox.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
+              car.pedalbox.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
           {
             torque_to_send = car.throttle_acc; //gets average
           }
-          else if (car.apps_state_bp_plaus == PEDALBOX_STATUS_ERROR)
+          else if (car.pedalbox.apps_state_brake_plaus == PEDALBOX_STATUS_ERROR)
           {
             //nothing
           }
 
-          if (car.pow_lim.power_lim_en == ASSERTED) {
+          if (car.power_limit.enabled == true) {
             torque_to_send = limit_torque(torque_to_send);
           }
 
-          if (car.traction_en == ASSERTED) {
+          if (car.tract_cont_en == true) {
             torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
           }
 
@@ -404,7 +309,7 @@ void taskCarMainRoutine()
 }
 
 
-
+// TODO replace constants with enums
 void calc_wheel_speed(uint32_t id, uint8_t * data)
 {
 	volatile float *left;
@@ -414,13 +319,13 @@ void calc_wheel_speed(uint32_t id, uint8_t * data)
 
   if (id == ID_WHEEL_FRONT)
   {
-  	left = &car.fl_spd;
-  	right = &car.fr_spd;
+  	left = &car.wheel_rpms.FL_rpm;
+  	right = &car.wheel_rpms.FR_rpm;
   }
   else
   {
-  	left = &car.rl_spd;
-  	right = &car.rr_spd;
+  	left = &car.wheel_rpms.RL_rpm;
+  	right = &car.wheel_rpms.RR_rpm;
   }
 
   left_raw = ((uint32_t) data[0]) << 24
@@ -436,5 +341,4 @@ void calc_wheel_speed(uint32_t id, uint8_t * data)
   // 10000 is the scalar from DAQ
   *left = left_raw / DAQ_SCALAR;
   *right = right_raw / DAQ_SCALAR;
-
 }

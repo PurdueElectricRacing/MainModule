@@ -10,15 +10,16 @@
 
 #include "main.h"
 #include "cmsis_os.h"
-#include "PedalBox.h"
 #include "stm32f4xx_hal.h"
-#include "CANProcess.h"
+#include <stdbool.h>
+
 #include "BMS.h"
-#include "motor_controller_functions.h"
+#include "CAN_Bus.h"
+#include "CANProcess.h"
+
+#include "PedalBox.h"
 #include "power_limiting.h"
-#include <math.h>
 #include "traction_control.h"
-#include <bool.h>
 
 //Can comment/uncomment as required
 //#define PERCEPIO_TRACE
@@ -30,7 +31,7 @@
 #define POLL_DELAY            50
 #define MAX_BRAKE_LEVEL       0xFFF
 #define BOOST_MODE_TORQUE     2400 //240 Nm NOT SURE IF THIS IS RIGHT
-#define MAX_CONTINUOUS_TORQUE    1600 // 125 Nm continuous
+#define MAX_CONTINUOUS_TORQUE 1600 // 125 Nm continuous
 #define MAX_REGEN_TORQUE      -35
 #define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
 #define LAUNCH_CONTROL_INTERVAL_MS  10
@@ -55,6 +56,14 @@
 #define DAQ_SCALAR 10000
 #define REGEN_CUTOFF_SPEED  200.0f
 
+typedef struct
+{
+	float FL_rpm;
+	float FR_rpm;
+
+	float RR_rpm;
+	float RL_rpm;
+} wheel_speed_t;
 
 typedef enum {
   BRAKE_LIGHT_OFF = GPIO_PIN_RESET,
@@ -66,19 +75,13 @@ typedef enum {
   PC_COMPLETE = GPIO_PIN_RESET
 } PC_status_t;
 
-//launch control
 typedef enum {
-  LC_ACTIVATED,
-  LC_DISABLED
-} LC_status_t;
-
-typedef enum {
-  CAR_STATE_INIT,
-  CAR_STATE_PREREADY2DRIVE,
-  CAR_STATE_READY2DRIVE,
-  CAR_STATE_ERROR,
-  CAR_STATE_RESET,
-  CAR_STATE_RECOVER
+  CAR_STATE_INIT  = 0,
+  CAR_STATE_PREREADY2DRIVE = 1,
+  CAR_STATE_READY2DRIVE    = 2,
+  CAR_STATE_ERROR   = 3,
+  CAR_STATE_RESET   = 4,
+  CAR_STATE_RECOVER = 5
 } Car_state_t;
 
 
@@ -109,30 +112,25 @@ int actualCurrentLimit;
 int errBitMap1;
 
 
-
-typedef struct {
-  int power_thresh;
-  int power_soft_lim;
-  int power_hard_lim;
-  flag_t power_lim_en;
-}power_lim_t;
-
-typedef struct {
+typedef struct
+{
   Car_state_t       state;
-  uint8_t         errorFlags;
+
+  BMS_t bms;
+  power_limit_t power_limit;
+  CAN_Bus_TypeDef vcan;
+  CAN_Bus_TypeDef dcan;
+  PedalBox_t pedalbox;
+  wheel_speed_t wheel_rpms;
+
+  uint8_t  errorFlags;
   //calibration values
   int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
   uint32_t        pb_msg_rx_time;       //indicates when a pedalbox message was last received
   uint32_t        apps_imp_first_time_ms;   //indicates when the first imp error was received
-  Pedalbox_status_t   apps_state_imp;   //the last pedalbox message imp sate
-  Pedalbox_status_t   apps_state_bp_plaus;        //apps-brake plausibility status
-  Pedalbox_status_t   apps_state_eor;       //apps-brake plausibility status
-  Pedalbox_status_t   apps_state_timeout;       //apps-brake plausibility status
-  Pedalbox_mode_t     pb_mode;          //determines whether pb will be analog or CAN
   
-  float rl_spd, rr_spd, fl_spd, fr_spd;
-
+  bool tract_cont_en;
 } Car_t;
 
 extern volatile Car_t car;
@@ -149,7 +147,6 @@ void taskCarMainRoutine();
 int mainModuleWatchdogTask();
 void taskHeartbeat();
 void initRTOSObjects();
-void taskBlink(void* can);
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
 void calc_wheel_speed(uint32_t id, uint8_t * data);

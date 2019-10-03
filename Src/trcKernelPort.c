@@ -1,9 +1,5 @@
 /*******************************************************************************
-<<<<<<< HEAD
  * Trace Recorder Library for Tracealyzer v4.3.1
-=======
- * Trace Recorder Library for Tracealyzer v4.1.5
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
  * Percepio AB, www.percepio.com
  *
  * trcKernelPort.c
@@ -106,7 +102,6 @@
 #include "task.h"
 #include "queue.h"
 
-<<<<<<< HEAD
 #if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING) || (defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0))
 
 static TaskType HandleTzCtrl = NULL;       /* TzCtrl task TCB */
@@ -134,8 +129,6 @@ void prvReportStackUsage(void);
 
 #endif /* (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING) || (defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)) */
 
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 #if (TRC_CFG_INCLUDE_TIMER_EVENTS == 1 && TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_8_X)
 /* If the project does not include the FreeRTOS timers, TRC_CFG_INCLUDE_TIMER_EVENTS must be set to 0 */
 #include "timers.h"
@@ -286,7 +279,6 @@ void prvTraceSetStreamBufferNumberHigh16(void* handle, uint16_t value)
 }
 #endif /* (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1 && TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_10_0_0) */
 
-<<<<<<< HEAD
 
 #if (TRC_CFG_HARDWARE_PORT == TRC_HARDWARE_PORT_ARM_CORTEX_A9)
 
@@ -432,25 +424,6 @@ void prvReportStackUsage()
 #if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING)
 	
 static void* pCurrentTCB = NULL;
-=======
-#if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING)
-	
-static void* pCurrentTCB = NULL;
-#if (defined(configENABLE_BACKWARD_COMPATIBILITY) && configENABLE_BACKWARD_COMPATIBILITY == 0)
-/* We're explicitly not using compatibility mode */
-static TaskHandle_t HandleTzCtrl = NULL;       /* TzCtrl task TCB */
-#else
-/* We're using compatibility mode, or we're running an old kernel */
-static xTaskHandle HandleTzCtrl = NULL;       /* TzCtrl task TCB */
-#endif
-
-#if defined(configSUPPORT_STATIC_ALLOCATION)
-#if (configSUPPORT_STATIC_ALLOCATION == 1)
-static StackType_t stackTzCtrl[TRC_CFG_CTRL_TASK_STACK_SIZE];
-static StaticTask_t tcbTzCtrl;
-#endif
-#endif
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 /* Monitored by TzCtrl task, that give warnings as User Events */
 extern volatile uint32_t NoRoomForSymbol;
@@ -458,15 +431,12 @@ extern volatile uint32_t NoRoomForObjectData;
 extern volatile uint32_t LongestSymbolName;
 extern volatile uint32_t MaxBytesTruncated;
 
-<<<<<<< HEAD
-=======
 /* Keeps track of previous values, to only react on changes. */
 static uint32_t NoRoomForSymbol_last = 0;
 static uint32_t NoRoomForObjectData_last = 0;
 static uint32_t LongestSymbolName_last = 0;
 static uint32_t MaxBytesTruncated_last = 0;
 
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /* User Event Channel for giving warnings regarding NoRoomForSymbol etc. */
 traceString trcWarningChannel;
 
@@ -479,12 +449,9 @@ static void prvCheckRecorderStatus(void);
 
 extern void prvTraceWarning(int errCode);
 
-<<<<<<< HEAD
-=======
 /* The TzCtrl task - receives commands from Tracealyzer (start/stop) */
 static portTASK_FUNCTION( TzCtrl, pvParameters );
 
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*******************************************************************************
  * vTraceEnable
  *
@@ -504,7 +471,6 @@ void vTraceEnable(int startOption)
 	{
 		TRC_STREAM_PORT_INIT();
 		
-<<<<<<< HEAD
 	   /* The #WFR channel means "Warnings from Recorder" and
 		* is used to store warnings and errors from the recorder.
 		* The abbreviation #WFR is used instead of the longer full name,
@@ -515,10 +481,6 @@ void vTraceEnable(int startOption)
 		* Note: Requires that TRC_CFG_INCLUDE_USER_EVENTS is 1. */
 		
 		trcWarningChannel = xTraceRegisterString("#WFR"); 
-=======
-		/* Note: Requires that TRC_CFG_INCLUDE_USER_EVENTS is 1. */
-		trcWarningChannel = xTraceRegisterString("Warnings from Recorder");
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 
 		/* Creates the TzCtrl task - receives trace commands (start, stop, ...) */
 		#if defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1)
@@ -706,10 +668,6 @@ unsigned char prvTraceIsSchedulerSuspended(void)
 	return xTaskGetSchedulerState() == taskSCHEDULER_SUSPENDED;
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /*******************************************************************************
  * prvCheckRecorderStatus
  *
@@ -719,7 +677,6 @@ unsigned char prvTraceIsSchedulerSuspended(void)
  ******************************************************************************/
 static void prvCheckRecorderStatus(void)
 {
-<<<<<<< HEAD
 #if defined(TRC_CFG_ENABLE_STACK_MONITOR) && (TRC_CFG_ENABLE_STACK_MONITOR == 1) && (TRC_CFG_SCHEDULING_ONLY == 0)
 	if (tasksNotIncluded > 0)
 	{
@@ -750,42 +707,6 @@ static void prvCheckRecorderStatus(void)
 	{
 		prvTraceWarning(PSF_WARNING_STRING_TOO_LONG);
 		MaxBytesTruncated = 0;
-=======
-	if (NoRoomForSymbol > NoRoomForSymbol_last)
-	{
-		if (NoRoomForSymbol > 0)
-		{
-			prvTraceWarning(PSF_WARNING_SYMBOL_TABLE_SLOTS);
-		}
-		NoRoomForSymbol_last = NoRoomForSymbol;
-	}
-
-	if (NoRoomForObjectData > NoRoomForObjectData_last)
-	{
-		if (NoRoomForObjectData > 0)
-		{
-			prvTraceWarning(PSF_WARNING_OBJECT_DATA_SLOTS);
-		}
-		NoRoomForObjectData_last = NoRoomForObjectData;
-	}
-
-	if (LongestSymbolName > LongestSymbolName_last)
-	{
-		if (LongestSymbolName > (TRC_CFG_SYMBOL_MAX_LENGTH))
-		{
-			prvTraceWarning(PSF_WARNING_SYMBOL_MAX_LENGTH);
-		}
-		LongestSymbolName_last = LongestSymbolName;
-	}
-
-	if (MaxBytesTruncated > MaxBytesTruncated_last)
-	{
-		if (MaxBytesTruncated > 0)
-		{
-			prvTraceWarning(PSF_WARNING_STRING_TOO_LONG);
-		}
-		MaxBytesTruncated_last = MaxBytesTruncated;
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 	}
 }
 
@@ -813,12 +734,8 @@ static portTASK_FUNCTION( TzCtrl, pvParameters )
 
 			if (status != 0)
 			{
-<<<<<<< HEAD
 				/* The connection has failed, stop tracing */
 				vTraceStop();
-=======
-				prvTraceWarning(PSF_WARNING_STREAM_PORT_READ);
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 			}
 
 			if ((status == 0) && (bytes == sizeof(TracealyzerCommandType)))
@@ -841,27 +758,13 @@ static portTASK_FUNCTION( TzCtrl, pvParameters )
 		
 		} while (bytes != 0);
 
-<<<<<<< HEAD
 		if (xTraceIsRecordingEnabled())
 		{
 			prvCheckRecorderStatus();
-			prvReportStackUsage();
-		}
-=======
 		prvCheckRecorderStatus();
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
-
-		vTaskDelay(TRC_CFG_CTRL_TASK_DELAY);
-	}
-}
-
-#endif /*(TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_STREAMING)*/
 
 
 #if (TRC_CFG_RECORDER_MODE == TRC_RECORDER_MODE_SNAPSHOT)
-
-/* Internal flag to tell the context of tracePEND_FUNC_CALL_FROM_ISR */
-int uiInEventGroupSetBitsFromISR = 0;
 
 /******************************************************************************
  * TraceQueueClassTable
@@ -966,7 +869,6 @@ void* prvTraceGetCurrentTaskHandle()
 	return xTaskGetCurrentTaskHandle();
 }
 
-<<<<<<< HEAD
 /******************************************************************************
 * vTraceEnable(int startOption) - snapshot mode
 *
@@ -1056,8 +958,6 @@ static portTASK_FUNCTION(TzCtrl, pvParameters)
 }
 #endif
 
-=======
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
 /* Initialization of the object property table */
 void vTraceInitObjectPropertyTable()
 {

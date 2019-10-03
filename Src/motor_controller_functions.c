@@ -36,7 +36,7 @@ void mcCmdTorque(uint16_t torqueVal) {
   tx.Data[6] =  0x0;  //torque command byte 1 (if set to zero will default to EEPROM which is desired)
   tx.Data[7] =  0x0;  //torque command byte 2
   
-  xQueueSendToFront(car.q_tx_vcan, &tx, 100); //higher priority than polling
+  xQueueSendToFront(car.vcan.q_tx, &tx, 100); //higher priority than polling
 }
 
 void mcCmdTorqueFake(uint16_t torqueVal) {
@@ -55,7 +55,7 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
   tx.Data[6] =  0x0;  //torque command byte 1 (if set to zero will default to EEPROM which is desired)
   tx.Data[7] =  0x0;  //torque command byte 2
   
-  xQueueSendToBack(car.q_tx_dcan, &tx, 100);
+  xQueueSendToBack(car.vcan.q_tx, &tx, 100);
 }
 
 void disableMotorController()
@@ -97,7 +97,7 @@ void disableMotorController()
   tx.Data[6] =  0x0;  //torque command byte 1 (if set to zero will default to EEPROM which is desired)
   tx.Data[7] =  0x0;  //torque command byte 2
   
-  xQueueSendToBack(car.q_tx_vcan, &tx, 100);
+  xQueueSendToBack(car.vcan.q_tx, &tx, 100);
 }
 
 void enableMotorController() {
@@ -135,7 +135,7 @@ void enableMotorController() {
   tx.Data[6] =  0x0;  //torque command byte 1 (if set to zero will default to EEPROM which is desired)
   tx.Data[7] =  0x0;  //torque command byte 2
   
-  xQueueSendToBack(car.q_tx_vcan, &tx, 100);
+  xQueueSendToBack(car.vcan.q_tx, &tx, 100);
 }
 
 void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data)
@@ -154,7 +154,7 @@ void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data)
 	tx.Data[6] =  0;
 	tx.Data[7] =  0;
 
-  xQueueSendToBack(car.q_tx_vcan, &tx, 100);
+  xQueueSendToBack(car.vcan.q_tx, &tx, 100);
 }
 
 /***************************************************************************
@@ -194,9 +194,5 @@ void configbroadcast (uint8_t* inputArray) {
   tx.Data[6] =  inputArray[2];  //Third Data Command
   tx.Data[7] =  inputArray[3];  //Fourth Data Command
 
-<<<<<<< HEAD
-  xQueueSendToBack(car.q_tx_dcan, &tx, 100);
-=======
-  xQueueSendToBack(car.q_tx_vcan, &tx, 100);
->>>>>>> 8454a94b2ff6a369fb67281b014dd9981cd297cd
+  xQueueSendToBack(car.vcan.q_tx, &tx, 100);
 }

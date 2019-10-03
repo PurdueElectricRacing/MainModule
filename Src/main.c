@@ -13,9 +13,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "car.h"
-#include "BMS.h"
-#include "power_limiting.h"
-#include "PedalBox.h"
 #include "CANProcess.h"
 #include "trcConfig.h"
 /* USER CODE END Includes */
