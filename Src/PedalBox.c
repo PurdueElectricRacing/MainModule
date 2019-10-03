@@ -8,6 +8,7 @@
 #include "PedalBox.h"
 #include "car.h"
 #include "stdlib.h"
+#include <math.h>
 
 
 // @author: Chris Fallon
@@ -75,7 +76,8 @@ void taskPedalBoxMsgHandler(void * params) {
       //controller(s) shutting down the power to the motor(s) is sufficient. 
 
       //Motor is shutdown in car.c when a Pedalbox error is seen
-      if (fabs(throttle1_cal - throttle2_cal) > THROTTLE_SENSOR_PLAUS_THRESH) { 
+      if (fabs(throttle1_cal - throttle2_cal) > THROTTLE_SENSOR_PLAUS_THRESH)
+      {
         //if error is persistent
         if (car.pedalbox.apps_state_imp == PEDALBOX_STATUS_ERROR_APPSIMP_PREV)
         { 
