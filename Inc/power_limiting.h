@@ -8,7 +8,6 @@
 #ifndef POWER_LIMITING_H_
 #define POWER_LIMITING_H_
 
-#include "BMS.h"
 
 //#include "car.h"
 #include "stm32f4xx_hal.h"
@@ -33,6 +32,6 @@ typedef struct
 
 
 int16_t limit_torque(int16_t torque_req);
-void init_pow_lim(volatile power_limit_t *p_pow_lim);
+void init_power_limit(volatile power_limit_t * p_pow_lim);
 
 #endif /* POWER_LIMITING_H_ */

@@ -5,7 +5,6 @@
  *      Author: Matt Flanagan
  */
 #include "BMS.h"
-#include "car.h"
 #include "CAN_Bus.h"
 
 

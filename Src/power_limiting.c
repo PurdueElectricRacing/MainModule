@@ -32,13 +32,18 @@ int16_t limit_torque(int16_t torque_req) {
 	temp_gain = power_limit_temp(&car.bms);
 	volt_gain = power_limit_volt(&car.bms);
 
-	if (watt_gain < temp_gain && watt_gain < volt_gain) {
+	if (watt_gain < temp_gain && watt_gain < volt_gain)
+	{
 		//power limited by rules
 		torque_limited = (torque_limited * watt_gain) / 100;
-	} else if (temp_gain < watt_gain && temp_gain < volt_gain) {
+	}
+	else if (temp_gain < watt_gain && temp_gain < volt_gain)
+	{
 		//power limited by temp
 		torque_limited = (torque_limited * temp_gain) / 100;
-	} else {
+	}
+	else
+	{
 		//power limited by voltage
 		torque_limited = (torque_limited * volt_gain) / 100;
 	}
@@ -52,18 +57,22 @@ uint8_t power_limit_volt(volatile BMS_t * bms) {
   //only throttle if past the threshold
   if (car.bms.low_cell_volt > VOLT_THRESH) return 100;
   //if past the hard lim stop the driving
-  if (bms->low_cell_volt < VOLT_HARD_LIM) {
+  if (bms->low_cell_volt < VOLT_HARD_LIM)
+  {
     bms->fault = OVER_VOLT_FAULT;
     return 0;
   }
 
   //between thresh hold and hard limit
-  if (bms->low_cell_volt > VOLT_SOFT_LIM) {
+  if (bms->low_cell_volt > VOLT_SOFT_LIM)
+  {
       //between threshold and soft limit
       //have linear decrease from 100% -> 50%
     multiplier = ((float) (VOLT_THRESH - bms->low_cell_volt) / (VOLT_THRESH - VOLT_SOFT_LIM));
       gain = 100 - 50 * (multiplier);
-  } else {
+  }
+  else
+  {
     //between soft and hard lim
     //linear decrease from 50% -> 0%
     multiplier = ((float) (VOLT_SOFT_LIM - bms->low_cell_volt) / (VOLT_SOFT_LIM - VOLT_HARD_LIM));

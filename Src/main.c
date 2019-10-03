@@ -14,7 +14,7 @@
 /* USER CODE BEGIN Includes */
 #include "car.h"
 #include "CANProcess.h"
-#include "trcConfig.h"
+//#include "trcConfig.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

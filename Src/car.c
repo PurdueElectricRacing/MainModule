@@ -45,8 +45,8 @@ void carInit() {
 
   // set accelerator pedal position sensor errors to no errors
   pedalbox_init(&car.pedalbox);
-  init_bms_struct(&car.bms); //setup the bms data
-	init_pow_lim(&car.power_limit); //setup the power limiting
+  init_bms_struct(&car.bms);
+	init_power_limit(&car.power_limit);
 }
 
 void ISR_StartButtonPressed() {
