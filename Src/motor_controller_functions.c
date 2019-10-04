@@ -20,6 +20,12 @@
 #include "car.h"
 #include "motor_controller_functions.h"
 #include "CANProcess.h"
+#include <math.h>
+
+
+// private function prototypes
+int16_t calc_regen_torque(double current);
+
 
 void mcCmdTorque(uint16_t torqueVal) {
   CanTxMsgTypeDef tx;
@@ -45,8 +51,7 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
   tx.StdId =    0x490;
   tx.DLC =      8;
   tx.RTR =      CAN_RTR_DATA;
-  tx.Data[0] =  (uint8_t)
-                torqueVal;  //torque command byte 1 since enabling make it go zero speed don't want anyone dead...
+  tx.Data[0] =  (uint8_t) torqueVal;  //torque command byte 1 since enabling make it go zero speed don't want anyone dead...
   tx.Data[1] =  (uint8_t) (torqueVal >> 8); //torque command byte 2
   tx.Data[2] =  DONT_CARE;  //speed command byte 1 (irrelevant since using torque)
   tx.Data[3] =  DONT_CARE;  //speed command byte 2
@@ -195,4 +200,42 @@ void configbroadcast (uint8_t* inputArray) {
   tx.Data[7] =  inputArray[3];  //Fourth Data Command
 
   xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+}
+
+
+
+// @author: Chris Fallon
+// @brief: calculate regen torque based on brake pressure
+int16_t brake_pres_regen_torque(float brake_pres)
+{
+	double current = brake_pres * MAX_REGEN_CURRENT;
+	return calc_regen_torque(current);
+}
+
+// @author: Chris Fallon
+// @brief: calculate regen torque based on throttle position
+int16_t throttle_pos_regen_torque(float throttle_pos)
+{
+	double current = 0;
+	double prcnt = 1.0 - throttle_pos;
+	current = (prcnt / 3) * MAX_REGEN_CURRENT;
+	return calc_regen_torque(current);
+}
+
+
+// @author: Chris Fallon
+// @brief: generic function to calculate regen torque based on
+//         desired current
+// @return: torque value as signed int
+//      torque = -5E-07(current)^3 + 7E-05(current)^2 + 0.5149(current) - 0.7709
+int16_t calc_regen_torque(double current)
+{
+	int16_t torque = 0;
+	double temp_torque = -5.0E-7 * pow(current, 3);
+	temp_torque += 7.0E-5 * pow(current, 2);
+	temp_torque += 0.5149 * current;
+	temp_torque += -0.7709;
+
+	torque = (int16_t) -1 * (temp_torque * 10);
+	return torque;
 }

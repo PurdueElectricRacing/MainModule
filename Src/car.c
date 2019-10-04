@@ -49,6 +49,30 @@ void carInit() {
 	init_power_limit(&car.power_limit);
 }
 
+// @authors: Ben Ng
+//           Chris Fallon
+// @brief: initialize all queues and tasks
+void initRTOSObjects() {
+  /* Create Queues */
+  // TODO create wheel speed queue
+  car.dcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
+  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
+  car.vcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
+  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
+  car.pedalbox.pb_msg_q =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
+
+  /* Create Tasks */
+  //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
+  // TODO decide if it is necessary to error check task creation for each task
+  BaseType_t err = pdPASS;
+  err = xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
+  xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 1, NULL);
+  xTaskCreate(taskTX_CAN, "TX CAN DCAN", 256, (void *) &car.dcan, 1, NULL);
+  xTaskCreate(taskTX_CAN, "TX CAN VCAN", 256, (void *) &car.vcan, 1, NULL);
+  xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
+  xTaskCreate(taskHeartbeat, "Heartbeat", 256, NULL, 1, NULL);
+}
+
 void ISR_StartButtonPressed() {
   if (car.state == CAR_STATE_INIT)
   {
@@ -117,29 +141,6 @@ void taskHeartbeat(void * params) {
   }
   // if returns kill task
   vTaskDelete(NULL);
-}
-
-
-// @authors: Ben Ng
-//           Chris Fallon
-// @brief: initialize all queues and tasks
-void initRTOSObjects() {
-  /* Create Queues */
-  // TODO create wheel speed queue
-  car.dcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
-  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
-  car.vcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
-  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
-  car.pedalbox.pb_msg_q =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
-
-  /* Create Tasks */
-  //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
-  xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
-  xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 1, NULL);
-  xTaskCreate(taskTX_DCAN, "TX CAN DCAN", 256, NULL, 1, NULL);
-  xTaskCreate(taskTX_VCAN, "TX CAN VCAN", 256, NULL, 1, NULL);
-  xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
-  xTaskCreate(taskHeartbeat, "Heartbeat", 256, NULL, 1, NULL);
 }
 
 
@@ -306,39 +307,9 @@ void taskCarMainRoutine()
       //wait until Constant 50 Hz rate
       vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
     }
+  vTaskDelete(NULL);
 }
 
 
 // TODO replace constants with enums
-void calc_wheel_speed(uint32_t id, uint8_t * data)
-{
-	volatile float *left;
-	volatile float *right;
-	uint32_t left_raw;
-	uint32_t right_raw;
 
-  if (id == ID_WHEEL_FRONT)
-  {
-  	left = &car.wheel_rpms.FL_rpm;
-  	right = &car.wheel_rpms.FR_rpm;
-  }
-  else
-  {
-  	left = &car.wheel_rpms.RL_rpm;
-  	right = &car.wheel_rpms.RR_rpm;
-  }
-
-  left_raw = ((uint32_t) data[0]) << 24
-  		| ((uint32_t) data[1] << 16)
-			| ((uint32_t) data[2] << 8)
-			| data[3];
-
-  right_raw = ((uint32_t) data[4]) << 24
-  		| ((uint32_t) data[5] << 16)
-			| ((uint32_t) data[6] << 8)
-			| data[7];
-
-  // 10000 is the scalar from DAQ
-  *left = left_raw / DAQ_SCALAR;
-  *right = right_raw / DAQ_SCALAR;
-}

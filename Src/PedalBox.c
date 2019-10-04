@@ -140,7 +140,8 @@ void taskPedalBoxMsgHandler(void * params) {
 				car.throttle_acc = 0;
 			}
 
-      if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg <= THROTTLE_LOWER_BOUND)
+
+      if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg < THROTTLE_LOWER_BOUND)
       {
 				car.throttle_acc = MAX_REGEN_TORQUE;
       }
@@ -150,5 +151,7 @@ void taskPedalBoxMsgHandler(void * params) {
   //if this task breaks from the loop kill it
   vTaskDelete(NULL);
 }
+
+
 
 

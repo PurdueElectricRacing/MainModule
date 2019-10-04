@@ -14,6 +14,7 @@
 /* USER CODE BEGIN Includes */
 #include "car.h"
 #include "CANProcess.h"
+#include "CAN_Bus.h"
 //#include "trcConfig.h"
 /* USER CODE END Includes */
 
@@ -91,8 +92,8 @@ int main(void)
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
   carInit();
-  DCANFilterConfig();
-  VCANFilterConfig();
+  DCANFilterConfig(&hcan2);
+  VCANFilterConfig(&hcan1);
 
   //Call Trace Start here
 #ifdef PERCEPIO_TRACE

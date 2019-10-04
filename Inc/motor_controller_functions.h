@@ -12,13 +12,16 @@
 #include "cmsis_os.h"
 #include "car.h"
 
+#define MAX_REGEN_CURRENT 40.0f
+
 //function prototypes
 void mcCmdTorque(uint16_t);
 void mcCmdTorqueFake(uint16_t);
 void disableMotorController();
 void enableMotorController();
 void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data);
-
+int16_t brake_pres_regen_torque(float brake_pres);
+int16_t throttle_pos_regen_torque(float throttle_pos);
 
 enum 
 {

@@ -24,25 +24,20 @@
 //Can comment/uncomment as required
 //#define PERCEPIO_TRACE
 
-#define PERIOD_TORQUE_SEND    25
-#define HEARTBEAT_PULSEWIDTH  200
-#define HEARTBEAT_PERIOD      100
-#define PEDALBOX_TIMEOUT      1000
-#define POLL_DELAY            50
+#define PERIOD_TORQUE_SEND    (25 / portTICK_RATE_MS)
+#define HEARTBEAT_PULSEWIDTH  (200 / portTICK_RATE_MS)
+#define HEARTBEAT_PERIOD      (100 / portTICK_RATE_MS)
+#define PEDALBOX_TIMEOUT      (1000 / portTICK_RATE_MS)
+#define POLL_DELAY            (50 / portTICK_RATE_MS)
+#define BUZZER_DELAY          (2000 / portTICK_RATE_MS)
 #define MAX_BRAKE_LEVEL       0xFFF
 #define BOOST_MODE_TORQUE     2400 //240 Nm NOT SURE IF THIS IS RIGHT
 #define MAX_CONTINUOUS_TORQUE 1600 // 125 Nm continuous
 #define MAX_REGEN_TORQUE      -35
-#define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
-#define LAUNCH_CONTROL_INTERVAL_MS  10
-#define MAX_THROTTLE_LEVEL    1600     //160 Nm
 #define DONT_CARE             0
-#define BUZZER_DELAY          2000
+
 
 #define THROTTLE_LOWER_BOUND 0.15f
-
-//#define TEST_MC
-#define MC_TEST_TORQUE (MAX_THROTTLE_LEVEL / 5)
 
 
 //rtos parameter defines
@@ -85,31 +80,14 @@ typedef enum {
 } Car_state_t;
 
 
-typedef enum {
+typedef enum 
+{
   CALIBRATE_NONE,
   CALIBRATE_THROTTLE_MIN,
   CALIBRATE_THROTTLE_MAX,
   CALIBRATE_BRAKE_MIN,
   CALIBRATE_BRAKE_MAX
 } Calibrate_flag_t;
-
-
-
-int BCparam;
-int actualTorque0700;
-int actualTorque1508;
-int DCLimit;
-int pedalTorque;
-int actualTorque;
-int speedActual;
-int currentActual;
-int commandCurrent;
-int dcBusVoltage;
-int motorTemperature;
-int powerStageTemperature;
-int airTemperature;
-int actualCurrentLimit;
-int errBitMap1;
 
 
 typedef struct
@@ -127,8 +105,8 @@ typedef struct
   //calibration values
   int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
-  uint32_t        pb_msg_rx_time;       //indicates when a pedalbox message was last received
-  uint32_t        apps_imp_first_time_ms;   //indicates when the first imp error was received
+  uint32_t      pb_msg_rx_time;       //indicates when a pedalbox message was last received
+  uint32_t      apps_imp_first_time_ms;   //indicates when the first imp error was received
   
   bool tract_cont_en;
 } Car_t;
@@ -149,7 +127,6 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
-void calc_wheel_speed(uint32_t id, uint8_t * data);
 
 
 

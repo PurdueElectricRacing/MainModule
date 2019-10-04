@@ -28,71 +28,6 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 }
 
 
-void VCANFilterConfig()
-{
-  CAN_FilterTypeDef FilterConf;
-
-  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // left shift because the ID is in the high bits of the actual registers
-  FilterConf.FilterIdLow =          ID_DASHBOARD << 5;
-  FilterConf.FilterMaskIdHigh =     ID_PEDALBOX2 << 5;
-  FilterConf.FilterMaskIdLow =      ID_WHEEL_REAR << 5;
-  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
-  FilterConf.FilterBank = 0;
-  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
-  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
-  FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(car.vcan.hcan, &FilterConf);
-}
-
-void DCANFilterConfig()
-{
-  CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5;
-  FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5;
-  FilterConf.FilterMaskIdHigh =     0x7FF;
-  FilterConf.FilterMaskIdLow =      0x7FF;
-  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
-  FilterConf.FilterBank = 1;
-  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
-  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
-  FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(car.dcan.hcan, &FilterConf);
-}
-
-
-// @Task_Name: taskTX_DCAN
-// @brief: broadcast CAN messages
-// @author: Ben Ng
-void taskTX_DCAN(void * params) {
-  CanTxMsgTypeDef tx;
-  
-  for (;;) {
-    //check if this task is triggered
-    if (xQueuePeek(car.dcan.q_tx, &tx, portMAX_DELAY) == pdTRUE)
-    {
-      xQueueReceive(car.dcan.q_tx, &tx, portMAX_DELAY);  //actually take item out of queue
-      broadcast_can_msg(&tx, car.dcan.hcan);
-    }
-  }
-}
-
-// @Task_Name: taskTX_VCAN
-// @brief: broadcast CAN messages
-// @author: Ben Ng ; email: undefined
-// @edited: Chris Fallon
-void taskTX_VCAN(void * params) {
-  CanTxMsgTypeDef tx;
-  
-  for (;;) {
-    //check if this task is triggered
-    if (xQueuePeek(car.vcan.q_tx, &tx, portMAX_DELAY) == pdTRUE) 
-    {
-      xQueueReceive(car.vcan.q_tx, &tx, portMAX_DELAY);  //actually take item out of queue
-      broadcast_can_msg(&tx, car.vcan.hcan);
-    }
-  }
-}
-
 // @authors: Ben Ng
 //           Chris Fallon
 // @brief: Task function to process received CAN Messages.
@@ -102,7 +37,10 @@ void taskTX_VCAN(void * params) {
 void taskRXCANProcess(void * params) {
 
   CanRxMsgTypeDef rx;  //CanRxMsgTypeDef to be received on the queue
-  while (1) {
+  TickType_t last_tick;
+  while (1) 
+  {
+    last_tick = xTaskGetTickCount();
     HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
 
@@ -162,7 +100,7 @@ void taskRXCANProcess(void * params) {
       }
     }
 
-    vTaskDelay(10);
+    vTaskDelayUntil(&last_tick, 10);
   }
 }
 
@@ -316,4 +254,40 @@ void send_ack(uint16_t can_id, uint16_t response) {
   tx.DLC = 1;
   tx.Data[0] = response;
   xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+}
+
+
+// @authors: Chris Fallon
+// @brief: Calculate the wheel speed for the given ID
+void calc_wheel_speed(uint32_t id, uint8_t * data)
+{
+	volatile float *left;
+	volatile float *right;
+	uint32_t left_raw;
+	uint32_t right_raw;
+
+  if (id == ID_WHEEL_FRONT)
+  {
+  	left = &car.wheel_rpms.FL_rpm;
+  	right = &car.wheel_rpms.FR_rpm;
+  }
+  else
+  {
+  	left = &car.wheel_rpms.RL_rpm;
+  	right = &car.wheel_rpms.RR_rpm;
+  }
+
+  left_raw = ((uint32_t) data[0]) << 24
+  		| ((uint32_t) data[1] << 16)
+			| ((uint32_t) data[2] << 8)
+			| data[3];
+
+  right_raw = ((uint32_t) data[4]) << 24
+  		| ((uint32_t) data[5] << 16)
+			| ((uint32_t) data[6] << 8)
+			| data[7];
+
+  // 10000 is the scalar from DAQ
+  *left = left_raw / DAQ_SCALAR;
+  *right = right_raw / DAQ_SCALAR;
 }

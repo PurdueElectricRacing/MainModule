@@ -134,8 +134,10 @@ typedef struct
   QueueHandle_t q_tx;
 } CAN_Bus_TypeDef;
 
-void DCANFilterConfig();
-void VCANFilterConfig();
+void taskTX_CAN(void * params);
+
+void DCANFilterConfig(CAN_HandleTypeDef * hcan);
+void VCANFilterConfig(CAN_HandleTypeDef * hcan);
 
 HAL_StatusTypeDef broadcast_can_msg(CanTxMsgTypeDef * tx, CAN_HandleTypeDef * can);
 #endif

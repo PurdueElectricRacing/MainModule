@@ -45,8 +45,8 @@ void ISR_RXCAN();
 
 
 void taskRXCANProcess(void * params);
-void taskTX_DCAN(void * params);
-void taskTX_VCAN(void * params);
+// void taskTX_DCAN(void * params);
+// void taskTX_VCAN(void * params);
 void taskRXCAN(void * params);
 
 void processPedalboxFrame(CanRxMsgTypeDef* rx);
@@ -56,6 +56,7 @@ void process_IMU(CanRxMsgTypeDef* rx);
 void processCalibrate(CanRxMsgTypeDef* rx);
 void processCalibratePowerLimit(CanRxMsgTypeDef* rx);
 int process_bms_frame(CanRxMsgTypeDef* rx);
+void calc_wheel_speed(uint32_t id, uint8_t * data);
 
 void send_ack(uint16_t can_id, uint16_t response);
 

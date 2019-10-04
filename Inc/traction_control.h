@@ -4,15 +4,17 @@
  *  Created on: 29 March 2019
  *      Author: Jose Luis Tejada
  */
-
-#include"car.h"
-
 #ifndef TRACTION_CONTROL_H_
 #define TRACTION_CONTROL_H_
 
+#include "car.h"
 
 
-#define MAX_TORQUE MAX_THROTTLE_LEVEL / 10 //Maximum Torque Allowed
+
+#define LAUNCH_CONTROL_INTERVAL_MS  (10 / portTICK_RATE_MS)
+
+#define LC_THRESHOLD          10      // todo lc threshold DUMMY VALUE
+#define MAX_TORQUE (MAX_CONTINUOUS_TORQUE / 10) //Maximum Torque Allowed
 #define MIN_TORQUE 0 //Minimum Torque Allowed
 #define MAX_SLIP_RATIO 0.15 //Maximum Slip Ratio
 #define MIN_SLIP_RATIO 0.05 //Minimum Slip Ratio
