@@ -16,6 +16,7 @@
 #include "BMS.h"
 #include "CAN_Bus.h"
 #include "CANProcess.h"
+#include "wheel_mod.h"
 
 #include "PedalBox.h"
 #include "power_limiting.h"
@@ -51,14 +52,7 @@
 #define DAQ_SCALAR 10000
 #define REGEN_CUTOFF_SPEED  200.0f
 
-typedef struct
-{
-	float FL_rpm;
-	float FR_rpm;
 
-	float RR_rpm;
-	float RL_rpm;
-} wheel_speed_t;
 
 typedef enum {
   BRAKE_LIGHT_OFF = GPIO_PIN_RESET,
@@ -99,7 +93,7 @@ typedef struct
   CAN_Bus_TypeDef vcan;
   CAN_Bus_TypeDef dcan;
   PedalBox_t pedalbox;
-  wheel_speed_t wheel_rpms;
+  wheel_module_t wheels;
 
   uint8_t  errorFlags;
   //calibration values

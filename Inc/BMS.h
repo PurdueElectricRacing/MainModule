@@ -43,5 +43,6 @@ typedef struct
 } BMS_t;
 
 int init_bms_struct(volatile BMS_t * bms);
+int process_bms_frame(uint8_t* Data, volatile BMS_t * bms);
 
 #endif /* BMS_H_ */

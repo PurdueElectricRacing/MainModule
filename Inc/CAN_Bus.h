@@ -135,6 +135,7 @@ typedef struct
 } CAN_Bus_TypeDef;
 
 void taskTX_CAN(void * params);
+void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size);
 
 void DCANFilterConfig(CAN_HandleTypeDef * hcan);
 void VCANFilterConfig(CAN_HandleTypeDef * hcan);

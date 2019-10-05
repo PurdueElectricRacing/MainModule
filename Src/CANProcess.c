@@ -51,7 +51,7 @@ void taskRXCANProcess(void * params) {
       switch (rx.StdId) {
         case ID_PEDALBOX2:
         { //if pedalbox1 message
-          processPedalboxFrame(&rx);
+          processPedalboxFrame(&rx.Data, &car.pedalbox);
           break;
         }
         case ID_DASHBOARD:
@@ -88,7 +88,7 @@ void taskRXCANProcess(void * params) {
         }
         case ID_BMS:
         {
-          process_bms_frame(&rx);
+          process_bms_frame(&rx.Data, &car.bms);
           break;
         }
         case ID_WHEEL_REAR:
@@ -123,51 +123,7 @@ void taskRXCANProcess(void * params) {
 *       Converts CAN frame into a pedalbox message and sends it to pedalboxmsg handler
 *
 ***************************************************************************/
-void processPedalboxFrame(CanRxMsgTypeDef* rx) {
-	Pedalbox_msg_t pedalboxmsg;
 
-	///////////SCRUB DATA the from the CAN frame//////////////
-	//mask then shift the throttle value data
-	uint8_t throttle1_7_0  = rx->Data[PEDALBOX1_THROT1_7_0_BYTE] >> PEDALBOX1_THROT1_7_0_OFFSET;  //Throttle 1 Value (7:0) [7:0]
-	uint8_t throttle1_11_8 =
-		(rx->Data[PEDALBOX1_THROT1_11_8_BYTE] & PEDALBOX1_THROT1_11_8_MASK) >>
-		PEDALBOX1_THROT1_11_8_OFFSET;  //Throttle 1 Value (11:8) [3:0]
-
-	uint8_t throttle2_7_0  = rx->Data[PEDALBOX1_THROT2_7_0_BYTE] >> PEDALBOX1_THROT2_7_0_OFFSET;  //Throttle 2 Value (7:0) [7:0]
-	uint8_t throttle2_11_8 =
-		(rx->Data[PEDALBOX1_THROT2_11_8_BYTE] & PEDALBOX1_THROT2_11_8_MASK) >>
-		PEDALBOX1_THROT2_11_8_OFFSET;  //Throttle 2 Value (11:8) [3:0]
-
-	//mask then shift the brake value data
-	uint8_t brake1_7_0  = rx->Data[PEDALBOX1_BRAKE1_7_0_BYTE] >> PEDALBOX1_BRAKE1_7_0_OFFSET;  //brake 1 Value (7:0) [7:0]
-	uint8_t brake1_11_8 =
-		(rx->Data[PEDALBOX1_BRAKE1_11_8_BYTE] & PEDALBOX1_BRAKE1_11_8_MASK) >>
-		PEDALBOX1_BRAKE1_11_8_OFFSET;  //brake 1 Value (11:8) [3:0]
-
-	uint8_t brake2_7_0  = rx->Data[PEDALBOX1_BRAKE2_7_0_BYTE] >> PEDALBOX1_BRAKE2_7_0_OFFSET;  //brake 2 Value (7:0) [7:0]
-	uint8_t brake2_11_8 =
-		(rx->Data[PEDALBOX1_BRAKE2_11_8_BYTE] & PEDALBOX1_BRAKE2_11_8_MASK) >>
-		PEDALBOX1_BRAKE2_11_8_OFFSET;  //brake 2 Value (11:8) [3:0]
-
-
-	//build the data
-	pedalboxmsg.throttle1_raw = 0;
-	pedalboxmsg.throttle1_raw |= throttle1_7_0 << 0;
-	pedalboxmsg.throttle1_raw |= throttle1_11_8 << 8;
-	pedalboxmsg.throttle2_raw = 0;
-	pedalboxmsg.throttle2_raw |= throttle2_7_0 << 0;
-	pedalboxmsg.throttle2_raw |= throttle2_11_8 << 8;
-	pedalboxmsg.brake1_raw = 0;
-	pedalboxmsg.brake1_raw |= brake1_7_0 << 0;
-	pedalboxmsg.brake1_raw |= brake1_11_8 << 8;
-	pedalboxmsg.brake2_raw = 0;
-	pedalboxmsg.brake2_raw |= brake2_7_0 << 0;
-	pedalboxmsg.brake2_raw |= brake2_11_8 << 8;
-
-
-	//send to pedalboxmsg to queue
-	xQueueSendToBack(car.pedalbox.pb_msg_q, &pedalboxmsg, 100);
-}
 
 //void processCalibrate(CanRxMsgTypeDef* rx) {
 //  //set the calibration flag, so calibration values are updated upon reception of new pedalboxmsg
@@ -185,17 +141,7 @@ void processPedalboxFrame(CanRxMsgTypeDef* rx) {
 //
 //}
 
-//called from rx_process frame and updates the variables used for power limiting
-int process_bms_frame(CanRxMsgTypeDef* rx) {
-	//process the bms can frame
-	//take the BMS semaphore
-  car.bms.pack_current = (rx->Data[0] << 8) | rx->Data[1];
-  car.bms.pack_volt = (rx->Data[2] << 8) | rx->Data[3];
-  car.bms.pack_soc = rx->Data[4];
-  car.bms.high_temp = rx->Data[5];
-  car.bms.low_cell_volt = (rx->Data[6] << 8) | rx->Data[7];
-	return 0;
-}
+
 
 
 void processCalibratePowerLimit(CanRxMsgTypeDef* rx) {
@@ -256,38 +202,3 @@ void send_ack(uint16_t can_id, uint16_t response) {
   xQueueSendToBack(car.vcan.q_tx, &tx, 100);
 }
 
-
-// @authors: Chris Fallon
-// @brief: Calculate the wheel speed for the given ID
-void calc_wheel_speed(uint32_t id, uint8_t * data)
-{
-	volatile float *left;
-	volatile float *right;
-	uint32_t left_raw;
-	uint32_t right_raw;
-
-  if (id == ID_WHEEL_FRONT)
-  {
-  	left = &car.wheel_rpms.FL_rpm;
-  	right = &car.wheel_rpms.FR_rpm;
-  }
-  else
-  {
-  	left = &car.wheel_rpms.RL_rpm;
-  	right = &car.wheel_rpms.RR_rpm;
-  }
-
-  left_raw = ((uint32_t) data[0]) << 24
-  		| ((uint32_t) data[1] << 16)
-			| ((uint32_t) data[2] << 8)
-			| data[3];
-
-  right_raw = ((uint32_t) data[4]) << 24
-  		| ((uint32_t) data[5] << 16)
-			| ((uint32_t) data[6] << 8)
-			| data[7];
-
-  // 10000 is the scalar from DAQ
-  *left = left_raw / DAQ_SCALAR;
-  *right = right_raw / DAQ_SCALAR;
-}

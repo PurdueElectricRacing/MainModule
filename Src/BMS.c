@@ -21,3 +21,16 @@ int init_bms_struct(volatile BMS_t * bms)
 }
 
 
+//called from rx_process frame and updates the variables used for power limiting
+int process_bms_frame(uint8_t* Data, volatile BMS_t * bms) 
+{
+	//process the bms can frame
+	//take the BMS semaphore
+  bms->pack_current = (Data[0] << 8) | Data[1];
+  bms->pack_volt = (Data[2] << 8) | Data[3];
+  bms->pack_soc  = Data[4];
+  bms->high_temp = Data[5];
+  bms->low_cell_volt = (Data[6] << 8) | Data[7];
+	return 0;
+}
+

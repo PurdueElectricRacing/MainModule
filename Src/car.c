@@ -37,14 +37,16 @@ void carInit() {
   car.throttle_acc = 0;
   car.brake = 0;
 
-  car.vcan.hcan = &hcan1;
-  car.dcan.hcan = &hcan2;
-
   car.pb_msg_rx_time = UINT32_MAX;
   car.tract_cont_en = false; //default traction control to off
 
+  init_wheel_mod(&car.wheels);
+
+  init_can_bus(&car.vcan, &hcan1, QUEUE_SIZE_RXCAN_1, QUEUE_SIZE_TXCAN_1);
+  init_can_bus(&car.dcan, &hcan2, QUEUE_SIZE_RXCAN_2, QUEUE_SIZE_TXCAN_2);
+
   // set accelerator pedal position sensor errors to no errors
-  pedalbox_init(&car.pedalbox);
+  pedalbox_init(&car.pedalbox, QUEUE_SIZE_PEDALBOXMSG);
   init_bms_struct(&car.bms);
 	init_power_limit(&car.power_limit);
 }
@@ -55,11 +57,6 @@ void carInit() {
 void initRTOSObjects() {
   /* Create Queues */
   // TODO create wheel speed queue
-  car.dcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_1, sizeof(CanRxMsgTypeDef));
-  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_1, sizeof(CanTxMsgTypeDef));
-  car.vcan.q_rx =       xQueueCreate(QUEUE_SIZE_RXCAN_2, sizeof(CanRxMsgTypeDef));
-  car.dcan.q_tx =       xQueueCreate(QUEUE_SIZE_TXCAN_2, sizeof(CanTxMsgTypeDef));
-  car.pedalbox.pb_msg_q =   xQueueCreate(QUEUE_SIZE_PEDALBOXMSG, sizeof(Pedalbox_msg_t));
 
   /* Create Tasks */
   //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize

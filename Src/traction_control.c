@@ -27,10 +27,10 @@ uint16_t TractionControl(uint32_t current_time, uint32_t * last_execution_time, 
 	if (time_change >= SAMPLE_TIME)
 	{
 		//Wheel Speeds in m/s
-		float wheel_speed_FL = car.wheel_rpms.FL_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
-		float wheel_speed_FR = car.wheel_rpms.FR_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
-		float wheel_speed_RL = car.wheel_rpms.RL_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
-		float wheel_speed_RR = car.wheel_rpms.RR_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
+		float wheel_speed_FL = car.wheels.FL_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
+		float wheel_speed_FR = car.wheels.FR_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
+		float wheel_speed_RL = car.wheels.RL_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
+		float wheel_speed_RR = car.wheels.RR_rpm * 60 * (2 * M_PI * WHEEL_RADIUS);
 		float slip_ratio = 0;
 
 		// Processing Data

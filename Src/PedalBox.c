@@ -13,12 +13,37 @@
 
 // @author: Chris Fallon
 // @brief: initialize all pedal box errors to no error;
-void pedalbox_init(volatile PedalBox_t * pb)
+void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size)
 {
   pb->apps_state_brake_plaus = PEDALBOX_STATUS_NO_ERROR;
   pb->apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
   pb->apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
   pb->apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
+  pb->pb_msg_q = xQueueCreate(q_size, sizeof(Pedalbox_msg_t));
+}
+
+void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox) 
+{
+	Pedalbox_msg_t pedalboxmsg;
+
+	///////////SCRUB DATA the from the CAN frame//////////////
+	//mask then shift the throttle value data
+
+	//build the data
+	pedalboxmsg.throttle1_raw = ((uint16_t) (Data[PEDALBOX1_THROT1_11_8_BYTE] & PEDALBOX1_THROT1_11_8_MASK) << 8) 
+  | Data[PEDALBOX1_THROT1_7_0_BYTE];
+
+	pedalboxmsg.throttle2_raw = ((uint16_t) (Data[PEDALBOX1_THROT2_11_8_BYTE] & PEDALBOX1_THROT2_11_8_MASK) << 8) 
+  | Data[PEDALBOX1_THROT2_7_0_BYTE];
+
+	pedalboxmsg.brake1_raw = ((uint16_t) (Data[PEDALBOX1_BRAKE1_11_8_BYTE] & PEDALBOX1_BRAKE1_11_8_MASK) << 8) 
+  | Data[PEDALBOX1_BRAKE1_7_0_BYTE];
+
+	pedalboxmsg.brake2_raw = ((uint16_t) (Data[PEDALBOX1_BRAKE2_11_8_BYTE] & PEDALBOX1_BRAKE2_11_8_MASK) << 8) 
+  | Data[PEDALBOX1_BRAKE2_7_0_BYTE];;
+
+	//send to pedalboxmsg to queue
+	xQueueSendToBack(pedalbox->pb_msg_q, &pedalboxmsg, 100);
 }
 
 // @programmers:  Kai Strubel
@@ -48,16 +73,14 @@ void taskPedalBoxMsgHandler(void * params) {
 
       float     throttle_avg  = (throttle1_cal + throttle2_cal) / 2.0;
       float     brake_avg     = (brake1_cal + brake2_cal) / 2.0;
-      float     avg_spd  = (car.wheel_rpms.RL_rpm + car.wheel_rpms.RR_rpm) / 2.0;
+      float     avg_spd  = (car.wheels.RL_rpm + car.wheels.RR_rpm) / 2.0;
       
       
       // T 6.2.8: Any failure of APPS must be detectable and treated as an implausibility
-      if (
-        pedalboxmsg.throttle1_raw >= THROTTLE_1_MIN ||
-        pedalboxmsg.throttle1_raw <= THROTTLE_1_MAX ||
-        pedalboxmsg.throttle2_raw >= THROTTLE_2_MIN ||
-        pedalboxmsg.throttle2_raw <= THROTTLE_2_MAX
-      )
+      if (pedalboxmsg.throttle1_raw >= THROTTLE_1_MIN
+      		|| pedalboxmsg.throttle1_raw <= THROTTLE_1_MAX
+					|| pedalboxmsg.throttle2_raw >= THROTTLE_2_MIN
+					|| pedalboxmsg.throttle2_raw <= THROTTLE_2_MAX)
       {
         car.pedalbox.apps_state_eor = PEDALBOX_STATUS_ERROR_EOR;
       }

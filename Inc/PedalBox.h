@@ -109,5 +109,6 @@ typedef struct
   QueueHandle_t pb_msg_q;   
 } PedalBox_t;
 
-void pedalbox_init(volatile PedalBox_t * pb);
+void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size);
+void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox);
 #endif /* PEDALBOX_H_ */

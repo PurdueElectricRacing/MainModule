@@ -7,6 +7,17 @@
 #include "CAN_Bus.h"
 
 
+// @author: Chris Fallon
+// @brief: generic function to initialize a CAN Bus struct
+//         creates queues and assigns hcan pointers
+void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size)
+{
+  bus->hcan = hcan;
+  bus->q_rx =       xQueueCreate(rx_q_size, sizeof(CanRxMsgTypeDef));
+  bus->q_tx =       xQueueCreate(tx_q_size, sizeof(CanTxMsgTypeDef));
+}
+
+
 // @brief: Generic function  for broadcasting a CAN message
 // @return: HAL Status
 // @author: Chris Fallon
