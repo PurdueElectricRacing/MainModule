@@ -23,12 +23,16 @@
 #define PACK_INST_VOLTAGE_BITS_0_7  0
 #define PACK_INST_VOTLAGE_BITS_11_8 1
 
+#define PACK_FULL_VOLTAGE 300
+
+
 typedef enum 
 {
   // TODO possibly make this be values ORed together
-  OVER_POWER_FAULT = 0,
-  OVER_TEMP_FAULT  = 1,
-  OVER_VOLT_FAULT  = 2,
+  NO_FAULT = 0,
+  OVER_POWER_FAULT = 1,
+  OVER_TEMP_FAULT  = 2,
+  OVER_VOLT_FAULT  = 3,
 } BMS_Fault_t;
 
 

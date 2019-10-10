@@ -116,42 +116,6 @@ void task_RX_CAN(void * params) {
   }
 }
 
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: processPedalboxFrame
-*
-*     Programmer's Name: Ben Ng, xbenng@gmail.com
-*
-*     Function Return Type: none
-*
-*     Parameters (list data type, name, and comment one per line):
-*   1. CanRxMsgTypeDef* rx, CAN frame to be converted into a pedalbox message
-*      Global Dependents:
-*     1.
-*
-*     Function Description:
-*       Converts CAN frame into a pedalbox message and sends it to pedalboxmsg handler
-*
-***************************************************************************/
-
-
-//void processCalibrate(CanRxMsgTypeDef* rx) {
-//  //set the calibration flag, so calibration values are updated upon reception of new pedalboxmsg
-//  if      (rx->Data[0] == 0x01) {
-//    car.calibrate_flag = CALIBRATE_THROTTLE_MAX; //calibrate high
-//  } else if (rx->Data[0] == 0x02) {
-//    car.calibrate_flag = CALIBRATE_THROTTLE_MIN; //calibrate low
-//  } else if (rx->Data[0] == 0x03) {
-//    car.calibrate_flag = CALIBRATE_BRAKE_MAX; //calibrate high
-//  } else if (rx->Data[0] == 0x04) {
-//    car.calibrate_flag = CALIBRATE_BRAKE_MIN; //calibrate low
-//  } else {
-//    car.calibrate_flag = CALIBRATE_NONE;
-//  }
-//
-//}
 
 
 

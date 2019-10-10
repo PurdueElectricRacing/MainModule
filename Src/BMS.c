@@ -14,9 +14,9 @@ int init_bms_struct(volatile BMS_t * bms)
   bms->high_temp = 0;
   bms->low_cell_volt = 4.2; //fully charged 18650
   bms->pack_current  = 0;
-  bms->pack_volt     = 300; //full charge
+  bms->pack_volt     = PACK_FULL_VOLTAGE; //full charge
   bms->pack_soc      = 200; //full charge
-  bms->fault         = 0; //no errors
+  bms->fault         = NO_FAULT; //no errors
 	return 0;
 }
 
