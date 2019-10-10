@@ -62,13 +62,14 @@ void initRTOSObjects() {
 
   /* Create Tasks */
   //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
-  xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
-  xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 1, NULL);
+  xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 4, NULL);
+  xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 4, NULL);
   xTaskCreate(taskTX_CAN, "TX CAN DCAN", 256, (void *) &car.dcan, 1, NULL);
   xTaskCreate(taskTX_CAN, "TX CAN VCAN", 256, (void *) &car.vcan, 1, NULL);
-  xTaskCreate(task_RX_CAN, "RX CAN", 256, NULL, 1, NULL);
-  xTaskCreate(taskHeartbeat, "Heartbeat", 256, NULL, 1, NULL);
+  xTaskCreate(task_RX_CAN, "RX CAN", 256, NULL, 4, NULL);
+  xTaskCreate(taskHeartbeat, "Heartbeat", 256, NULL, 0, NULL);
 }
+
 
 void ISR_StartButtonPressed() {
   if (car.state == CAR_STATE_INIT)

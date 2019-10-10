@@ -24,7 +24,6 @@
 
 
 // private function prototypes
-int16_t calc_regen_torque(double current);
 
 extern volatile Car_t car;
 

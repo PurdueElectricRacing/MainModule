@@ -4,6 +4,7 @@
 #include "main.h"
 
 #define MAX_REGEN_CURRENT 40.0f
+#define REGEN_CUTOFF  90
 
 
 int16_t throttle_pos_regen_torque(float throttle_pos, uint16_t soc);

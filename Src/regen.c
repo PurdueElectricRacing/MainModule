@@ -1,11 +1,11 @@
 #include "regen.h"
-
+#include <math.h>
 
 // @author: Chris Fallon
 // @brief: calculate regen torque based on brake pressure
 int16_t brake_pres_regen_torque(float brake_pres, uint16_t soc)
 {
-  if (soc > 90)
+  if (soc > REGEN_CUTOFF)
   {
     return 0;
   }
@@ -18,7 +18,7 @@ int16_t brake_pres_regen_torque(float brake_pres, uint16_t soc)
 // @brief: calculate regen torque based on throttle position
 int16_t throttle_pos_regen_torque(float throttle_pos, uint16_t soc)
 {
-  if (soc > 90)
+  if (soc > REGEN_CUTOFF)
   {
     return 0;
   }
