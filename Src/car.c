@@ -17,8 +17,11 @@
 
 #include "car.h"
 #include <math.h>
-
+#include "regen.h"
 #include "motor_controller_functions.h"
+
+
+extern volatile Car_t car;
 
 // @author: Ben Ng
 //          Chris Fallon
@@ -247,7 +250,7 @@ void taskCarMainRoutine()
           }
 
           if (car.power_limit.enabled == true) {
-            torque_to_send = limit_torque(torque_to_send, &car.bms);
+            torque_to_send = limit_torque(torque_to_send, &car.bms, &car.power_limit);
           }
 
           if (car.tract_cont_en == true) {

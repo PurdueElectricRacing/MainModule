@@ -10,7 +10,7 @@
 // TODO global BMS and power_limit pointers maybe
 
 // private function prototypes
-uint8_t power_limit_watt(volatile BMS_t * bms);
+uint8_t power_limit_watt(volatile power_limit_t * power_limit, volatile BMS_t * bms);
 uint8_t power_limit_temp(volatile BMS_t * bms);
 uint8_t power_limit_volt(volatile BMS_t * bms);
 
@@ -31,14 +31,14 @@ void processCalibratePowerLimit(uint8_t * Data, volatile power_limit_t * power_l
 }
 
 
-int16_t limit_torque(int16_t torque_req, volatile BMS_t * bms)
+int16_t limit_torque(int16_t torque_req, volatile BMS_t * bms, volatile power_limit_t * power_limit)
 {
 	int torque_limited = torque_req;
 	int16_t watt_gain = 100; //100 means gain of 1.
 	int16_t temp_gain = 100;
 	int16_t volt_gain = 100;
 
-	watt_gain = power_limit_watt(bms);
+	watt_gain = power_limit_watt(bms, power_limit);
 	temp_gain = power_limit_temp(bms);
 	volt_gain = power_limit_volt(bms);
 
@@ -65,7 +65,7 @@ uint8_t power_limit_volt(volatile BMS_t * bms) {
   uint8_t gain = 0;
   float multiplier = 0;
   //only throttle if past the threshold
-  if (car.bms.low_cell_volt > VOLT_THRESH) return 100;
+  if (bms->low_cell_volt > VOLT_THRESH) return 100;
   //if past the hard lim stop the driving
   if (bms->low_cell_volt < VOLT_HARD_LIM)
   {
@@ -122,14 +122,15 @@ uint8_t power_limit_temp(volatile BMS_t * bms) {
   return gain;
 }
 
-uint8_t power_limit_watt(volatile BMS_t * bms) {
+uint8_t power_limit_watt(volatile power_limit_t * power_limit, volatile BMS_t * bms)
+{
   uint8_t gain = 0;
   float multiplier = 0;
   int power_actual = 0;
   //only throttle if past the threshold
   power_actual = bms->pack_current * bms->pack_volt; //calculate the instantaneous power draw
 
-  if (power_actual < car.power_limit.power_thresh) return 100;
+  if (power_actual < power_limit->power_thresh) return 100;
 
   //if past the hard lim stop the driving
   if (power_actual > 80000)
@@ -138,18 +139,18 @@ uint8_t power_limit_watt(volatile BMS_t * bms) {
     return 0;
   }
 
-  if (power_actual < car.power_limit.power_soft_lim)
+  if (power_actual < power_limit->power_soft_lim)
   {
     //between threshold and soft limit
     //have linear decrease from 100% -> 50%
-    multiplier = ((float) (power_actual - car.power_limit.power_thresh) / (car.power_limit.power_soft_lim - car.power_limit.power_thresh));
+    multiplier = ((float) (power_actual - power_limit->power_thresh) / (power_limit->power_soft_lim - power_limit->power_thresh));
     gain = 100 - 50 * (multiplier);
   }
   else
   {
     //between soft and hard lim
     //linear decrease from 50% -> 0%
-    multiplier = ((float) (power_actual - car.power_limit.power_soft_lim) / (car.power_limit.power_hard_lim - car.power_limit.power_soft_lim));
+    multiplier = ((float) (power_actual - power_limit->power_soft_lim) / (power_limit->power_hard_lim - power_limit->power_soft_lim));
       gain = 50 - 50 * (multiplier);
   }
 

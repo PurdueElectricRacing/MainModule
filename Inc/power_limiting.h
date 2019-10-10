@@ -32,7 +32,7 @@ typedef struct
 } power_limit_t;
 
 
-int16_t limit_torque(int16_t torque_req, volatile BMS_t * bms);
+int16_t limit_torque(int16_t torque_req, volatile BMS_t * bms, volatile power_limit_t * power_limit);
 void init_power_limit(volatile power_limit_t * p_pow_lim, bool enable);
 void processCalibratePowerLimit(uint8_t * Data, volatile power_limit_t * power_limit);
 

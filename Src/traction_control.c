@@ -18,7 +18,13 @@
  *
  ***************************************************************************/
 
-uint16_t TractionControl(uint32_t current_time, uint32_t * last_execution_time, uint16_t torque_pedal, uint16_t * integral_term, uint16_t * previous_torque)
+extern volatile Car_t car;
+
+uint16_t TractionControl(uint32_t current_time,
+		uint32_t * last_execution_time,
+		uint16_t torque_pedal,
+		uint16_t * integral_term,
+		uint16_t * previous_torque)
 {
 	//Determine if sufficient time has passed for execution.
 	uint32_t time_change = current_time - *last_execution_time;

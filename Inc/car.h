@@ -92,13 +92,10 @@ typedef struct
   //calibration values
   int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
-  uint32_t      pb_msg_rx_time;       //indicates when a pedalbox message was last received
   uint32_t      apps_imp_first_time_ms;   //indicates when the first imp error was received
   
   bool tract_cont_en;
 } Car_t;
-
-extern volatile Car_t car;
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;

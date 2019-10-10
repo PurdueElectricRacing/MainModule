@@ -11,6 +11,8 @@
 #include <math.h>
 
 
+extern volatile Car_t car;
+
 // @author: Chris Fallon
 // @brief: initialize all pedal box errors to no error;
 void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size)
@@ -63,7 +65,7 @@ void taskPedalBoxMsgHandler(void * params) {
       //get current time in ms
       uint32_t current_time_ms = xTaskGetTickCount() / portTICK_PERIOD_MS;
       // update time stamp, indicates when a pedalbox message was last received
-      car.pb_msg_rx_time = current_time_ms;
+      car.pedalbox.msg_rx_time = current_time_ms;
       
       /////////////PROCESS DATA///////////////    
       //value 0-1, throttle 1 calibrated between min and max  
@@ -167,11 +169,19 @@ void taskPedalBoxMsgHandler(void * params) {
 				car.throttle_acc = 0;
 			}
 
-
-      if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg < THROTTLE_LOWER_BOUND)
-      {
-				car.throttle_acc = MAX_REGEN_TORQUE;
-      }
+#     ifdef REGEN
+#       ifdef BRAKES
+          if (avg_spd >= REGEN_CUTOFF_SPEED && brake_avg > 0.1)
+          {
+            car.throttle_acc = brake_pres_regen_torque(brake_avg, car.bms.soc);
+          }
+#       else
+          if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg < THROTTLE_LOWER_BOUND)
+          {
+            car.throttle_acc = throttle_pos_regen_torque(brake_avg, car.bms.soc);
+          }
+#       endif
+#     endif
     }
   }
   

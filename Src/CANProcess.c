@@ -8,6 +8,7 @@
 
 #include <string.h>
 
+extern volatile Car_t car;
 
 // Required ISRs for when a CAN message is received
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)

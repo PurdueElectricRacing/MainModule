@@ -20,8 +20,7 @@ void mcCmdTorqueFake(uint16_t);
 void disableMotorController();
 void enableMotorController();
 void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data);
-int16_t brake_pres_regen_torque(float brake_pres);
-int16_t throttle_pos_regen_torque(float throttle_pos);
+
 
 enum 
 {
