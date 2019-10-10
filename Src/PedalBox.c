@@ -49,6 +49,8 @@ void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox)
 
 // @programmers:  Kai Strubel
 //                Ben Ng      xbenng@gmail.com
+//                Matt Flanagan
+//                Chris Fallon
 // @brief: Takes message from pedal box, runs safetly check, sets throttle.
 //          Designed this way so pedalboxmsg's can be generated multiple ways,
 void taskPedalBoxMsgHandler(void * params) {
