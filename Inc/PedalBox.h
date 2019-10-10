@@ -82,6 +82,7 @@ typedef enum {
   PEDALBOX_STATUS_ERROR_BPIMP        = 0b00010000,  //brake pedal implaus //EV 2.5.1,
 } Pedalbox_status_t;
 
+
 // Structure to hold data passed through the queue to pedalBoxMsgHandler
 typedef struct _pedalbox_msg
 {
@@ -106,7 +107,8 @@ typedef struct
   Pedalbox_status_t   apps_state_brake_plaus;        //apps-brake plausibility status
   Pedalbox_status_t   apps_state_eor;       //apps-brake encoder out of range
   Pedalbox_status_t   apps_state_timeout;   
-  QueueHandle_t pb_msg_q;   
+  QueueHandle_t pb_msg_q;
+  uint32_t msg_rx_time;   
 } PedalBox_t;
 
 void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size);

@@ -13,6 +13,7 @@
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include <stdbool.h>
+#include "BMS.h"
 
 #define VOLT_THRESH		32000 //.0001 volts
 #define VOLT_SOFT_LIM	30000
@@ -31,7 +32,8 @@ typedef struct
 } power_limit_t;
 
 
-int16_t limit_torque(int16_t torque_req);
-void init_power_limit(volatile power_limit_t * p_pow_lim);
+int16_t limit_torque(int16_t torque_req, volatile BMS_t * bms);
+void init_power_limit(volatile power_limit_t * p_pow_lim, bool enable);
+void processCalibratePowerLimit(uint8_t * Data, volatile power_limit_t * power_limit);
 
 #endif /* POWER_LIMITING_H_ */

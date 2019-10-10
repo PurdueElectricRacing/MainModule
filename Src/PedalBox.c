@@ -20,6 +20,7 @@ void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size)
   pb->apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
   pb->apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
   pb->pb_msg_q = xQueueCreate(q_size, sizeof(Pedalbox_msg_t));
+  pb->msg_rx_time = UINT32_MAX;
 }
 
 void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox) 
@@ -53,7 +54,8 @@ void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox)
 void taskPedalBoxMsgHandler(void * params) {
   
   Pedalbox_msg_t pedalboxmsg;   //struct to store pedalbox msg
-  while (1) {
+  while (1) 
+  {
   
     if (xQueueReceive(car.pedalbox.pb_msg_q, &pedalboxmsg, 1000)) {
       //get current time in ms

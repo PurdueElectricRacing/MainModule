@@ -74,6 +74,11 @@ enum
   
 } CAN_IDs_t;
 
+typedef enum
+{
+	WHEEL_SPEED_SCALAR = 10000,
+}scalars_t;
+
 typedef struct
 {
   uint32_t StdId; /*!< Specifies the standard identifier.
@@ -127,6 +132,20 @@ typedef struct
 
 } CanRxMsgTypeDef;
 
+
+typedef enum
+{
+	WHEEL_L_7_0_BYTE   = 3,
+	WHEEL_L_15_8_BYTE  = 2,
+	WHEEL_L_23_16_BYTE = 1,
+	WHEEL_L_31_24_BYTE = 0,
+
+	WHEEL_R_7_0_BYTE   = 7,
+	WHEEL_R_15_8_BYTE  = 6,
+	WHEEL_R_23_16_BYTE = 5,
+	WHEEL_R_31_24_BYTE = 4,
+}WHEEL_DATA_INDEXES;
+
 typedef struct
 {
   CAN_HandleTypeDef *hcan;
@@ -134,8 +153,11 @@ typedef struct
   QueueHandle_t q_tx;
 } CAN_Bus_TypeDef;
 
+void send_ack(uint16_t can_id, uint16_t response, volatile CAN_Bus_TypeDef * hcan);
+
 void taskTX_CAN(void * params);
-void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size);
+void task_RX_CAN(void * params);
+void init_can_bus(volatile CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size);
 
 void DCANFilterConfig(CAN_HandleTypeDef * hcan);
 void VCANFilterConfig(CAN_HandleTypeDef * hcan);

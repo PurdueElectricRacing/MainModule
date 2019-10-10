@@ -10,7 +10,7 @@
 // @author: Chris Fallon
 // @brief: generic function to initialize a CAN Bus struct
 //         creates queues and assigns hcan pointers
-void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size)
+void init_can_bus(volatile CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size)
 {
   bus->hcan = hcan;
   bus->q_rx =       xQueueCreate(rx_q_size, sizeof(CanRxMsgTypeDef));
@@ -48,7 +48,7 @@ void VCANFilterConfig(CAN_HandleTypeDef * hcan)
   FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // left shift because the ID is in the high bits of the actual registers
   FilterConf.FilterIdLow =          ID_DASHBOARD << 5;
   FilterConf.FilterMaskIdHigh =     ID_PEDALBOX2 << 5;
-  FilterConf.FilterMaskIdLow =      ID_WHEEL_REAR << 5;
+  FilterConf.FilterMaskIdLow =      0;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -69,8 +69,8 @@ void DCANFilterConfig(CAN_HandleTypeDef * hcan)
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_WHEEL_FRONT << 5;
   FilterConf.FilterIdLow =          ID_WHEEL_REAR << 5;
-  FilterConf.FilterMaskIdHigh =     0x7FF;
-  FilterConf.FilterMaskIdLow =      0x7FF;
+  FilterConf.FilterMaskIdHigh =     0;
+  FilterConf.FilterMaskIdLow =      0;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
   FilterConf.FilterBank = 1;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -98,4 +98,14 @@ void taskTX_CAN(void * params) {
     }
   }
   vTaskDelete(NULL);
+}
+
+void send_ack(uint16_t can_id, uint16_t response, volatile CAN_Bus_TypeDef * can) {
+  CanTxMsgTypeDef tx;
+  tx.IDE = CAN_ID_STD;
+  tx.RTR = CAN_RTR_DATA;
+  tx.StdId = can_id;
+  tx.DLC = 1;
+  tx.Data[0] = response;
+  xQueueSendToBack(can->hcan, &tx, 100);
 }

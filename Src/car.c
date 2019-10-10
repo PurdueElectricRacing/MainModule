@@ -37,8 +37,7 @@ void carInit() {
   car.throttle_acc = 0;
   car.brake = 0;
 
-  car.pb_msg_rx_time = UINT32_MAX;
-  car.tract_cont_en = false; //default traction control to off
+  car.tract_cont_en  = false; //default traction control to off
 
   init_wheel_mod(&car.wheels);
 
@@ -48,7 +47,7 @@ void carInit() {
   // set accelerator pedal position sensor errors to no errors
   pedalbox_init(&car.pedalbox, QUEUE_SIZE_PEDALBOXMSG);
   init_bms_struct(&car.bms);
-	init_power_limit(&car.power_limit);
+	init_power_limit(&car.power_limit, false);
 }
 
 // @authors: Ben Ng
@@ -60,13 +59,11 @@ void initRTOSObjects() {
 
   /* Create Tasks */
   //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
-  // TODO decide if it is necessary to error check task creation for each task
-  BaseType_t err = pdPASS;
-  err = xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
+  xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 1, NULL);
   xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 1, NULL);
   xTaskCreate(taskTX_CAN, "TX CAN DCAN", 256, (void *) &car.dcan, 1, NULL);
   xTaskCreate(taskTX_CAN, "TX CAN VCAN", 256, (void *) &car.vcan, 1, NULL);
-  xTaskCreate(taskRXCANProcess, "RX CAN", 256, NULL, 1, NULL);
+  xTaskCreate(task_RX_CAN, "RX CAN", 256, NULL, 1, NULL);
   xTaskCreate(taskHeartbeat, "Heartbeat", 256, NULL, 1, NULL);
 }
 
@@ -78,12 +75,12 @@ void ISR_StartButtonPressed() {
   	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
-			send_ack(ID_DASHBOARD_ACK, 1);
+			send_ack(ID_DASHBOARD_ACK, 1, &car.vcan);
   	}
   }
   else {
     car.state = CAR_STATE_RESET;
-    send_ack(ID_DASHBOARD_ACK, 2);
+    send_ack(ID_DASHBOARD_ACK, 2, &car.vcan);
   }
 }
 
@@ -140,28 +137,6 @@ void taskHeartbeat(void * params) {
   vTaskDelete(NULL);
 }
 
-
-// @funcname soundBuzzer
-// @return none
-void soundBuzzer(int time_ms) 
-{
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
-	vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
-}
-
-
-void prchg_led_enbl(uint8_t val)
-{
-	CanTxMsgTypeDef tx;
-	tx.RTR = CAN_RTR_DATA;
-	tx.IDE = CAN_ID_STD;
-	tx.StdId = MAIN_ACK_ID;
-	tx.DLC = 1;
-	tx.Data[0] = val;
-
-	xQueueSendToBack(car.dcan.q_tx, &tx, 100);
-}
 
 
 void taskCarMainRoutine()
@@ -235,13 +210,11 @@ void taskCarMainRoutine()
       else if (car.state == CAR_STATE_READY2DRIVE)
       {
         //confirm the PC is not broken
-        if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE
-        		&& !pc_low)
+        if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE && !pc_low)
         {
         	pc_low = 1;
         }
-        else if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE
-        		&& pc_low)
+        else if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE && pc_low)
         {
 					car.state = CAR_STATE_RESET;  //car is started
         }
@@ -251,7 +224,7 @@ void taskCarMainRoutine()
           //assert these pins during r2d
           //check if the age of the pedalbox message is greater than the timeout
           //T.6.2.10 b
-          if (current_time_ms - car.pb_msg_rx_time > PEDALBOX_TIMEOUT)
+          if (current_time_ms - car.pedalbox.msg_rx_time > PEDALBOX_TIMEOUT)
           {
             torque_to_send = 0;
             car.pedalbox.apps_state_timeout = PEDALBOX_STATUS_ERROR;
@@ -274,7 +247,7 @@ void taskCarMainRoutine()
           }
 
           if (car.power_limit.enabled == true) {
-            torque_to_send = limit_torque(torque_to_send);
+            torque_to_send = limit_torque(torque_to_send, &car.bms);
           }
 
           if (car.tract_cont_en == true) {
@@ -309,4 +282,26 @@ void taskCarMainRoutine()
 
 
 // TODO replace constants with enums
+
+// @funcname soundBuzzer
+// @return none
+void soundBuzzer(int time_ms) 
+{
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
+	vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
+}
+
+
+void prchg_led_enbl(uint8_t val)
+{
+	CanTxMsgTypeDef tx;
+	tx.RTR = CAN_RTR_DATA;
+	tx.IDE = CAN_ID_STD;
+	tx.StdId = MAIN_ACK_ID;
+	tx.DLC = 1;
+	tx.Data[0] = val;
+
+	xQueueSendToBack(car.dcan.q_tx, &tx, 100);
+}
 

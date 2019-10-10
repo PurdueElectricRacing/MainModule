@@ -74,14 +74,7 @@ typedef enum {
 } Car_state_t;
 
 
-typedef enum 
-{
-  CALIBRATE_NONE,
-  CALIBRATE_THROTTLE_MIN,
-  CALIBRATE_THROTTLE_MAX,
-  CALIBRATE_BRAKE_MIN,
-  CALIBRATE_BRAKE_MAX
-} Calibrate_flag_t;
+
 
 
 typedef struct
@@ -121,6 +114,8 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
+
+
 
 
 
