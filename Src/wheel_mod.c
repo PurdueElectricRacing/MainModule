@@ -17,8 +17,6 @@ void calc_wheel_speed(volatile wheel_module_t * mod, uint32_t id, uint8_t * data
 
 	volatile float *left;
 	volatile float *right;
-	uint32_t left_raw;
-	uint32_t right_raw;
 
   if (id == ID_WHEEL_FRONT)
   {
@@ -30,13 +28,10 @@ void calc_wheel_speed(volatile wheel_module_t * mod, uint32_t id, uint8_t * data
   	left = &mod->RL_rpm;
   	right = &mod->RR_rpm;
   }
-
-  left_raw = ((uint32_t) data[0]) << 24 | ((uint32_t) data[1] << 16) | ((uint32_t) data[2] << 8) | data[3];
-
-  right_raw = ((uint32_t) data[4]) << 24 | ((uint32_t) data[5] << 16) | ((uint32_t) data[6] << 8) | data[7];
-
   if ((xTaskGetTickCount() - *mod->last_rx) > WHEEL_SPEED_TIMEOUT)
-  // 10000 is the scalar from DAQ
-  *left = left_raw / WHEEL_SPEED_SCALAR;
-  *right = right_raw / WHEEL_SPEED_SCALAR;
+
+  *left = ((uint32_t) data[0]) << 24 | ((uint32_t) data[1] << 16) | ((uint32_t) data[2] << 8) | data[3];
+
+  *right = ((uint32_t) data[4]) << 24 | ((uint32_t) data[5] << 16) | ((uint32_t) data[6] << 8) | data[7];
+
 }
