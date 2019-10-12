@@ -1,4 +1,5 @@
 #include "wheel_mod.h"
+#include "cmsis_os.h"
 
 
 void init_wheel_mod(volatile wheel_module_t * mod)
@@ -13,6 +14,7 @@ void init_wheel_mod(volatile wheel_module_t * mod)
 // @brief: Calculate the wheel speed for the given ID
 void calc_wheel_speed(volatile wheel_module_t * mod, uint32_t id, uint8_t * data)
 {
+
 	volatile float *left;
 	volatile float *right;
 	uint32_t left_raw;
@@ -33,6 +35,7 @@ void calc_wheel_speed(volatile wheel_module_t * mod, uint32_t id, uint8_t * data
 
   right_raw = ((uint32_t) data[4]) << 24 | ((uint32_t) data[5] << 16) | ((uint32_t) data[6] << 8) | data[7];
 
+  if ((xTaskGetTickCount() - *mod->last_rx) > WHEEL_SPEED_TIMEOUT)
   // 10000 is the scalar from DAQ
   *left = left_raw / WHEEL_SPEED_SCALAR;
   *right = right_raw / WHEEL_SPEED_SCALAR;

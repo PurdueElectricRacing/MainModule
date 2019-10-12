@@ -98,6 +98,7 @@ void task_RX_CAN(void * params) {
         case ID_WHEEL_REAR:
         {
           // TODO move this to can ISR
+          
         	calc_wheel_speed(&car.wheels, rx.StdId, rx.Data);
         	break;
         }
