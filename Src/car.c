@@ -16,6 +16,7 @@
 ***************************************************************************/
 
 #include "car.h"
+#include "SoundManagement.h"
 
 SemaphoreHandle_t g_can_sem;
 
@@ -290,9 +291,11 @@ void soundBuzzer(int time_ms) {
   *   ready to drive sound task
   *
   ***************************************************************************/
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
-	vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
+
+    WavePlayerMenu_Start(FILE_NAME)
+//	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
+//	vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
+//	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
 }
 
 
@@ -363,6 +366,8 @@ void taskCarMainRoutine()
         //bamocar 5.2
         //Contacts of the safety device closed,
         enableMotorController();
+
+
         //turn on buzzer
         soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
         car.state = CAR_STATE_READY2DRIVE;  //car is started

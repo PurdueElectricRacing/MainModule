@@ -855,39 +855,6 @@ uint8_t WaveRecPlayerMenu_Start(const char* FileName, uint32_t *FileLen)
 
   WaveDataLength = 0;
 
-  LCD_Clear(LCD_COLOR_BLACK);
-  /* Display Image */
-  f_mount(&fs, (TCHAR const*)"", 0);
-  LCD_SetDisplayWindow(130, 310, 64, 64);
-  Storage_OpenReadFile(130, 310, "STFILES/Music2.BMP");
-  LCD_WindowModeDisable();
-
-  /* Set the LCD Back Color */
-  LCD_SetBackColor(Black);
-  LCD_SetTextColor(White);
-  /* Display the Titles */
-  LCD_DisplayStringLine(LCD_LINE_0,(uint8_t*) "     Wave Player    ");
-  LCD_SetBackColor(LCD_COLOR_BLUE);
-  LCD_SetTextColor(LCD_COLOR_BLACK);
-
-  LCD_DrawFullRect(32,182, 165, 180);
-
-  LCD_SetBackColor(LCD_COLOR_WHITE);
-
-  LCD_DrawFullRect(35,179, 158, 174);
-
-  Media_List_Display(PlayList, NumberOfFiles, SelectMedia);
-
-  /* Displays MESSAGE1 on line 5 */
-  LCD_SetFont(&Font12x12);
-  /* Set the LCD Back Color */
-  LCD_SetBackColor(LCD_COLOR_MAGENTA);
-  /* Set the LCD Text Color */
-  LCD_SetTextColor(LCD_COLOR_BLACK);
-  LCD_DisplayStringLine(LINE(18), (uint8_t *)MESSAGE7P);
-  LCD_DisplayStringLine(LINE(19), (uint8_t *)MESSAGE8P);
-  LCD_SetFont(&Font16x24);
-
   return NOKEY;
 }
 

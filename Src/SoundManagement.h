@@ -133,6 +133,7 @@ typedef enum
 #define  BITS_PER_SAMPLE_8                   8
 #define  BITS_PER_SAMPLE_16                  16
 #define  WAVE_DUMMY_BYTE                     0xA5
+#define FILE_NAME "airhorn.wav"
 
 /* 12-bit Left alignment (dual channels) used in case of stereo and 16-bit data */
 #define DAC_DHR12LD_ADDRESS     0x40007424
