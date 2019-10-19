@@ -17,6 +17,7 @@
 #define BRAKE_PRESSED_THRESHOLD       0.30f
 #define APPS_BP_PLAUS_RESET_THRESHOLD 0.05f
 #define APPS_BP_PLAUS_THRESHOLD       0.25f
+#define THROTTLE_LOWER_BOUND          0.15f
 
 //pedalbox defines //todo not sure if better to send whole frame or just pbmsg.
 #define PEDALBOX1_FILTER                0 //filter number corresponding to the PEDALBOX1 message

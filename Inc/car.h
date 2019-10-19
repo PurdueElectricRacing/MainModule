@@ -12,6 +12,7 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 #include <stdbool.h>
+#include "imu.h"
 
 #include "BMS.h"
 #include "CAN_Bus.h"
@@ -25,21 +26,23 @@
 //Can comment/uncomment as required
 //#define PERCEPIO_TRACE
 
-#define PERIOD_TORQUE_SEND    (25 / portTICK_RATE_MS)
-#define HEARTBEAT_PULSEWIDTH  (200 / portTICK_RATE_MS)
-#define HEARTBEAT_PERIOD      (100 / portTICK_RATE_MS)
-#define PEDALBOX_TIMEOUT      (1000 / portTICK_RATE_MS)
-#define POLL_DELAY            (50 / portTICK_RATE_MS)
-#define BUZZER_DELAY          (2000 / portTICK_RATE_MS)
+#define PERIOD_TORQUE_SEND    pdMS_TO_TICKS(25)
+#define HEARTBEAT_PULSEWIDTH  pdMS_TO_TICKS(200)
+#define HEARTBEAT_PERIOD      pdMS_TO_TICKS(500)
+#define PEDALBOX_TIMEOUT      pdMS_TO_TICKS(1000)
+#define POLL_DELAY            pdMS_TO_TICKS(50)
+#define BUZZER_DELAY          pdMS_TO_TICKS(2000)
 #define MAX_BRAKE_LEVEL       0xFFF
 #define BOOST_MODE_TORQUE     2400 //240 Nm NOT SURE IF THIS IS RIGHT
 #define MAX_CONTINUOUS_TORQUE 1600 // 125 Nm continuous
 #define MAX_REGEN_TORQUE      -35
 #define DONT_CARE             0
 
+#define DEFAULT_STACK_SIZE 256 // number of WORDS FreeRTOS will allocate to a task, not bytes.
+#define DEFAULT_PRIORITY   1   // default priority for RTOS tasks.
 
-#define THROTTLE_LOWER_BOUND 0.15f
-
+#define VCAN_RX_FIFO CAN_IT_RX_FIFO1_MSG_PENDING
+#define DCAN_RX_FIFO CAN_IT_RX_FIFO0_MSG_PENDING
 
 //rtos parameter defines
 #define QUEUE_SIZE_RXCAN_1      16
@@ -49,8 +52,7 @@
 #define QUEUE_SIZE_TXCAN_2      10
 #define QUEUE_SIZE_MCFRAME      3
 
-#define DAQ_SCALAR 10000
-#define REGEN_CUTOFF_SPEED  200.0f
+#define REGEN_CUTOFF_SPEED  200
 
 
 
@@ -103,7 +105,7 @@ extern CAN_HandleTypeDef hcan2;
 //function prototypes
 void carSetBrakeLight(Brake_light_status_t status);
 void ISR_StartButtonPressed();
-void carInit();
+void carInit(CAN_HandleTypeDef * vcan, CAN_HandleTypeDef * dcan);
 void taskPedalBoxMsgHandler();
 void taskCarMainRoutine();
 int mainModuleWatchdogTask();

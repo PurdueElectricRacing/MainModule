@@ -28,10 +28,10 @@ enum
   ID_RINEHART_PARAM_RESP = 0x0C2,
   ID_BMS_PACK_CUR_VOL    = 0x03B,
   
-  ID_BMS_DCL    = 0x03C,
-  ID_MAIN       = 0x200,
-  ID_DASHBOARD  = 0x350,
-  ID_DASHBOARD1 = 0x351,
+  ID_BMS_DCL     = 0x03C,
+  ID_MAIN        = 0x200,
+  ID_DASHBOARD   = 0x350,
+  ID_DASHBOARD1  = 0x351,
   ID_POWER_LIMIT = 0x352,
   ID_DASHBOARD_ACK = 0x360,
   MAIN_ACK_ID  = 0x360,
@@ -153,11 +153,11 @@ typedef struct
   QueueHandle_t q_tx;
 } CAN_Bus_TypeDef;
 
-void send_ack(uint16_t can_id, uint16_t response, volatile CAN_Bus_TypeDef * hcan);
+void send_ack(uint16_t can_id, uint16_t response, CAN_Bus_TypeDef * hcan);
 
 void taskTX_CAN(void * params);
 void task_RX_CAN(void * params);
-void init_can_bus(volatile CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size);
+void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size);
 
 void DCANFilterConfig(CAN_HandleTypeDef * hcan);
 void VCANFilterConfig(CAN_HandleTypeDef * hcan);

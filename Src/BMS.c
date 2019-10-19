@@ -9,7 +9,7 @@
 
 
 //init the semaphore and set all of the values to a default intial value
-int init_bms_struct(volatile BMS_t * bms)
+int init_bms_struct(BMS_t * bms)
 {
   bms->high_temp = 0;
   bms->low_cell_volt = 4.2; //fully charged 18650
@@ -22,7 +22,7 @@ int init_bms_struct(volatile BMS_t * bms)
 
 
 //called from rx_process frame and updates the variables used for power limiting
-int process_bms_frame(uint8_t* Data, volatile BMS_t * bms) 
+int process_bms_frame(uint8_t* Data, BMS_t * bms)
 {
 	//process the bms can frame
 	//take the BMS semaphore

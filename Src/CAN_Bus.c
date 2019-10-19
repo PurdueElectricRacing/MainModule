@@ -5,12 +5,15 @@
 
 
 #include "CAN_Bus.h"
+#include "CANProcess.h"
+#include "main.h"
+
 
 
 // @author: Chris Fallon
 // @brief: generic function to initialize a CAN Bus struct
 //         creates queues and assigns hcan pointers
-void init_can_bus(volatile CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size)
+void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size)
 {
   bus->hcan = hcan;
   bus->q_rx =       xQueueCreate(rx_q_size, sizeof(CanRxMsgTypeDef));
@@ -87,25 +90,36 @@ void DCANFilterConfig(CAN_HandleTypeDef * hcan)
 void taskTX_CAN(void * params) {
   CanTxMsgTypeDef tx;
   CAN_Bus_TypeDef * can = (CAN_Bus_TypeDef *) params;
+  TickType_t timeout = 5;
 
   for (;;) 
   {
     //check if this task is triggered
-    if (xQueuePeek(can->q_tx, &tx, portMAX_DELAY) == pdTRUE) 
+    if (xQueuePeek(can->q_tx, &tx, timeout) == pdTRUE)
     {
-      xQueueReceive(can->q_tx, &tx, portMAX_DELAY);  //actually take item out of queue
-      broadcast_can_msg(&tx, can->hcan);
+      xQueueReceive(can->q_tx, &tx, timeout);  //actually take item out of queue
+      // flash orange LED on
+      // may not appear to work if the error is not persistent.
+      HAL_StatusTypeDef err = broadcast_can_msg(&tx, can->hcan);
+      if (err != HAL_OK)
+      {
+      	HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+      }
+      else
+      {
+      	HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+      }
     }
   }
   vTaskDelete(NULL);
 }
 
-void send_ack(uint16_t can_id, uint16_t response, volatile CAN_Bus_TypeDef * can) {
+void send_ack(uint16_t can_id, uint16_t response, CAN_Bus_TypeDef * can) {
   CanTxMsgTypeDef tx;
   tx.IDE = CAN_ID_STD;
   tx.RTR = CAN_RTR_DATA;
   tx.StdId = can_id;
   tx.DLC = 1;
   tx.Data[0] = response;
-  xQueueSendToBack(can->hcan, &tx, 100);
+  xQueueSendToBack(can->q_tx, &tx, 100);
 }

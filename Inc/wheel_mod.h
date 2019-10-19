@@ -7,15 +7,15 @@
 #define WHEEL_SPEED_TIMEOUT 200
 typedef struct
 {
-	float FL_rpm;
-	float FR_rpm;
+	uint32_t FL_rpm;
+	uint32_t FR_rpm;
 
-	float RR_rpm;
-	float RL_rpm;
+	uint32_t RR_rpm;
+	uint32_t RL_rpm;
   uint32_t last_rx;
 } wheel_module_t;
 
-void init_wheel_mod(volatile wheel_module_t * mod);
-void calc_wheel_speed(volatile wheel_module_t * mod, uint32_t id, uint8_t * data);
+void init_wheel_mod(wheel_module_t * mod);
+void calc_wheel_speed(wheel_module_t * mod, uint32_t id, uint8_t * data);
 
 #endif

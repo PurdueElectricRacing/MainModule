@@ -1,11 +1,5 @@
 
-#include <CANProcess.h>
-#include "CAN_Bus.h"
 #include "car.h"
-#include "PedalBox.h"
-#include "BMS.h"
-#include "imu.h"
-
 #include <string.h>
 
 extern volatile Car_t car;
@@ -15,20 +9,44 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	CanRxMsgTypeDef rx;
 	CAN_RxHeaderTypeDef header;
-	HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
-	rx.DLC = header.DLC;
-	rx.StdId = header.StdId;
-	xQueueSendFromISR(car.dcan.q_rx, &rx, NULL);
+	QueueHandle_t * queue;
+
+	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
+	add_to_CAN_queue(hcan);
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	CanRxMsgTypeDef rx;
 	CAN_RxHeaderTypeDef header;
+	QueueHandle_t * queue;
+
+	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
+	add_to_CAN_queue(hcan);
+}
+
+void add_to_CAN_queue(CAN_HandleTypeDef * hcan)
+{
+	CanRxMsgTypeDef rx;
+	CAN_RxHeaderTypeDef header;
+	QueueHandle_t * queue;
+
 	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
 	rx.DLC = header.DLC;
 	rx.StdId = header.StdId;
-	xQueueSendFromISR(car.vcan.q_rx, &rx, NULL);
+	// TODO analyze whether it is better to do the CAN processing in a task or as apart of the ISR
+	// if the CAN handle is pointing to the DCAN handle, use the RX queue for DCAN
+	if (hcan == car.dcan.hcan)
+	{
+		// have to cast away volatility because of the car struct
+		queue = (QueueHandle_t *) &car.dcan.q_rx;
+	}
+	// otherwise use VCAN RX queue
+	else
+	{
+		queue = (QueueHandle_t *) &car.vcan.q_rx;
+	}
+	xQueueSendFromISR(*queue, &rx, NULL);
 }
 
 
@@ -42,17 +60,18 @@ void task_RX_CAN(void * params) {
 
   CanRxMsgTypeDef rx;  //CanRxMsgTypeDef to be received on the queue
   TickType_t last_tick;
+  TickType_t timeout = 5;
   while (1) 
   {
     last_tick = xTaskGetTickCount();
-    HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
 
-    if (xQueueReceive(car.vcan.q_rx, &rx, (TickType_t) 5) == pdTRUE)
+    if (xQueueReceive(car.vcan.q_rx, &rx, timeout) == pdTRUE)
     {
       //A CAN message has been received
       //check what kind of message we received
-      switch (rx.StdId) {
+      switch (rx.StdId)
+      {
         case ID_PEDALBOX2:
         { //if pedalbox1 message
           processPedalboxFrame(rx.Data, &car.pedalbox);
@@ -69,11 +88,11 @@ void task_RX_CAN(void * params) {
         	  case 2:
         	    //traction toggle
         	    car.tract_cont_en = !car.tract_cont_en;
-        	    send_ack(ID_DASHBOARD_ACK, 3, &car.vcan);
+        	    send_ack(ID_DASHBOARD_ACK, 3, (CAN_Bus_TypeDef *) &car.vcan);
         	    break;
         	  case 3:
         	    car.power_limit.enabled = !car.power_limit.enabled;
-        	    send_ack(ID_DASHBOARD_ACK, 4, &car.vcan);
+        	    send_ack(ID_DASHBOARD_ACK, 4, (CAN_Bus_TypeDef *) &car.vcan);
         	    break;
         	}
 
@@ -82,7 +101,9 @@ void task_RX_CAN(void * params) {
       }
     }
     
-    if (xQueueReceive(car.dcan.q_rx, &rx, portMAX_DELAY) == pdTRUE) {
+
+    if (xQueueReceive(car.dcan.q_rx, &rx, timeout) == pdTRUE)
+    {
     	switch (rx.StdId)
     	{
         case ID_POWER_LIMIT:
@@ -92,14 +113,14 @@ void task_RX_CAN(void * params) {
         }
         case ID_BMS:
         {
-          process_bms_frame(rx.Data, &car.bms);
+          process_bms_frame(rx.Data, (BMS_t *) &car.bms);
           break;
         }
         case ID_WHEEL_REAR:
         {
           // TODO move this to can ISR
-          
-        	calc_wheel_speed(&car.wheels, rx.StdId, rx.Data);
+
+        	calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
         	break;
         }
         case ID_F_IMU:
@@ -113,9 +134,11 @@ void task_RX_CAN(void * params) {
         }
       }
     }
+    HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
 
-    // vTaskDelayUntil(&last_tick, 10);
+//    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(100));
   }
+  vTaskDelete(NULL);
 }
 
 

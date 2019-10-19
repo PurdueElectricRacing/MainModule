@@ -38,7 +38,7 @@ int16_t limit_torque(int16_t torque_req, volatile BMS_t * bms, volatile power_li
 	int16_t temp_gain = 100;
 	int16_t volt_gain = 100;
 
-	watt_gain = power_limit_watt(bms, power_limit);
+	watt_gain = power_limit_watt(power_limit, bms);
 	temp_gain = power_limit_temp(bms);
 	volt_gain = power_limit_volt(bms);
 

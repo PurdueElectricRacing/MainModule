@@ -32,7 +32,8 @@ void carSetBrakeLight(Brake_light_status_t status)
 }
 
 
-void carInit() {
+void carInit(CAN_HandleTypeDef * vcan, CAN_HandleTypeDef * dcan)
+{
    // set dcdc pin high, active low logic
   HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET);
 
@@ -40,51 +41,77 @@ void carInit() {
   car.throttle_acc = 0;
   car.brake = 0;
 
-  car.tract_cont_en  = false; //default traction control to off
+  car.tract_cont_en = false; //default traction control to off
 
-  init_wheel_mod(&car.wheels);
+  init_wheel_mod((wheel_module_t *) &car.wheels);
 
-  init_can_bus(&car.vcan, &hcan1, QUEUE_SIZE_RXCAN_1, QUEUE_SIZE_TXCAN_1);
-  init_can_bus(&car.dcan, &hcan2, QUEUE_SIZE_RXCAN_2, QUEUE_SIZE_TXCAN_2);
+  // cast away volatility of car struct
+  init_can_bus((CAN_Bus_TypeDef *) &car.vcan, vcan, QUEUE_SIZE_RXCAN_1, QUEUE_SIZE_TXCAN_1);
+  init_can_bus((CAN_Bus_TypeDef *) &car.dcan, dcan, QUEUE_SIZE_RXCAN_2, QUEUE_SIZE_TXCAN_2);
 
-  // set accelerator pedal position sensor errors to no errors
-  pedalbox_init(&car.pedalbox, QUEUE_SIZE_PEDALBOXMSG);
-  init_bms_struct(&car.bms);
+  // cast away volatility of car struct
+  VCANFilterConfig((CAN_HandleTypeDef *) &car.vcan.hcan);
+  DCANFilterConfig((CAN_HandleTypeDef *) &car.dcan.hcan);
+
+  // initialize all peripherals
+  pedalbox_init((PedalBox_t *) &car.pedalbox, QUEUE_SIZE_PEDALBOXMSG);
+  init_bms_struct((BMS_t *) &car.bms);
 	init_power_limit(&car.power_limit, false);
 }
 
 // @authors: Ben Ng
 //           Chris Fallon
-// @brief: initialize all queues and tasks
-void initRTOSObjects() {
-  /* Create Queues */
-  // TODO create wheel speed queue
+// @brief: initialize all tasks
+void initRTOSObjects()
+{
 
   /* Create Tasks */
-  //todo optimize stack depths http://www.freertos.org/FAQMem.html#StackSize
-  xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", 256, NULL, 4, NULL);
-  xTaskCreate(taskCarMainRoutine, "CarMain", 256, NULL, 4, NULL);
-  xTaskCreate(taskTX_CAN, "TX CAN DCAN", 256, (void *) &car.dcan, 1, NULL);
-  xTaskCreate(taskTX_CAN, "TX CAN VCAN", 256, (void *) &car.vcan, 1, NULL);
-  xTaskCreate(task_RX_CAN, "RX CAN", 256, NULL, 4, NULL);
-  xTaskCreate(taskHeartbeat, "Heartbeat", 256, NULL, 0, NULL);
+//  if (xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  {
+//  	Error_Handler();
+  }
+//  if (xTaskCreate(taskCarMainRoutine, "CarMain", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  {
+//  	Error_Handler();
+  }
+
+  // taskTX_CAN needs a CAN_Bus_TypeDef to function, but FreeRTOS cannot send non-void pointers
+  // the task will cast the void * to a CAN_Bus_TypeDef * and then execute using it
+//  if (xTaskCreate(taskTX_CAN, "TX CAN DCAN", DEFAULT_STACK_SIZE, (void *) &car.dcan, DEFAULT_PRIORITY, NULL) != pdPASS)
+  {
+//  	Error_Handler();
+  }
+//  if (xTaskCreate(taskTX_CAN, "TX CAN VCAN", DEFAULT_STACK_SIZE, (void *) &car.vcan, DEFAULT_PRIORITY, NULL) != pdPASS)
+  {
+//  	Error_Handler();
+  }
+  if (xTaskCreate(task_RX_CAN, "RX CAN", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  {
+//  	Error_Handler();
+  }
+  if (xTaskCreate(taskHeartbeat, "Heartbeat", DEFAULT_STACK_SIZE, NULL, DEFAULT_PRIORITY, NULL) != pdPASS)
+  {
+  	Error_Handler();
+  }
+  HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
 }
 
 
-void ISR_StartButtonPressed() {
+void ISR_StartButtonPressed()
+{
   if (car.state == CAR_STATE_INIT)
   {
-    if (car.brake >= BRAKE_PRESSED_THRESHOLD//check if brake is pressed before starting car
+    if (car.brake >= BRAKE_PRESSED_THRESHOLD   //check if brake is pressed before starting car
         && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) //check if precharge has finished
   	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
-			send_ack(ID_DASHBOARD_ACK, 1, &car.vcan);
+			send_ack(ID_DASHBOARD_ACK, 1, (CAN_Bus_TypeDef *) &car.vcan);
   	}
   }
   else {
     car.state = CAR_STATE_RESET;
-    send_ack(ID_DASHBOARD_ACK, 2, &car.vcan);
+    send_ack(ID_DASHBOARD_ACK, 2, (CAN_Bus_TypeDef *) &car.vcan);
   }
 }
 
@@ -93,7 +120,8 @@ void ISR_StartButtonPressed() {
 //           Chris Fallon
 // @brief: function to communicte Main is alive
 //         also handles enabling charging of LV batteries
-void taskHeartbeat(void * params) {
+void taskHeartbeat(void * params)
+{
   
   TickType_t last_wake;
 
@@ -114,7 +142,7 @@ void taskHeartbeat(void * params) {
       vTaskDelay(500);
     }
     // blink LED to show main is alive
-    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
     // create Main status message and add to queue
     CanTxMsgTypeDef tx;
     tx.IDE = CAN_ID_STD;
@@ -122,17 +150,23 @@ void taskHeartbeat(void * params) {
     tx.StdId = ID_MAIN;
     tx.DLC = 3;
     tx.Data[0] = car.state;
-    tx.Data[1] = (car.pedalbox.apps_state_imp
-    		| car.pedalbox.apps_state_brake_plaus
-				| car.pedalbox.apps_state_eor
-				| car.pedalbox.apps_state_timeout);
+    tx.Data[1] = (car.pedalbox.apps_state_imp | car.pedalbox.apps_state_brake_plaus
+				        | car.pedalbox.apps_state_eor | car.pedalbox.apps_state_timeout);
     tx.Data[2] = 0;
 
-    if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE) {
-      HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+    // if precharge is complete, turn on orange LED and send a 1 in the second byte of heartbeat message
+    if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
+    {
       tx.Data[2] = 1;
+      HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
     }
+    else
+    {
+      HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+    }
+
     xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+    xQueueSendToBack(car.dcan.q_tx, &tx, 100);
 
 
     vTaskDelayUntil(&last_wake, HEARTBEAT_PERIOD);
@@ -159,7 +193,7 @@ void taskCarMainRoutine()
       uint8_t pc_low = 0;
       //do this no matter what state.
       //get current time in ms
-      HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
+//      HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 
 			//check that precharge is on, send CAN to dash precharge led
 		  // if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
@@ -280,7 +314,9 @@ void taskCarMainRoutine()
         enableMotorController();
         car.state = CAR_STATE_READY2DRIVE;
       }
-    }
+//    vTaskDelay(10);
+  }
+
   vTaskDelete(NULL);
 }
 

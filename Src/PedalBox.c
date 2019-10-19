@@ -79,7 +79,7 @@ void taskPedalBoxMsgHandler(void * params) {
 
       float     throttle_avg  = (throttle1_cal + throttle2_cal) / 2.0;
       float     brake_avg     = (brake1_cal + brake2_cal) / 2.0;
-      float     avg_spd  = (car.wheels.RL_rpm + car.wheels.RR_rpm) / 2.0;
+      uint32_t avg_speed = (car.wheels.RL_rpm + car.wheels.RR_rpm) / 2.0;
       
       
       // T 6.2.8: Any failure of APPS must be detectable and treated as an implausibility

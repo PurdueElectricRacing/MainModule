@@ -46,7 +46,7 @@ typedef struct
   uint16_t low_cell_volt;   //the lowest cell voltage
 } BMS_t;
 
-int init_bms_struct(volatile BMS_t * bms);
-int process_bms_frame(uint8_t* Data, volatile BMS_t * bms);
+int init_bms_struct(BMS_t * bms);
+int process_bms_frame(uint8_t* Data, BMS_t * bms);
 
 #endif /* BMS_H_ */
