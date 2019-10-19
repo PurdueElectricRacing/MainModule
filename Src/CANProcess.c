@@ -114,7 +114,7 @@ void task_RX_CAN(void * params) {
       }
     }
 
-    vTaskDelayUntil(&last_tick, 10);
+    // vTaskDelayUntil(&last_tick, 10);
   }
 }
 

@@ -162,14 +162,14 @@ void taskCarMainRoutine()
       HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
 
 			//check that precharge is on, send CAN to dash precharge led
-//		  if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
-//		  {
-//		  	pchg_led_enbl(0);
-//		  }
-//		  else
-//		  {
-//		  	pchg_led_enbl(1);
-//		  }
+		  // if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
+		  // {
+		  // 	pchg_led_enbl(0);
+		  // }
+		  // else
+		  // {
+		  // 	pchg_led_enbl(1);
+		  // }
 
       //always active block
       //Brake
@@ -260,6 +260,8 @@ void taskCarMainRoutine()
 
           mcCmdTorqueFake(torque_to_send);
           mcCmdTorque(torque_to_send);  //command the MC to move the motor
+          //wait until Constant 50 Hz rate
+          vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
         }
       }
       else if (car.state == CAR_STATE_RESET)
@@ -278,8 +280,6 @@ void taskCarMainRoutine()
         enableMotorController();
         car.state = CAR_STATE_READY2DRIVE;
       }
-      //wait until Constant 50 Hz rate
-      vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
     }
   vTaskDelete(NULL);
 }
