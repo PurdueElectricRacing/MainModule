@@ -66,28 +66,28 @@ void initRTOSObjects()
 {
 
   /* Create Tasks */
-//  if (xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  if (xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
   {
-//  	Error_Handler();
+  	Error_Handler();
   }
-//  if (xTaskCreate(taskCarMainRoutine, "CarMain", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  if (xTaskCreate(taskCarMainRoutine, "CarMain", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
   {
-//  	Error_Handler();
+  	Error_Handler();
   }
 
   // taskTX_CAN needs a CAN_Bus_TypeDef to function, but FreeRTOS cannot send non-void pointers
   // the task will cast the void * to a CAN_Bus_TypeDef * and then execute using it
-//  if (xTaskCreate(taskTX_CAN, "TX CAN DCAN", DEFAULT_STACK_SIZE, (void *) &car.dcan, DEFAULT_PRIORITY, NULL) != pdPASS)
+  if (xTaskCreate(taskTX_CAN, "TX CAN DCAN", DEFAULT_STACK_SIZE, (void *) &car.dcan, DEFAULT_PRIORITY, NULL) != pdPASS)
   {
-//  	Error_Handler();
+  	Error_Handler();
   }
-//  if (xTaskCreate(taskTX_CAN, "TX CAN VCAN", DEFAULT_STACK_SIZE, (void *) &car.vcan, DEFAULT_PRIORITY, NULL) != pdPASS)
+  if (xTaskCreate(taskTX_CAN, "TX CAN VCAN", DEFAULT_STACK_SIZE, (void *) &car.vcan, DEFAULT_PRIORITY, NULL) != pdPASS)
   {
-//  	Error_Handler();
+  	Error_Handler();
   }
   if (xTaskCreate(task_RX_CAN, "RX CAN", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
   {
-//  	Error_Handler();
+  	Error_Handler();
   }
   if (xTaskCreate(taskHeartbeat, "Heartbeat", DEFAULT_STACK_SIZE, NULL, DEFAULT_PRIORITY, NULL) != pdPASS)
   {

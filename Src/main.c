@@ -104,8 +104,8 @@ int main(void)
   HAL_CAN_Start(&hcan1);
   HAL_CAN_Start(&hcan2);
 
-  HAL_CAN_ActivateNotification((CAN_HandleTypeDef *) &car.vcan.hcan, VCAN_RX_FIFO);
-  HAL_CAN_ActivateNotification((CAN_HandleTypeDef *) &car.dcan.hcan, DCAN_RX_FIFO);
+  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
   
 #ifdef tracing
   vTraceEnable(TRC_START);
