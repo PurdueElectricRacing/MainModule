@@ -16,8 +16,8 @@
 void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q_size, uint16_t tx_q_size)
 {
   bus->hcan = hcan;
-  bus->q_rx =       xQueueCreate(rx_q_size, sizeof(CanRxMsgTypeDef));
-  bus->q_tx =       xQueueCreate(tx_q_size, sizeof(CanTxMsgTypeDef));
+  bus->q_rx = xQueueCreate(rx_q_size, sizeof(CanRxMsgTypeDef));
+  bus->q_tx = xQueueCreate(tx_q_size, sizeof(CanTxMsgTypeDef));
 }
 
 
@@ -35,7 +35,11 @@ HAL_StatusTypeDef broadcast_can_msg(CanTxMsgTypeDef * tx, CAN_HandleTypeDef * ca
   uint32_t mailbox;
   while (!HAL_CAN_GetTxMailboxesFreeLevel(can)); // while mailboxes not free
   return HAL_CAN_AddTxMessage(can, &header, tx->Data, &mailbox);
+//  HAL_CAN_Transmit_IT(can);
 }
+
+extern CAN_HandleTypeDef hcan1;
+extern CAN_HandleTypeDef hcan2;
 
 
 // @authors: Ben Ng
@@ -57,7 +61,7 @@ void VCANFilterConfig(CAN_HandleTypeDef * hcan)
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(hcan, &FilterConf);
+  HAL_CAN_ConfigFilter(&hcan1, &FilterConf);
 }
 
 
@@ -79,7 +83,7 @@ void DCANFilterConfig(CAN_HandleTypeDef * hcan)
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(hcan, &FilterConf);
+  HAL_CAN_ConfigFilter(&hcan2, &FilterConf);
 }
 
 
@@ -91,9 +95,10 @@ void taskTX_CAN(void * params) {
   CanTxMsgTypeDef tx;
   CAN_Bus_TypeDef * can = (CAN_Bus_TypeDef *) params;
   TickType_t timeout = 5;
-
+  TickType_t last_tick;
   for (;;) 
   {
+  	last_tick = xTaskGetTickCount();
     //check if this task is triggered
     if (xQueuePeek(can->q_tx, &tx, timeout) == pdTRUE)
     {
@@ -110,6 +115,7 @@ void taskTX_CAN(void * params) {
       	HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
       }
     }
+    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(1));
   }
   vTaskDelete(NULL);
 }

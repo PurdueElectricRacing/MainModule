@@ -32,6 +32,9 @@ void carSetBrakeLight(Brake_light_status_t status)
 }
 
 
+// @author:
+// @brief:  Initialize the car struct and begin rtos tasks
+
 void carInit(CAN_HandleTypeDef * vcan, CAN_HandleTypeDef * dcan)
 {
    // set dcdc pin high, active low logic
@@ -50,13 +53,16 @@ void carInit(CAN_HandleTypeDef * vcan, CAN_HandleTypeDef * dcan)
   init_can_bus((CAN_Bus_TypeDef *) &car.dcan, dcan, QUEUE_SIZE_RXCAN_2, QUEUE_SIZE_TXCAN_2);
 
   // cast away volatility of car struct
-  VCANFilterConfig((CAN_HandleTypeDef *) &car.vcan.hcan);
-  DCANFilterConfig((CAN_HandleTypeDef *) &car.dcan.hcan);
+  VCANFilterConfig((CAN_HandleTypeDef *) car.vcan.hcan);
+  DCANFilterConfig((CAN_HandleTypeDef *) car.dcan.hcan);
 
   // initialize all peripherals
   pedalbox_init((PedalBox_t *) &car.pedalbox, QUEUE_SIZE_PEDALBOXMSG);
   init_bms_struct((BMS_t *) &car.bms);
 	init_power_limit(&car.power_limit, false);
+
+	// create all tasks
+	initRTOSObjects();
 }
 
 // @authors: Ben Ng
@@ -66,11 +72,11 @@ void initRTOSObjects()
 {
 
   /* Create Tasks */
-  if (xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  if (xTaskCreate(taskPedalBoxMsgHandler, "PedalBoxMsgHandler", DEFAULT_STACK_SIZE, NULL, DEFAULT_PRIORITY, NULL) != pdPASS)
   {
   	Error_Handler();
   }
-  if (xTaskCreate(taskCarMainRoutine, "CarMain", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  if (xTaskCreate(taskCarMainRoutine, "CarMain", DEFAULT_STACK_SIZE, NULL, DEFAULT_PRIORITY, NULL) != pdPASS)
   {
   	Error_Handler();
   }
@@ -85,7 +91,7 @@ void initRTOSObjects()
   {
   	Error_Handler();
   }
-  if (xTaskCreate(task_RX_CAN, "RX CAN", DEFAULT_STACK_SIZE, NULL, 4, NULL) != pdPASS)
+  if (xTaskCreate(task_RX_CAN, "RX CAN", DEFAULT_STACK_SIZE, NULL, DEFAULT_PRIORITY, NULL) != pdPASS)
   {
   	Error_Handler();
   }
@@ -314,7 +320,7 @@ void taskCarMainRoutine()
         enableMotorController();
         car.state = CAR_STATE_READY2DRIVE;
       }
-//    vTaskDelay(10);
+    vTaskDelayUntil(&current_tick_time, 1);
   }
 
   vTaskDelete(NULL);

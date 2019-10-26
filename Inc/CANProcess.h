@@ -13,7 +13,7 @@
 
 //void processPedalboxFrame(CanRxMsgTypeDef* rx);
 void prchg_led_enbl(uint8_t val);
-void add_to_CAN_queue(CAN_HandleTypeDef * hcan);
+//void add_to_CAN_queue(CAN_HandleTypeDef * hcan, uint32_t rx_fifo);
 
 
 #endif /* CANPROCESS_H_ */

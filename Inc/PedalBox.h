@@ -87,10 +87,10 @@ typedef enum {
 // Structure to hold data passed through the queue to pedalBoxMsgHandler
 typedef struct _pedalbox_msg
 {
-  uint32_t         throttle1_raw;    // raw throttle data from pedalbox
-  uint32_t         throttle2_raw;
-  uint32_t         brake1_raw;
-  uint32_t         brake2_raw;
+  int32_t         throttle1_raw;    // raw throttle data from pedalbox
+  int32_t         throttle2_raw;
+  int32_t         brake1_raw;
+  int32_t         brake2_raw;
   
 } Pedalbox_msg_t;
 
@@ -113,5 +113,5 @@ typedef struct
 } PedalBox_t;
 
 void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size);
-void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox);
+void processPedalboxFrame(uint8_t * Data, PedalBox_t * pedalbox);
 #endif /* PEDALBOX_H_ */

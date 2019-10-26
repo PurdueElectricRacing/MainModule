@@ -25,7 +25,7 @@ void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size)
   pb->msg_rx_time = UINT32_MAX;
 }
 
-void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox) 
+void processPedalboxFrame(uint8_t * Data, PedalBox_t * pedalbox)
 {
 	Pedalbox_msg_t pedalboxmsg;
 
@@ -33,20 +33,17 @@ void processPedalboxFrame(uint8_t * Data, volatile PedalBox_t * pedalbox)
 	//mask then shift the throttle value data
 
 	//build the data
-	pedalboxmsg.throttle1_raw = ((uint16_t) (Data[PEDALBOX1_THROT1_11_8_BYTE] & PEDALBOX1_THROT1_11_8_MASK) << 8) 
-  | Data[PEDALBOX1_THROT1_7_0_BYTE];
+	pedalboxmsg.throttle1_raw = (( ((uint16_t) Data[0]) & 0xFF) << 8) | Data[1];
 
-	pedalboxmsg.throttle2_raw = ((uint16_t) (Data[PEDALBOX1_THROT2_11_8_BYTE] & PEDALBOX1_THROT2_11_8_MASK) << 8) 
-  | Data[PEDALBOX1_THROT2_7_0_BYTE];
+	pedalboxmsg.throttle2_raw = (( ((uint16_t) Data[2]) & 0xFF) << 8) | Data[3];
 
-	pedalboxmsg.brake1_raw = ((uint16_t) (Data[PEDALBOX1_BRAKE1_11_8_BYTE] & PEDALBOX1_BRAKE1_11_8_MASK) << 8) 
-  | Data[PEDALBOX1_BRAKE1_7_0_BYTE];
+	pedalboxmsg.brake1_raw = (( ((uint16_t) Data[4]) & 0xFF) << 8) | Data[5];
 
-	pedalboxmsg.brake2_raw = ((uint16_t) (Data[PEDALBOX1_BRAKE2_11_8_BYTE] & PEDALBOX1_BRAKE2_11_8_MASK) << 8) 
-  | Data[PEDALBOX1_BRAKE2_7_0_BYTE];;
+	pedalboxmsg.brake2_raw = (( ((uint16_t) Data[6]) & 0xFF) << 8) | Data[7];
 
 	//send to pedalboxmsg to queue
-	xQueueSendToBack(pedalbox->pb_msg_q, &pedalboxmsg, 100);
+
+	xQueueSendToBack(pedalbox->pb_msg_q, &pedalboxmsg, 5);
 }
 
 // @programmers:  Kai Strubel
@@ -60,8 +57,10 @@ void taskPedalBoxMsgHandler(void * params) {
   Pedalbox_msg_t pedalboxmsg;   //struct to store pedalbox msg
   while (1) 
   {
-  
-    if (xQueueReceive(car.pedalbox.pb_msg_q, &pedalboxmsg, 1000)) {
+  	BaseType_t queued = xQueuePeek(car.pedalbox.pb_msg_q, &pedalboxmsg, 5);
+    if (queued == pdTRUE)
+    {
+    	xQueueReceive(car.pedalbox.pb_msg_q, &pedalboxmsg, 5);
       //get current time in ms
       uint32_t current_time_ms = xTaskGetTickCount() / portTICK_PERIOD_MS;
       // update time stamp, indicates when a pedalbox message was last received
@@ -69,16 +68,16 @@ void taskPedalBoxMsgHandler(void * params) {
       
       /////////////PROCESS DATA///////////////    
       //value 0-1, throttle 1 calibrated between min and max  
-      float     throttle1_cal = ((float)(pedalboxmsg.throttle1_raw - THROTTLE_1_MIN)) / (THROTTLE_1_MAX - THROTTLE_1_MIN);  
+      float throttle1_cal = ((float)(pedalboxmsg.throttle1_raw - THROTTLE_1_MIN)) / (THROTTLE_1_MAX - THROTTLE_1_MIN);
       //value 0-1, throttle 2 calibrated between min and max
-      float     throttle2_cal = ((float)(pedalboxmsg.throttle2_raw - THROTTLE_2_MIN)) / (THROTTLE_2_MAX - THROTTLE_2_MIN);
+      float throttle2_cal = ((float)(pedalboxmsg.throttle2_raw - THROTTLE_2_MIN)) / (THROTTLE_2_MAX - THROTTLE_2_MIN);
       //value 0-1, brake 1 calibrated between min and max  
-      float     brake1_cal    = ((float)(pedalboxmsg.brake1_raw - BRAKE_1_MIN)) / (BRAKE_1_MAX - BRAKE_1_MIN); 
+      float brake1_cal   = ((float)(pedalboxmsg.brake1_raw - BRAKE_1_MIN)) / (BRAKE_1_MAX - BRAKE_1_MIN);
       //value 0-1, brake 2 calibrated between min and max 
-      float     brake2_cal    = ((float)(pedalboxmsg.brake2_raw - BRAKE_2_MIN)) / (BRAKE_2_MAX - BRAKE_2_MIN);  
+      float brake2_cal   = ((float)(pedalboxmsg.brake2_raw - BRAKE_2_MIN)) / (BRAKE_2_MAX - BRAKE_2_MIN);
 
-      float     throttle_avg  = (throttle1_cal + throttle2_cal) / 2.0;
-      float     brake_avg     = (brake1_cal + brake2_cal) / 2.0;
+      float throttle_avg = (throttle1_cal + throttle2_cal) / 2.0;
+      float brake_avg    = (brake1_cal + brake2_cal) / 2.0;
       uint32_t avg_speed = (car.wheels.RL_rpm + car.wheels.RR_rpm) / 2.0;
       
       

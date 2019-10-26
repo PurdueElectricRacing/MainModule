@@ -99,13 +99,26 @@ int main(void)
 #ifdef PERCEPIO_TRACE
   vTraceEnable(TRC_START);
 #endif
-  initRTOSObjects();  //start tasks in here
 
-  HAL_CAN_Start(&hcan1);
-  HAL_CAN_Start(&hcan2);
+  if (HAL_CAN_Start(&hcan1) != HAL_OK)
+  {
+  	Error_Handler();
+  }
 
-  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
+  if (HAL_CAN_Start(&hcan2) != HAL_OK)
+	{
+  	Error_Handler();
+	}
+
+
+  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+	{
+  	Error_Handler();
+	}
+  if (HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
+  {
+  	Error_Handler();
+  }
   
 #ifdef tracing
   vTraceEnable(TRC_START);

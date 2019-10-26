@@ -9,44 +9,34 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	CanRxMsgTypeDef rx;
 	CAN_RxHeaderTypeDef header;
-	QueueHandle_t * queue;
 
-	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
-	add_to_CAN_queue(hcan);
+	HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
+
+	rx.DLC = header.DLC;
+	rx.StdId = header.StdId;
+
+	if (xQueueSendToBackFromISR(car.vcan.q_rx, &rx, NULL) != pdTRUE)
+	{
+//	 Error_Handler();
+		// do something
+	}
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	CanRxMsgTypeDef rx;
 	CAN_RxHeaderTypeDef header;
-	QueueHandle_t * queue;
 
 	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
-	add_to_CAN_queue(hcan);
-}
 
-void add_to_CAN_queue(CAN_HandleTypeDef * hcan)
-{
-	CanRxMsgTypeDef rx;
-	CAN_RxHeaderTypeDef header;
-	QueueHandle_t * queue;
-
-	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
 	rx.DLC = header.DLC;
 	rx.StdId = header.StdId;
-	// TODO analyze whether it is better to do the CAN processing in a task or as apart of the ISR
-	// if the CAN handle is pointing to the DCAN handle, use the RX queue for DCAN
-	if (hcan == car.dcan.hcan)
+
+	if (xQueueSendToBackFromISR(car.dcan.q_rx, &rx, NULL) != pdTRUE)
 	{
-		// have to cast away volatility because of the car struct
-		queue = (QueueHandle_t *) &car.dcan.q_rx;
+//		Error_Handler();
+		// do something
 	}
-	// otherwise use VCAN RX queue
-	else
-	{
-		queue = (QueueHandle_t *) &car.vcan.q_rx;
-	}
-	xQueueSendFromISR(*queue, &rx, NULL);
 }
 
 
@@ -61,20 +51,23 @@ void task_RX_CAN(void * params) {
   CanRxMsgTypeDef rx;  //CanRxMsgTypeDef to be received on the queue
   TickType_t last_tick;
   TickType_t timeout = 5;
+  BaseType_t peek;
   while (1) 
   {
     last_tick = xTaskGetTickCount();
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
+    peek = xQueuePeek(car.vcan.q_rx, &rx, timeout);
 
-    if (xQueueReceive(car.vcan.q_rx, &rx, timeout) == pdTRUE)
+    if (peek == pdTRUE)
     {
+    	xQueueReceive(car.vcan.q_rx, &rx, timeout);
       //A CAN message has been received
       //check what kind of message we received
       switch (rx.StdId)
       {
         case ID_PEDALBOX2:
         { //if pedalbox1 message
-          processPedalboxFrame(rx.Data, &car.pedalbox);
+          processPedalboxFrame(rx.Data, (PedalBox_t *) &car.pedalbox);
           break;
         }
         case ID_DASHBOARD:
@@ -102,41 +95,41 @@ void task_RX_CAN(void * params) {
     }
     
 
-    if (xQueueReceive(car.dcan.q_rx, &rx, timeout) == pdTRUE)
-    {
-    	switch (rx.StdId)
-    	{
-        case ID_POWER_LIMIT:
-        {
-          processCalibratePowerLimit(rx.Data, &car.power_limit);
-          break;
-        }
-        case ID_BMS:
-        {
-          process_bms_frame(rx.Data, (BMS_t *) &car.bms);
-          break;
-        }
-        case ID_WHEEL_REAR:
-        {
-          // TODO move this to can ISR
-
-        	calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
-        	break;
-        }
-        case ID_F_IMU:
-        {
-//          if (process_IMU(&rx) == REKT)
-//          {
-//            car.state = CAR_STATE_INIT;
-//            HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, 1);
-//          }
-          break;
-        }
-      }
-    }
+//    if (xQueueReceive(car.dcan.q_rx, &rx, timeout) == pdTRUE)
+//    {
+//    	switch (rx.StdId)
+//    	{
+//        case ID_POWER_LIMIT:
+//        {
+//          processCalibratePowerLimit(rx.Data, &car.power_limit);
+//          break;
+//        }
+//        case ID_BMS:
+//        {
+//          process_bms_frame(rx.Data, (BMS_t *) &car.bms);
+//          break;
+//        }
+//        case ID_WHEEL_REAR:
+//        {
+//          // TODO move this to can ISR
+//
+//        	calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
+//        	break;
+//        }
+//        case ID_F_IMU:
+//        {
+////          if (process_IMU(&rx) == REKT)
+////          {
+////            car.state = CAR_STATE_INIT;
+////            HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, 1);
+////          }
+//          break;
+//        }
+//      }
+//    }
     HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
 
-//    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(100));
+    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(1));
   }
   vTaskDelete(NULL);
 }
