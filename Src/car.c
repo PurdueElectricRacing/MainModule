@@ -320,7 +320,7 @@ void taskCarMainRoutine()
         enableMotorController();
         car.state = CAR_STATE_READY2DRIVE;
       }
-    vTaskDelayUntil(&current_tick_time, 1);
+    vTaskDelayUntil(&current_tick_time, pdMS_TO_TICKS(1));
   }
 
   vTaskDelete(NULL);

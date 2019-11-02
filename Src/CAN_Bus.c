@@ -94,27 +94,19 @@ void DCANFilterConfig(CAN_HandleTypeDef * hcan)
 void taskTX_CAN(void * params) {
   CanTxMsgTypeDef tx;
   CAN_Bus_TypeDef * can = (CAN_Bus_TypeDef *) params;
-  TickType_t timeout = 5;
+  TickType_t timeout = 0;
   TickType_t last_tick;
   for (;;) 
   {
   	last_tick = xTaskGetTickCount();
     //check if this task is triggered
-    if (xQueuePeek(can->q_tx, &tx, timeout) == pdTRUE)
+    if (xQueueReceive(can->q_tx, &tx, timeout) == pdTRUE)
     {
-      xQueueReceive(can->q_tx, &tx, timeout);  //actually take item out of queue
       // flash orange LED on
       // may not appear to work if the error is not persistent.
       HAL_StatusTypeDef err = broadcast_can_msg(&tx, can->hcan);
-      if (err != HAL_OK)
-      {
-      	HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-      }
-      else
-      {
-      	HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-      }
     }
+    HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
     vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(1));
   }
   vTaskDelete(NULL);

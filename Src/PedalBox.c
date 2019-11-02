@@ -182,6 +182,7 @@ void taskPedalBoxMsgHandler(void * params) {
 #       endif
 #     endif
     }
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
   
   //if this task breaks from the loop kill it

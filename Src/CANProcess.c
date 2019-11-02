@@ -50,17 +50,15 @@ void task_RX_CAN(void * params) {
 
   CanRxMsgTypeDef rx;  //CanRxMsgTypeDef to be received on the queue
   TickType_t last_tick;
-  TickType_t timeout = 5;
+  TickType_t timeout = 0;
   BaseType_t peek;
   while (1) 
   {
     last_tick = xTaskGetTickCount();
     //if there is a CanRxMsgTypeDef in the queue, pop it, and store in rx
-    peek = xQueuePeek(car.vcan.q_rx, &rx, timeout);
 
-    if (peek == pdTRUE)
+    if (xQueueReceive(car.vcan.q_rx, &rx, timeout) == pdTRUE)
     {
-    	xQueueReceive(car.vcan.q_rx, &rx, timeout);
       //A CAN message has been received
       //check what kind of message we received
       switch (rx.StdId)
@@ -78,15 +76,15 @@ void task_RX_CAN(void * params) {
         	  case 1:
         	    ISR_StartButtonPressed();
               break;
-        	  case 2:
-        	    //traction toggle
-        	    car.tract_cont_en = !car.tract_cont_en;
-        	    send_ack(ID_DASHBOARD_ACK, 3, (CAN_Bus_TypeDef *) &car.vcan);
-        	    break;
-        	  case 3:
-        	    car.power_limit.enabled = !car.power_limit.enabled;
-        	    send_ack(ID_DASHBOARD_ACK, 4, (CAN_Bus_TypeDef *) &car.vcan);
-        	    break;
+//        	  case 2:
+//        	    //traction toggle
+//        	    car.tract_cont_en = !car.tract_cont_en;
+//        	    send_ack(ID_DASHBOARD_ACK, 3, (CAN_Bus_TypeDef *) &car.vcan);
+//        	    break;
+//        	  case 3:
+//        	    car.power_limit.enabled = !car.power_limit.enabled;
+//        	    send_ack(ID_DASHBOARD_ACK, 4, (CAN_Bus_TypeDef *) &car.vcan);
+//        	    break;
         	}
 
           break;

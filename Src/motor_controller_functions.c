@@ -43,6 +43,7 @@ void mcCmdTorque(uint16_t torqueVal)
   tx.Data[6] =  0x0;  //torque command byte 1 (if set to zero will default to EEPROM which is desired)
   tx.Data[7] =  0x0;  //torque command byte 2
   
+  xQueueSendToFront(car.dcan.q_tx, &tx, 100); //higher priority than polling
   xQueueSendToFront(car.vcan.q_tx, &tx, 100); //higher priority than polling
 }
 
@@ -61,7 +62,9 @@ void mcCmdTorqueFake(uint16_t torqueVal) {
   tx.Data[6] =  0x0;  //torque command byte 1 (if set to zero will default to EEPROM which is desired)
   tx.Data[7] =  0x0;  //torque command byte 2
   
-  xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+  xQueueSendToBack(car.dcan.q_tx, &tx, 100);
+  xQueueSendToBack(car.vcan.q_tx, &tx, 100); //higher priority than polling
+
 }
 
 void disableMotorController()
@@ -142,6 +145,7 @@ void enableMotorController() {
   tx.Data[7] =  0x0;  //torque command byte 2
   
   xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+  xQueueSendToBack(car.dcan.q_tx, &tx, 100);
 }
 
 void param_request(uint16_t param_addr, uint8_t rw_cmd, uint16_t data)
