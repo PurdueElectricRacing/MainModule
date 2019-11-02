@@ -170,14 +170,14 @@ void taskPedalBoxMsgHandler(void * params) {
 
 #     ifdef REGEN
 #       ifdef BRAKES
-          if (avg_spd >= REGEN_CUTOFF_SPEED && brake_avg > 0.1)
+          if (avg_speed >= REGEN_CUTOFF_SPEED && brake_avg > 0.2)
           {
-            car.throttle_acc = brake_pres_regen_torque(brake_avg, car.bms.soc);
+            car.throttle_acc = brake_pres_regen_torque(brake_avg, car.bms.pack_soc);
           }
 #       else
-          if (avg_spd >= REGEN_CUTOFF_SPEED && throttle_avg < THROTTLE_LOWER_BOUND)
+          if (avg_speed >= REGEN_CUTOFF_SPEED && throttle_avg < THROTTLE_LOWER_BOUND)
           {
-            car.throttle_acc = throttle_pos_regen_torque(brake_avg, car.bms.soc);
+            car.throttle_acc = throttle_pos_regen_torque(throttle_avg, car.bms.pack_soc);
           }
 #       endif
 #     endif

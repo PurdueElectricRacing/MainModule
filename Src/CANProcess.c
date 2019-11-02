@@ -89,45 +89,52 @@ void task_RX_CAN(void * params) {
 
           break;
         }
+        case ID_WHEEL_REAR:
+			 {
+				 // TODO move this to can ISR
+
+			 	 calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
+				 break;
+			 }
       }
     }
     
 
-//    if (xQueueReceive(car.dcan.q_rx, &rx, timeout) == pdTRUE)
-//    {
-//    	switch (rx.StdId)
-//    	{
-//        case ID_POWER_LIMIT:
-//        {
-//          processCalibratePowerLimit(rx.Data, &car.power_limit);
-//          break;
-//        }
-//        case ID_BMS:
-//        {
-//          process_bms_frame(rx.Data, (BMS_t *) &car.bms);
-//          break;
-//        }
-//        case ID_WHEEL_REAR:
-//        {
-//          // TODO move this to can ISR
-//
-//        	calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
-//        	break;
-//        }
-//        case ID_F_IMU:
-//        {
-////          if (process_IMU(&rx) == REKT)
-////          {
-////            car.state = CAR_STATE_INIT;
-////            HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, 1);
-////          }
-//          break;
-//        }
-//      }
-//    }
+    if (xQueueReceive(car.dcan.q_rx, &rx, timeout) == pdTRUE)
+    {
+    	switch (rx.StdId)
+    	{
+        case ID_POWER_LIMIT:
+        {
+          processCalibratePowerLimit(rx.Data, &car.power_limit);
+          break;
+        }
+        case ID_BMS:
+        {
+          process_bms_frame(rx.Data, (BMS_t *) &car.bms);
+          break;
+        }
+        case ID_WHEEL_REAR:
+        {
+          // TODO move this to can ISR
+
+        	calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
+        	break;
+        }
+        case ID_F_IMU:
+        {
+//          if (process_IMU(&rx) == REKT)
+//          {
+//            car.state = CAR_STATE_INIT;
+//            HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, 1);
+//          }
+          break;
+        }
+      }
+    }
     HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
 
-    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(1));
+//    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(1));
   }
   vTaskDelete(NULL);
 }

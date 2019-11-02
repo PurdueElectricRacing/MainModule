@@ -10,7 +10,7 @@ int16_t brake_pres_regen_torque(float brake_pres, uint16_t soc)
     return 0;
   }
   
-	double current = brake_pres * MAX_REGEN_CURRENT;
+	double current = brake_pres * (float) MAX_REGEN_CURRENT;
 	return calc_regen_torque(current);
 }
 
@@ -23,8 +23,8 @@ int16_t throttle_pos_regen_torque(float throttle_pos, uint16_t soc)
     return 0;
   }
 	double current = 0;
-	double prcnt = 0.5 - throttle_pos;
-	current = (prcnt / 3) * MAX_REGEN_CURRENT;
+	double prcnt = 1 - throttle_pos;
+	current = (prcnt) * MAX_REGEN_CURRENT;
 	return calc_regen_torque(current);
 }
 

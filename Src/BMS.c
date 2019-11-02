@@ -15,7 +15,7 @@ int init_bms_struct(BMS_t * bms)
   bms->low_cell_volt = 4.2; //fully charged 18650
   bms->pack_current  = 0;
   bms->pack_volt     = PACK_FULL_VOLTAGE; //full charge
-  bms->pack_soc      = 200; //full charge
+  bms->pack_soc      = 6; //full charge
   bms->fault         = NO_FAULT; //no errors
 	return 0;
 }

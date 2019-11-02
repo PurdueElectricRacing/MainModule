@@ -25,7 +25,8 @@
 
 //Can comment/uncomment as required
 //#define PERCEPIO_TRACE
-
+#define REGEN
+//#define BRAKES
 #define PERIOD_TORQUE_SEND    pdMS_TO_TICKS(25)
 #define HEARTBEAT_PULSEWIDTH  pdMS_TO_TICKS(200)
 #define HEARTBEAT_PERIOD      pdMS_TO_TICKS(500)
