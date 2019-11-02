@@ -107,6 +107,8 @@ void disableMotorController()
   tx.Data[7] =  0x0;  //torque command byte 2
   
   xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+  xQueueSendToBack(car.dcan.q_tx, &tx, 100);
+
 }
 
 void enableMotorController() {
