@@ -48,6 +48,8 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t * drive, CAN_Bus_Ty
    drive->state = PRE_OPERATION;
  }
 
+ emdrive_move_the_car_yo(drive, 0, can);
+
   CanTxMsgTypeDef tx;
   tx.IDE = CAN_ID_STD;
   tx.RTR = CAN_RTR_DATA;

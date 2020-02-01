@@ -18,7 +18,6 @@
 #include "car.h"
 #include <math.h>
 #include "regen.h"
-#include "motor_controller_functions.h"
 
 
 extern volatile Car_t car;
@@ -130,7 +129,25 @@ void taskHeartbeat(void * params)
 {
   
   TickType_t last_wake;
- 
+  vTaskDelay(5000);
+  emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+
+	HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+	vTaskDelay(5000);
+
+  for (uint16_t i = 0; i < 5000;)
+  {
+//	  emdrive_sync((CAN_Bus_TypeDef *) &car.vcan);
+	  emdrive_move_the_car_yo((emdrive_t *) &car.emdrive, i, (CAN_Bus_TypeDef *) &car.vcan);
+		vTaskDelay(250);
+		i+=200;
+  }
+
+  vTaskDelay(5000);
+  emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+
+
+
   while (1) 
   {
 
@@ -304,8 +321,6 @@ void taskCarMainRoutine()
             torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
           }
 
-          mcCmdTorqueFake(torque_to_send);
-          mcCmdTorque(torque_to_send);  //command the MC to move the motor
           //wait until Constant 50 Hz rate
           vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
         }
