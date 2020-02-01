@@ -21,6 +21,7 @@
 
 #include "PedalBox.h"
 #include "power_limiting.h"
+#include "emdrive.h"
 #include "traction_control.h"
 
 //Can comment/uncomment as required
@@ -34,8 +35,8 @@
 #define POLL_DELAY            pdMS_TO_TICKS(50)
 #define BUZZER_DELAY          pdMS_TO_TICKS(2000)
 #define MAX_BRAKE_LEVEL       0xFFF
-#define BOOST_MODE_TORQUE     2400 //240 Nm NOT SURE IF THIS IS RIGHT
-#define MAX_CONTINUOUS_TORQUE 1600 // 125 Nm continuous
+#define BOOST_MODE_TORQUE     24000 //240 Nm NOT SURE IF THIS IS RIGHT
+#define MAX_CONTINUOUS_TORQUE 16000 // 125 Nm continuous
 #define MAX_REGEN_TORQUE      -35
 #define DONT_CARE             0
 
@@ -98,6 +99,7 @@ typedef struct
   uint32_t      apps_imp_first_time_ms;   //indicates when the first imp error was received
   
   bool tract_cont_en;
+  emdrive_t emdrive;
 } Car_t;
 
 extern CAN_HandleTypeDef hcan1;

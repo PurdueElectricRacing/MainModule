@@ -4,32 +4,26 @@
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 
-enum
-{
-  ID_RINEHART_TEMP1        = 0x0A0,
-  ID_RINEHART_TEMP2        = 0x0A1,
-  ID_RINEHART_TEMP3        = 0x0A2,
-  ID_RINEHART_AIN_VOLT     = 0x0A3,
-  ID_RINEHART_DIGIN_STATUS = 0x0A4,
-  ID_RINEHART_MOTOR_POS    = 0x0A5,
-  ID_RINEHART_I_INFO       = 0x0A6,
-  ID_RINEHART_V_INFO       = 0x0A7,
-  ID_RINEHART_FLUX_INFO    = 0x0A8,
-  ID_RINEHART_INTERN_VOLT  = 0X0A9,
-  ID_RINEHART_INTERN_STATE = 0X0AA,
-  ID_RINEHART_FAULT_CODE   = 0X0AB,
-  ID_RINEHART_TORQUE_TIM   = 0X0AC,
-  ID_RINEHART_MOD_FLUX     = 0X0AD,
-  ID_RINEHART_FIRMWARE     = 0X0AE,
-  ID_RINEHART_DIAGNOSTIC   = 0X0AF,
+#define BEGIN_DATA_BYTE(x) (x * sizeof(uint8_t *)) // macro for returning the offset of a can data array
 
-  ID_RINEHART_STATION_TX = 0x0C0,
-  ID_RINEHART_PARAM_CMD  = 0x0C1,
-  ID_RINEHART_PARAM_RESP = 0x0C2,
-  ID_BMS_PACK_CUR_VOL    = 0x03B,
-  
+typedef enum
+{
+	ID_RINEHART_STATION_TX = 0x069,
+	ID_RINEHART_PARAM_CMD = 0x005,
+  ID_BMS_PACK_CUR_VOL  = 0x03B,
+
+  ID_EMDRIVE_INIT = 0x700,
+  ID_EMDRIVE_MASTER_SYNC = 0x080,
+  ID_EMDRIVE_SLAVE_PDO_1 = 0x180,
+  ID_EMDRIVE_SLAVE_PDO_2 = 0x280,
+  ID_EMDRIVE_SLAVE_PDO_3 = 0x380,
+  ID_EMDRIVE_SLAVE_PDO_4 = 0x480,
+  ID_EMDRIVE_NMT_CONTROL = 0x000,
+  ID_EMDRIVE_MASTER_PDO_1 = 0x200,
+
+
   ID_BMS_DCL     = 0x03C,
-  ID_MAIN        = 0x200,
+  ID_MAIN        = 0x420,
   ID_DASHBOARD   = 0x350,
   ID_DASHBOARD1  = 0x351,
   ID_POWER_LIMIT = 0x352,
@@ -161,6 +155,14 @@ void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q
 
 void DCANFilterConfig(CAN_HandleTypeDef * hcan);
 void VCANFilterConfig(CAN_HandleTypeDef * hcan);
+
+
+uint32_t parse_from_lil_32(uint8_t * data);
+uint16_t parse_from_lil_16(uint8_t * data);
+uint32_t parse_from_big_32(uint8_t * data);
+uint16_t parse_from_big_16(uint8_t * data);
+
+
 
 HAL_StatusTypeDef broadcast_can_msg(CanTxMsgTypeDef * tx, CAN_HandleTypeDef * can);
 #endif

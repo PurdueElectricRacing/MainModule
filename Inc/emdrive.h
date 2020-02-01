@@ -1,3 +1,6 @@
+#ifndef EMDRIVE_H
+#define EMDRIVE_H
+
 #include "main.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
@@ -5,6 +8,8 @@
 #include "imu.h"
 
 #include "CAN_Bus.h"
+
+#define NODE_ID 0x001
 
 typedef enum 
 {
@@ -32,11 +37,11 @@ typedef enum
 
 typedef enum
 {
-  START = 0x01,
-  STOP = 0x02,
-  PRE_OPERATION = 0x80,
-  RESET_EMDRIVE = 0x81,
-  RESET_COMM = 0x82,
+  EMDRIVE_START  = 0x01,
+  EMDRIVE_STOP   = 0x02,
+  EMDRIVE_PRE_OP = 0x80,
+  EMDRIVE_RESET  = 0x81,
+  EMDRIVE_RESET_COMM = 0x82,
 } emdrive_nmt_command_t;
 
 typedef enum 
@@ -57,21 +62,19 @@ typedef enum
 typedef struct
 {
   int32_t position_actual;
+  int32_t electrical_power;
+  int32_t velocity;
 
   uint16_t status_word;
   uint16_t error_codes;
 
-  int16_t dc_link_volt;
-  int16_t current_demand;
-  int16_t electrical_angle;
-  int16_t phase_a_angle;
-  int16_t phase_b_angle;
   int16_t torque_actual;
+  int16_t phase_b_current;
   
   uint8_t emdrive_temp;
   uint8_t motor_temp;
   uint8_t actual_current;
-} emdrive_pdo_t;
+} emdrive_tpdo_t;
 
 typedef enum
 {
@@ -81,16 +84,18 @@ typedef enum
 
 typedef struct 
 {
-  bool emdrive_init_rcvd;
   bool warning;
   emdrive_state_t state;
   emdrive_err_t err;
-  emdrive_pdo_t data;
+  emdrive_tpdo_t data;
 } emdrive_t;
 
 void emdrive_sync(CAN_Bus_TypeDef * can);
 void emdrive_init(emdrive_t * drive);
 // only PDO 1 matters, since we aren't setting position values.
-void emdrive_control(emdrive_nmt_command_t action, emdrive_t * drive);
-void emdrive_parse_status_word(emdrive_t * drive, uint16_t status_word);
-void emdrive_parse_pdo(CAN_IDs_t id);
+void emdrive_control(emdrive_nmt_command_t action, emdrive_t * drive, CAN_Bus_TypeDef * can);
+void emdrive_parse_pdo(CAN_IDs_t id, uint8_t * data, emdrive_t * drive);
+void emdrive_move_the_car_yo(emdrive_t * drive, int16_t torque, CAN_Bus_TypeDef * can);
+emdrive_err_t emdrive_check_statusword(emdrive_t * drive);
+
+#endif

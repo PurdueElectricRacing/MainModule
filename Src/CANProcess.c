@@ -90,12 +90,20 @@ void task_RX_CAN(void * params) {
           break;
         }
         case ID_WHEEL_REAR:
-			 {
-				 // TODO move this to can ISR
+        {
+          // TODO move this to can ISR
 
-			 	 calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
-				 break;
-			 }
+          calc_wheel_speed((wheel_module_t *) &car.wheels, rx.StdId, rx.Data);
+          break;
+        }
+        case ID_EMDRIVE_SLAVE_PDO_1 | NODE_ID:
+        case ID_EMDRIVE_SLAVE_PDO_2 | NODE_ID:
+        case ID_EMDRIVE_SLAVE_PDO_3 | NODE_ID:
+        {
+          emdrive_parse_pdo(rx.StdId, rx.Data, (emdrive_t *) &car.emdrive);
+          break;
+        }
+
       }
     }
     

@@ -130,10 +130,12 @@ void taskHeartbeat(void * params)
 {
   
   TickType_t last_wake;
-
+ 
   while (1) 
   {
+
     last_wake = xTaskGetTickCount();
+    emdrive_sync((CAN_Bus_TypeDef *) &car.vcan);
 
     HAL_GPIO_TogglePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin);
     int hv_active_status = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
@@ -157,7 +159,7 @@ void taskHeartbeat(void * params)
     tx.DLC = 3;
     tx.Data[0] = car.state;
     tx.Data[1] = (car.pedalbox.apps_state_imp | car.pedalbox.apps_state_brake_plaus
-				        | car.pedalbox.apps_state_eor | car.pedalbox.apps_state_timeout);
+                  | car.pedalbox.apps_state_eor | car.pedalbox.apps_state_timeout);
     tx.Data[2] = 0;
 
     // if precharge is complete, turn on orange LED and send a 1 in the second byte of heartbeat message
@@ -171,8 +173,8 @@ void taskHeartbeat(void * params)
       HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
     }
 
-    xQueueSendToBack(car.vcan.q_tx, &tx, 100);
-    xQueueSendToBack(car.dcan.q_tx, &tx, 100);
+   xQueueSendToBack(car.vcan.q_tx, &tx, 100);
+   xQueueSendToBack(car.dcan.q_tx, &tx, 100);
 
 
     vTaskDelayUntil(&last_wake, HEARTBEAT_PERIOD);
@@ -234,7 +236,9 @@ void taskCarMainRoutine()
       //state dependent block
       if (car.state == CAR_STATE_INIT)
       {
-        disableMotorController();
+//        disableMotorController();
+//        emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+
         //assert these pins always
         HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
       }
@@ -245,7 +249,9 @@ void taskCarMainRoutine()
         vTaskDelay(500); //account for the DCDC delay turn on
 
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
-        enableMotorController();
+//        enableMotorController();
+        emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+
         car.state = CAR_STATE_READY2DRIVE;  //car is started
 //        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
         soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
@@ -308,16 +314,23 @@ void taskCarMainRoutine()
       {
         HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET); //disable the DCDC's
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
-        disableMotorController();
+//        disableMotorController();
+        emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+
         HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_RESET);
         car.state = CAR_STATE_INIT;
       }
       else if (car.state == CAR_STATE_RECOVER)
       {
         //TODO:this state will need to be looked at since RINEHART is a little different
-        disableMotorController();
+//        disableMotorController();
+        emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+
+
         vTaskDelay((uint32_t) 500 / portTICK_RATE_MS);
-        enableMotorController();
+//        enableMotorController();
+        emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+
         car.state = CAR_STATE_READY2DRIVE;
       }
     vTaskDelayUntil(&current_tick_time, pdMS_TO_TICKS(1));

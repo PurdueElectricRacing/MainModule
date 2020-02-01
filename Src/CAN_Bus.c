@@ -52,7 +52,7 @@ void VCANFilterConfig(CAN_HandleTypeDef * hcan)
 {
   CAN_FilterTypeDef FilterConf;
 
-  FilterConf.FilterIdHigh =         ID_RINEHART_STATION_TX << 5; // left shift because the ID is in the high bits of the actual registers
+  FilterConf.FilterIdHigh =         0x300 << 5; // left shift because the ID is in the high bits of the actual registers
   FilterConf.FilterIdLow =          ID_DASHBOARD << 5;
   FilterConf.FilterMaskIdHigh =     ID_PEDALBOX2 << 5;
   FilterConf.FilterMaskIdLow =      ID_WHEEL_REAR << 5;
@@ -121,3 +121,42 @@ void send_ack(uint16_t can_id, uint16_t response, CAN_Bus_TypeDef * can) {
   tx.Data[0] = response;
   xQueueSendToBack(can->q_tx, &tx, 100);
 }
+
+
+
+// @brief: Parsing function so I don't have to type the data array out each time.
+// @param: uint8_t * data: address of the first byte of the data array
+//         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
+ uint32_t parse_from_lil_32(uint8_t * data)
+{
+  return ((uint32_t) *(data + (3 * sizeof(uint8_t *)))) << 24 
+  | ((uint32_t) *(data + (2 * sizeof(uint8_t *)))) << 16 
+  | ((uint16_t) *(data + (sizeof(uint8_t *)))) << 8 
+  | *(data);
+}
+// @brief: Parsing function so I don't have to type the data array out each time.
+// @param: uint8_t * data: address of the first byte of the data array
+//         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
+ uint32_t parse_from_big_32(uint8_t * data)
+{
+  return ((uint32_t) *(data)) << 24 
+  | ((uint32_t) *(data + (sizeof(uint8_t *)))) << 16 
+  | ((uint16_t) *(data + (2 * sizeof(uint8_t *)))) << 8 
+  | *(data + (3 * sizeof(uint8_t *)));
+}
+// @brief: Parsing function so I don't have to type the data array out each time.
+// @param: uint8_t * data: address of the first byte of the data array
+//         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
+ uint16_t parse_from_lil_16(uint8_t * data)
+{
+  return ((uint16_t) *(data + sizeof(uint8_t *)) << 8) | *data;
+}
+// @brief: Parsing function so I don't have to type the data array out each time.
+// @param: uint8_t * data: address of the first byte of the data array
+//         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
+ uint16_t parse_from_big_16(uint8_t * data)
+{
+  return ((uint16_t) *data << 8) | *(data + sizeof(uint8_t *));
+}
+
+
