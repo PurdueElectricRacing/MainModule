@@ -9,6 +9,7 @@
 #include "car.h"
 #include "stdlib.h"
 #include <math.h>
+#include "regen.h"
 
 
 extern volatile Car_t car;

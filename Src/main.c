@@ -106,9 +106,9 @@ int main(void)
   }
 
   if (HAL_CAN_Start(&hcan2) != HAL_OK)
-	{
-  	Error_Handler();
-	}
+  {
+    Error_Handler();
+  }
 
 
   if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
