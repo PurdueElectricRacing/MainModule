@@ -10,11 +10,13 @@ uint8_t temp_array[READ_MSG_SIZE];
 uint8_t read_byte = 0;
 uint8_t write_data[WRITE_MSG_SIZE + 1];
 
-void init_BQ21062(uint8_t * write_data);
+static void init_BQ21062(uint8_t * write_data);
 
 void task_manage_charger() 
 {
     uint8_t currentF, voltageF, tempF;
+
+    init_BQ21062(write_data);
 
     while(1)
     {
@@ -37,7 +39,7 @@ void task_manage_charger()
 
         //TODO Report faults to something else
         
-        vTaskDelay(200);
+        vTaskDelayUntil(200); 
     }
 
 }
@@ -59,7 +61,7 @@ void setChargeEnable(uint8_t enable)
 
 
 
-void init_BQ21062(uint8_t * write_data)
+static void init_BQ21062(uint8_t * write_data)
 {
     //set current charge to 500mA
         //set I_Charge_Range to 1 for 2.5mA step
