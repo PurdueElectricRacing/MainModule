@@ -92,8 +92,8 @@ int main(void)
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
 
-  // VCAN = hcan2, DCAN = hcan1
-  carInit(&hcan2, &hcan1);
+  // VCAN = hcan1, DCAN = hcan2
+  carInit(&hcan1, &hcan2);
 
   //Call Trace Start here
 #ifdef PERCEPIO_TRACE
@@ -118,6 +118,19 @@ int main(void)
   if (HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
   {
   	Error_Handler();
+  }
+
+  // totally useless but it signifies that the car has successfully initialized
+  for (uint8_t i = 0; i < 3; i++)
+  {
+    HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
+    HAL_Delay(100);
+    HAL_GPIO_TogglePin(GPIOD, LD4_Pin);
+    HAL_Delay(100);
+    HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
+    HAL_Delay(100);
+    HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
+    HAL_Delay(100);
   }
   
 #ifdef tracing

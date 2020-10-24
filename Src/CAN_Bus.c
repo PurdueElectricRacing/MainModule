@@ -54,7 +54,7 @@ void VCANFilterConfig(CAN_HandleTypeDef * hcan)
 
   FilterConf.FilterIdHigh =         300 << 5; // left shift because the ID is in the high bits of the actual registers
   FilterConf.FilterIdLow =          ID_DASHBOARD << 5;
-  FilterConf.FilterMaskIdHigh =     ID_PEDALBOX2 << 5;
+  FilterConf.FilterMaskIdHigh =     ID_PEDALBOX << 5;
   FilterConf.FilterMaskIdLow =      ID_WHEEL_REAR << 5;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;

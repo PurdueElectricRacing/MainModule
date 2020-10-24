@@ -113,5 +113,6 @@ typedef struct
 } PedalBox_t;
 
 void pedalbox_init(volatile PedalBox_t * pb, uint16_t q_size);
+bool pedalbox_has_error(PedalBox_t * pb);
 void processPedalboxFrame(uint8_t * Data, PedalBox_t * pedalbox);
 #endif /* PEDALBOX_H_ */

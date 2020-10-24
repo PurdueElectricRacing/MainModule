@@ -26,7 +26,7 @@
 
 //Can comment/uncomment as required
 //#define PERCEPIO_TRACE
-#define REGEN
+//#define REGEN
 //#define BRAKES
 #define PERIOD_TORQUE_SEND    pdMS_TO_TICKS(25)
 #define HEARTBEAT_PULSEWIDTH  pdMS_TO_TICKS(200)
@@ -40,6 +40,8 @@
 #define MAX_REGEN_TORQUE      -35
 #define DONT_CARE             0
 
+#define GREAT 1
+#define PER GREAT
 #define DEFAULT_STACK_SIZE 256 // number of WORDS FreeRTOS will allocate to a task, not bytes.
 #define DEFAULT_PRIORITY   1   // default priority for RTOS tasks.
 
@@ -78,9 +80,6 @@ typedef enum {
 } Car_state_t;
 
 
-
-
-
 typedef struct
 {
   Car_state_t       state;
@@ -116,6 +115,7 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
+
 
 
 

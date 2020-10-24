@@ -63,7 +63,7 @@ void task_RX_CAN(void * params) {
       //check what kind of message we received
       switch (rx.StdId)
       {
-        case ID_PEDALBOX2:
+        case ID_PEDALBOX:
         { //if pedalbox1 message
           processPedalboxFrame(rx.Data, (PedalBox_t *) &car.pedalbox);
           break;

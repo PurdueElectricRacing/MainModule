@@ -8,11 +8,24 @@
 #include "PedalBox.h"
 #include "car.h"
 #include "stdlib.h"
+#include "stdbool.h"
 #include <math.h>
 #include "regen.h"
 
 
 extern volatile Car_t car;
+
+bool pedalbox_has_error(PedalBox_t * pb)
+{
+  if (pb->apps_state_brake_plaus != PEDALBOX_STATUS_NO_ERROR ||
+      pb->apps_state_eor != PEDALBOX_STATUS_NO_ERROR ||
+      pb->apps_state_imp != PEDALBOX_STATUS_NO_ERROR ||
+      pb->apps_state_timeout != PEDALBOX_STATUS_NO_ERROR)
+  {
+    return true;
+  }
+  return false;
+}
 
 // @author: Chris Fallon
 // @brief: initialize all pedal box errors to no error;
@@ -169,19 +182,19 @@ void taskPedalBoxMsgHandler(void * params) {
 				car.throttle_acc = 0;
 			}
 
-#     ifdef REGEN
-#       ifdef BRAKES
-          if (avg_speed >= REGEN_CUTOFF_SPEED && brake_avg > 0.2)
-          {
-            car.throttle_acc = brake_pres_regen_torque(brake_avg, car.bms.pack_soc);
-          }
-#       else
-          if (avg_speed >= REGEN_CUTOFF_SPEED && throttle_avg < THROTTLE_LOWER_BOUND)
-          {
-            car.throttle_acc = throttle_pos_regen_torque(throttle_avg, car.bms.pack_soc);
-          }
-#       endif
-#     endif
+#ifdef REGEN
+#ifdef BRAKES
+      if (avg_speed >= REGEN_CUTOFF_SPEED && brake_avg > 0.2)
+      {
+        car.throttle_acc = brake_pres_regen_torque(brake_avg, car.bms.pack_soc);
+      }
+#else
+      if (avg_speed >= REGEN_CUTOFF_SPEED && throttle_avg < THROTTLE_LOWER_BOUND)
+      {
+        car.throttle_acc = throttle_pos_regen_torque(throttle_avg, car.bms.pack_soc);
+      }
+#endif
+#endif
     }
     vTaskDelay(pdMS_TO_TICKS(1));
   }

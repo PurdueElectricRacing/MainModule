@@ -22,15 +22,6 @@
 
 extern volatile Car_t car;
 
-// @author: Ben Ng
-//          Chris Fallon
-// @brief: set brake light on or off
-void carSetBrakeLight(Brake_light_status_t status)
-{
-  HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, status);
-}
-
-
 // @author:
 // @brief:  Initialize the car struct and begin rtos tasks
 
@@ -62,6 +53,12 @@ void carInit(CAN_HandleTypeDef * vcan, CAN_HandleTypeDef * dcan)
 
 	// create all tasks
 	initRTOSObjects();
+
+	for (uint8_t i = 0; i < 7; i++)
+	{
+	  HAL_GPIO_TogglePin(GPIOD, LD4_Pin);
+	  HAL_Delay(250);
+	}
 }
 
 // @authors: Ben Ng
@@ -129,43 +126,24 @@ void taskHeartbeat(void * params)
 {
   
   TickType_t last_wake;
-  vTaskDelay(5000);
-  emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
-
-	HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
-	vTaskDelay(5000);
-
-  for (uint16_t i = 0; i < 5000;)
-  {
-//	  emdrive_sync((CAN_Bus_TypeDef *) &car.vcan);
-	  emdrive_move_the_car_yo((emdrive_t *) &car.emdrive, i, (CAN_Bus_TypeDef *) &car.vcan);
-		vTaskDelay(250);
-		i+=200;
-  }
-
-  vTaskDelay(5000);
-  emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
-
-
-
   while (1) 
   {
 
     last_wake = xTaskGetTickCount();
-    emdrive_sync((CAN_Bus_TypeDef *) &car.vcan);
+    emdrive_sync(&car.vcan);
 
     HAL_GPIO_TogglePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin);
     int hv_active_status = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
     // if HV is on, enable LV charging circuit
-    if(hv_active_status == GPIO_PIN_SET)
-    {
-      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
-    }
-    else
-    {
-      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
-      vTaskDelay(500);
-    }
+//    if(hv_active_status == GPIO_PIN_SET)
+//    {
+//      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
+//    }
+//    else
+//    {
+//      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
+//      vTaskDelay(500);
+//    }
     // blink LED to show main is alive
     HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
     // create Main status message and add to queue
@@ -210,33 +188,19 @@ void taskCarMainRoutine()
   uint16_t prev_trq_tc = 0;
   TickType_t current_tick_time;
 
-  while (1)
+  while (PER == GREAT)
   {
       current_tick_time = xTaskGetTickCount();
       uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
       int16_t torque_to_send = 0;
       uint8_t pc_low = 0;
       //do this no matter what state.
-      //get current time in ms
-//      HAL_GPIO_TogglePin(LD6_GPIO_Port, LD6_Pin);
-
-			//check that precharge is on, send CAN to dash precharge led
-		  // if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
-		  // {
-		  // 	pchg_led_enbl(0);
-		  // }
-		  // else
-		  // {
-		  // 	pchg_led_enbl(1);
-		  // }
-
-      //always active block
-      //Brake
       //check if brake level is greater than the threshold level
+//      car.brake = 0.6f;
       if (car.brake >= BRAKE_PRESSED_THRESHOLD)
       {
         //brake is presssed
-        carSetBrakeLight(BRAKE_LIGHT_ON);  //turn on brake light
+        HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, 1);
         //EV 2.5, check if the throttle level is greater than 25% while brakes are on
         if (car.throttle_acc > APPS_BP_PLAUS_THRESHOLD)
         {
@@ -247,14 +211,13 @@ void taskCarMainRoutine()
       else
       {
         //brake is not pressed
-        carSetBrakeLight(BRAKE_LIGHT_OFF);  //turn off brake light
+        HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, 0);
       }
 
       //state dependent block
       if (car.state == CAR_STATE_INIT)
       {
-//        disableMotorController();
-//        emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+        emdrive_control(EMDRIVE_STOP, &car.emdrive, &car.vcan);
 
         //assert these pins always
         HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
@@ -266,8 +229,7 @@ void taskCarMainRoutine()
         vTaskDelay(500); //account for the DCDC delay turn on
 
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
-//        enableMotorController();
-        emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
+        emdrive_control(EMDRIVE_START, &car.emdrive, &car.vcan);
 
         car.state = CAR_STATE_READY2DRIVE;  //car is started
 //        HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_SET);
@@ -300,11 +262,7 @@ void taskCarMainRoutine()
           {
             car.pedalbox.apps_state_timeout = PEDALBOX_STATUS_NO_ERROR;
           }
-
-          if (car.pedalbox.apps_state_brake_plaus == PEDALBOX_STATUS_NO_ERROR &&
-              car.pedalbox.apps_state_eor == PEDALBOX_STATUS_NO_ERROR &&
-              car.pedalbox.apps_state_imp == PEDALBOX_STATUS_NO_ERROR &&
-              car.pedalbox.apps_state_timeout == PEDALBOX_STATUS_NO_ERROR)
+          if (!pedalbox_has_error(&car.pedalbox))
           {
             torque_to_send = car.throttle_acc; //gets average
           }
@@ -321,6 +279,7 @@ void taskCarMainRoutine()
             torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
           }
 
+          emdrive_move_the_car_yo((emdrive_t *) &car.emdrive, torque_to_send, (CAN_Bus_TypeDef *) &car.vcan);
           //wait until Constant 50 Hz rate
           vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
         }
@@ -329,7 +288,6 @@ void taskCarMainRoutine()
       {
         HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET); //disable the DCDC's
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
-//        disableMotorController();
         emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
 
         HAL_GPIO_WritePin(BATT_FAN_GPIO_Port, BATT_FAN_Pin, GPIO_PIN_RESET);
@@ -337,13 +295,9 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_RECOVER)
       {
-        //TODO:this state will need to be looked at since RINEHART is a little different
-//        disableMotorController();
         emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
 
-
         vTaskDelay((uint32_t) 500 / portTICK_RATE_MS);
-//        enableMotorController();
         emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
 
         car.state = CAR_STATE_READY2DRIVE;
