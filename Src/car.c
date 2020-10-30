@@ -125,14 +125,13 @@ void ISR_StartButtonPressed()
 void taskHeartbeat(void * params)
 {
   
+  HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, 1);
   TickType_t last_wake;
   while (1) 
   {
-
     last_wake = xTaskGetTickCount();
     emdrive_sync(&car.vcan);
 
-    HAL_GPIO_TogglePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin);
     int hv_active_status = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
     // if HV is on, enable LV charging circuit
 //    if(hv_active_status == GPIO_PIN_SET)
