@@ -128,22 +128,20 @@ void taskHeartbeat(void * params)
   TickType_t last_wake;
   while (1) 
   {
-
     last_wake = xTaskGetTickCount();
     emdrive_sync(&car.vcan);
 
-    HAL_GPIO_TogglePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin);
     int hv_active_status = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
     // if HV is on, enable LV charging circuit
-//    if(hv_active_status == GPIO_PIN_SET)
-//    {
-//      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
-//    }
-//    else
-//    {
-//      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
-//      vTaskDelay(500);
-//    }
+    if(hv_active_status == GPIO_PIN_SET)
+    {
+      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
+    }
+    else
+    {
+      HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
+      vTaskDelay(500);
+    }
     // blink LED to show main is alive
     HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
     // create Main status message and add to queue
@@ -196,7 +194,7 @@ void taskCarMainRoutine()
       uint8_t pc_low = 0;
       //do this no matter what state.
       //check if brake level is greater than the threshold level
-//      car.brake = 0.6f;
+
       if (car.brake >= BRAKE_PRESSED_THRESHOLD)
       {
         //brake is presssed

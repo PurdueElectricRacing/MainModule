@@ -3,6 +3,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
+#include "main.h"
 
 #define BEGIN_DATA_BYTE(x) (x * sizeof(uint8_t *)) // macro for returning the offset of a can data array
 
@@ -156,10 +157,11 @@ void DCANFilterConfig(CAN_HandleTypeDef * hcan);
 void VCANFilterConfig(CAN_HandleTypeDef * hcan);
 
 
-uint32_t parse_from_lil_32(uint8_t * data);
+uint16_t parse_from_big_16(uint8_t * data);
 uint16_t parse_from_lil_16(uint8_t * data);
 uint32_t parse_from_big_32(uint8_t * data);
-uint16_t parse_from_big_16(uint8_t * data);
+uint32_t parse_from_lil_32(uint8_t * data);
+
 
 
 

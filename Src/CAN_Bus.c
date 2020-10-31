@@ -127,34 +127,34 @@ void send_ack(uint16_t can_id, uint16_t response, CAN_Bus_TypeDef * can) {
 // @brief: Parsing function so I don't have to type the data array out each time.
 // @param: uint8_t * data: address of the first byte of the data array
 //         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
- uint32_t parse_from_lil_32(uint8_t * data)
+uint32_t parse_from_lil_32(uint8_t * data)
 {
-  return ((uint32_t) *(data + (3 * sizeof(uint8_t *)))) << 24 
-  | ((uint32_t) *(data + (2 * sizeof(uint8_t *)))) << 16 
-  | ((uint16_t) *(data + (sizeof(uint8_t *)))) << 8 
+  return ((uint32_t) *(data + (3 * sizeof(uint8_t *)))) << 24
+  | ((uint32_t) *(data + (2 * sizeof(uint8_t *)))) << 16
+  | ((uint16_t) *(data + (sizeof(uint8_t *)))) << 8
   | *(data);
 }
 // @brief: Parsing function so I don't have to type the data array out each time.
 // @param: uint8_t * data: address of the first byte of the data array
 //         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
- uint32_t parse_from_big_32(uint8_t * data)
+uint32_t parse_from_big_32(uint8_t * data)
 {
-  return ((uint32_t) *(data)) << 24 
-  | ((uint32_t) *(data + (sizeof(uint8_t *)))) << 16 
-  | ((uint16_t) *(data + (2 * sizeof(uint8_t *)))) << 8 
+  return ((uint32_t) *(data)) << 24
+  | ((uint32_t) *(data + (sizeof(uint8_t *)))) << 16
+  | ((uint16_t) *(data + (2 * sizeof(uint8_t *)))) << 8
   | *(data + (3 * sizeof(uint8_t *)));
 }
 // @brief: Parsing function so I don't have to type the data array out each time.
 // @param: uint8_t * data: address of the first byte of the data array
 //         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
- uint16_t parse_from_lil_16(uint8_t * data)
+uint16_t parse_from_lil_16(uint8_t * data)
 {
   return ((uint16_t) *(data + sizeof(uint8_t *)) << 8) | *data;
 }
 // @brief: Parsing function so I don't have to type the data array out each time.
 // @param: uint8_t * data: address of the first byte of the data array
 //         i.e. if first byte is data[3], pass (&data) + 3 * sizeof(uint8_t *)
- uint16_t parse_from_big_16(uint8_t * data)
+uint16_t parse_from_big_16(uint8_t * data)
 {
   return ((uint16_t) *data << 8) | *(data + sizeof(uint8_t *));
 }
