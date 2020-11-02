@@ -34,6 +34,8 @@ void carInit(CAN_HandleTypeDef * vcan, CAN_HandleTypeDef * dcan)
   car.throttle_acc = 0;
   car.brake = 0;
 
+  car.currentDraw = 0;
+
   car.tract_cont_en = false; //default traction control to off
 
   init_wheel_mod((wheel_module_t *) &car.wheels);
@@ -192,6 +194,7 @@ void taskCarMainRoutine()
       uint32_t current_time_ms = current_tick_time / portTICK_PERIOD_MS;
       int16_t torque_to_send = 0;
       uint8_t pc_low = 0;
+      readCurrent(&car.currentDraw);
       //do this no matter what state.
       //check if brake level is greater than the threshold level
 
@@ -318,6 +321,14 @@ void soundBuzzer(int time_ms)
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
 }
 
+void readCurrent(uint16_t* current)
+{
+  HAL_ADC_Start(&hadc1);	
+  HAL_ADC_PollForConversion(&hadc1, 10);	// Start polling samples
+	*current = HAL_ADC_GetValue(&hadc1);	// Capture value in ADC register
+  HAL_ADC_Stop(&hadc1);					// Stop ADC 1 (return to first ADC target)
+  *current = *current * 3.3 / 4095 / 20 / 0.1; //vRef, resolution, Gain, R shunt
+}
 
 void prchg_led_enbl(uint8_t val)
 {

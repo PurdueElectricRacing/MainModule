@@ -96,10 +96,14 @@ typedef struct
   int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
   uint32_t      apps_imp_first_time_ms;   //indicates when the first imp error was received
+
+  uint16_t      currentDraw; //current draw of the board 
   
   bool tract_cont_en;
   emdrive_t emdrive;
 } Car_t;
+
+extern ADC_HandleTypeDef hadc1;	// ADC 1 handle
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
@@ -115,6 +119,7 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
+void readCurrent(uint16_t*);
 
 
 
