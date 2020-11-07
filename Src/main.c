@@ -13,9 +13,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "car.h"
-#include "BMS.h"
-#include "PedalBox.h"
 #include "CANProcess.h"
+#include "CAN_Bus.h"
+//#include "trcConfig.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +41,6 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 volatile Car_t car;
-BMS_t BMS;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,18 +91,52 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
-  carInit();
-  DCANFilterConfig();
-  VCANFilterConfig();
-  initRTOSObjects();  //start tasks in here
-  HAL_CAN_Start(&hcan1);
-  HAL_CAN_Start(&hcan2);
+
+  // VCAN = hcan1, DCAN = hcan2
+  carInit(&hcan1, &hcan2);
+
+  //Call Trace Start here
+#ifdef PERCEPIO_TRACE
+  vTraceEnable(TRC_START);
+#endif
+
+  if (HAL_CAN_Start(&hcan1) != HAL_OK)
+  {
+  	Error_Handler();
+  }
+
+  if (HAL_CAN_Start(&hcan2) != HAL_OK)
+	{
+  	Error_Handler();
+	}
+
+
+  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+	{
+  	Error_Handler();
+	}
+  if (HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
+  {
+  	Error_Handler();
+  }
+
+  // totally useless but it signifies that the car has successfully initialized
+  for (uint8_t i = 0; i < 3; i++)
+  {
+    HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
+    HAL_Delay(100);
+    HAL_GPIO_TogglePin(GPIOD, LD4_Pin);
+    HAL_Delay(100);
+    HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
+    HAL_Delay(100);
+    HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
+    HAL_Delay(100);
+  }
   
-  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-//  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO1_MSG_PENDING);
-//  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
-  
+#ifdef tracing
+  vTraceEnable(TRC_START);
+#endif
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -461,6 +494,11 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   while (1) {
+  	HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
+  	HAL_GPIO_TogglePin(GPIOD, LD4_Pin);
+  	HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
+  	HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
+  	HAL_Delay(1000);
   }
   /* USER CODE END Error_Handler_Debug */
 }
