@@ -13,6 +13,7 @@
 #include "stm32f4xx_hal.h"
 #include <stdbool.h>
 #include "imu.h"
+#include "stm32f4xx_hal_adc.h"
 
 #include "BMS.h"
 #include "CAN_Bus.h"
