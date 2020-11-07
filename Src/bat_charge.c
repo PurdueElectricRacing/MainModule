@@ -5,12 +5,16 @@
  *      Author: Luke Oxley
  */
 #include "bat_charge.h"
+#include "main.h"
+#include "cmsis_os.h"
+#include "stm32f4xx_hal.h"
 
 uint8_t temp_array[READ_MSG_SIZE];
 uint8_t read_byte = 0;
 uint8_t write_data[WRITE_MSG_SIZE + 1];
+extern I2C_HandleTypeDef hi2c1;
 
-static void init_BQ21062(uint8_t * write_data);
+void init_BQ21062(uint8_t * write_data);
 
 void task_manage_charger() 
 {

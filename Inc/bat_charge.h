@@ -8,7 +8,7 @@
 #ifndef BAT_CHARGE_H_
 #define BAT_CHARGE_H_
 
-#include <math.h>
+#include "main.h"
 
 #define DEVICE_ADDR 0x6B //before bit shifting
 
@@ -45,7 +45,7 @@
 
 //macros
 #define set_address(address, write_en) (address << 1) | write_en
-#define get_bit(num, n) (num >> n) & 1;
+#define get_bit(num, n) (num >> n) & 1
 
 void task_manage_charger();
 void setChargeEnable(uint8_t enable);
