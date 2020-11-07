@@ -119,7 +119,6 @@ static uint32_t HAL_RCC_CAN1_CLK_ENABLED=0;
 */
 void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
 {
-
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   if(hcan->Instance==CAN1)
   {
@@ -131,11 +130,11 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==1){
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
-  
+
     __HAL_RCC_GPIOD_CLK_ENABLE();
-    /**CAN1 GPIO Configuration    
+    /**CAN1 GPIO Configuration
     PD0     ------> CAN1_RX
-    PD1     ------> CAN1_TX 
+    PD1     ------> CAN1_TX
     */
     GPIO_InitStruct.Pin = VCAN_RX_Pin|VCAN_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -164,11 +163,11 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==1){
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
-  
+
     __HAL_RCC_GPIOB_CLK_ENABLE();
-    /**CAN2 GPIO Configuration    
+    /**CAN2 GPIO Configuration
     PB12     ------> CAN2_RX
-    PB13     ------> CAN2_TX 
+    PB13     ------> CAN2_TX
     */
     GPIO_InitStruct.Pin = DCAN_RX_Pin|DCAN_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -195,10 +194,8 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
 * @param hcan: CAN handle pointer
 * @retval None
 */
-
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
 {
-
   if(hcan->Instance==CAN1)
   {
   /* USER CODE BEGIN CAN1_MspDeInit 0 */
@@ -209,10 +206,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==0){
       __HAL_RCC_CAN1_CLK_DISABLE();
     }
-  
-    /**CAN1 GPIO Configuration    
+
+    /**CAN1 GPIO Configuration
     PD0     ------> CAN1_RX
-    PD1     ------> CAN1_TX 
+    PD1     ------> CAN1_TX
     */
     HAL_GPIO_DeInit(GPIOD, VCAN_RX_Pin|VCAN_TX_Pin);
 
@@ -234,10 +231,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==0){
       __HAL_RCC_CAN1_CLK_DISABLE();
     }
-  
-    /**CAN2 GPIO Configuration    
+
+    /**CAN2 GPIO Configuration
     PB12     ------> CAN2_RX
-    PB13     ------> CAN2_TX 
+    PB13     ------> CAN2_TX
     */
     HAL_GPIO_DeInit(GPIOB, DCAN_RX_Pin|DCAN_TX_Pin);
 
@@ -247,6 +244,73 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
   /* USER CODE BEGIN CAN2_MspDeInit 1 */
     
   /* USER CODE END CAN2_MspDeInit 1 */
+  }
+
+}
+
+/**
+* @brief I2C MSP Initialization
+* This function configures the hardware resources used in this example
+* @param hi2c: I2C handle pointer
+* @retval None
+*/
+void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if(hi2c->Instance==I2C1)
+  {
+  /* USER CODE BEGIN I2C1_MspInit 0 */
+
+  /* USER CODE END I2C1_MspInit 0 */
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**I2C1 GPIO Configuration
+    PB6     ------> I2C1_SCL
+    PB9     ------> I2C1_SDA
+    */
+    GPIO_InitStruct.Pin = Audio_SCL_Pin|Audio_SDA_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /* Peripheral clock enable */
+    __HAL_RCC_I2C1_CLK_ENABLE();
+  /* USER CODE BEGIN I2C1_MspInit 1 */
+
+  /* USER CODE END I2C1_MspInit 1 */
+  }
+
+}
+
+/**
+* @brief I2C MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param hi2c: I2C handle pointer
+* @retval None
+*/
+void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
+{
+  if(hi2c->Instance==I2C1)
+  {
+  /* USER CODE BEGIN I2C1_MspDeInit 0 */
+
+  /* USER CODE END I2C1_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_I2C1_CLK_DISABLE();
+
+    /**I2C1 GPIO Configuration
+    PB6     ------> I2C1_SCL
+    PB9     ------> I2C1_SDA
+    */
+    HAL_GPIO_DeInit(Audio_SCL_GPIO_Port, Audio_SCL_Pin);
+
+    HAL_GPIO_DeInit(Audio_SDA_GPIO_Port, Audio_SDA_Pin);
+
+  /* USER CODE BEGIN I2C1_MspDeInit 1 */
+
+  /* USER CODE END I2C1_MspDeInit 1 */
   }
 
 }
