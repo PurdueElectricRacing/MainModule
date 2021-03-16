@@ -39,7 +39,7 @@ static void sendSDO(emdrive_sdo_size_t size, uint16_t od, uint8_t sub_od, uint32
 
     tx.IDE = CAN_ID_STD;
     tx.RTR = CAN_RTR_DATA;
-    tx.StdId = ID_EMDRIVE_PDO_RX | NODE_ID;     // Note: RX is from Emdrive perspective (as per datasheets)
+    tx.StdId = ID_EMDRIVE_SDO_RX | NODE_ID;     // Note: RX is from Emdrive perspective (as per datasheets)
     tx.DLC = 8;
     tx.Data[0] = (uint8_t) size;
     tx.Data[1] = (uint8_t) od;
