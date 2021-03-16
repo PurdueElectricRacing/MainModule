@@ -277,7 +277,7 @@ void taskCarMainRoutine()
             torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
           }
 
-          emdrive_move_the_car_yo((emdrive_t *) &car.emdrive, torque_to_send, (CAN_Bus_TypeDef *) &car.vcan);
+          emdrive_move_the_car_yo(torque_to_send, (CAN_Bus_TypeDef *) &car.vcan);
           //wait until Constant 50 Hz rate
           vTaskDelayUntil(&current_tick_time, PERIOD_TORQUE_SEND);
         }

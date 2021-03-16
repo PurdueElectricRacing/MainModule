@@ -131,11 +131,11 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==1){
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
-  
+
     __HAL_RCC_GPIOD_CLK_ENABLE();
-    /**CAN1 GPIO Configuration    
+    /**CAN1 GPIO Configuration
     PD0     ------> CAN1_RX
-    PD1     ------> CAN1_TX 
+    PD1     ------> CAN1_TX
     */
     GPIO_InitStruct.Pin = VCAN_RX_Pin|VCAN_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -164,11 +164,11 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==1){
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
-  
+
     __HAL_RCC_GPIOB_CLK_ENABLE();
-    /**CAN2 GPIO Configuration    
+    /**CAN2 GPIO Configuration
     PB12     ------> CAN2_RX
-    PB13     ------> CAN2_TX 
+    PB13     ------> CAN2_TX
     */
     GPIO_InitStruct.Pin = DCAN_RX_Pin|DCAN_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -209,10 +209,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==0){
       __HAL_RCC_CAN1_CLK_DISABLE();
     }
-  
-    /**CAN1 GPIO Configuration    
+
+    /**CAN1 GPIO Configuration
     PD0     ------> CAN1_RX
-    PD1     ------> CAN1_TX 
+    PD1     ------> CAN1_TX
     */
     HAL_GPIO_DeInit(GPIOD, VCAN_RX_Pin|VCAN_TX_Pin);
 
@@ -234,10 +234,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     if(HAL_RCC_CAN1_CLK_ENABLED==0){
       __HAL_RCC_CAN1_CLK_DISABLE();
     }
-  
-    /**CAN2 GPIO Configuration    
+
+    /**CAN2 GPIO Configuration
     PB12     ------> CAN2_RX
-    PB13     ------> CAN2_TX 
+    PB13     ------> CAN2_TX
     */
     HAL_GPIO_DeInit(GPIOB, DCAN_RX_Pin|DCAN_TX_Pin);
 

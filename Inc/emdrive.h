@@ -33,8 +33,6 @@ typedef enum
   EMRGNCY_BUTT_PRSD_ERR = 0xFF0E,
 } emdrive_err_t;
 
-
-
 typedef enum
 {
   EMDRIVE_START  = 0x01,
@@ -59,6 +57,20 @@ typedef enum
   INTERNAL_LIMIT_ACTIVE = 11,
 } status_word_masks_t;
 
+typedef enum
+{
+    BYTES_4 = 0x23,
+    BYTES_3 = 0x27,
+    BYTES_2 = 0x2B,
+    BYTES_1 = 0x2F,
+} emdrive_sdo_size_t;
+
+enum
+{
+    CONTROLWORD = 0x6040,
+    TORQUE = 0x6071,
+} emdrive_dict_obj;
+
 typedef struct
 {
   int32_t position_actual;
@@ -80,6 +92,8 @@ typedef enum
 {
   PRE_OPERATION = 0,
   OPERATION = 1,
+  CW6,
+  DRIVE
 } emdrive_state_t;
 
 typedef struct 
@@ -95,7 +109,7 @@ void emdrive_init(emdrive_t * drive);
 // only PDO 1 matters, since we aren't setting position values.
 void emdrive_control(emdrive_nmt_command_t action, emdrive_t * drive, CAN_Bus_TypeDef * can);
 void emdrive_parse_pdo(CAN_IDs_t id, uint8_t * data, emdrive_t * drive);
-void emdrive_move_the_car_yo(emdrive_t * drive, int16_t torque, CAN_Bus_TypeDef * can);
+void emdrive_move_the_car_yo(int16_t torque, CAN_Bus_TypeDef * can);
 emdrive_err_t emdrive_check_statusword(emdrive_t * drive);
 
 #endif

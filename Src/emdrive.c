@@ -11,7 +11,6 @@ void emdrive_init(emdrive_t * drive)
   drive->err = OK;
 
   drive->warning = false;
-
 }
 
 // @brief: Function for syncing the motor controller
@@ -29,36 +28,94 @@ void emdrive_sync(CAN_Bus_TypeDef * can)
   xQueueSendToBack(can->q_tx, &tx, 100);
 }
 
+// @brief:  Sends SDO (service data object) editing a value in
+//          the dictionary
+// @author: Dawson Moore
+static void sendSDO(emdrive_sdo_size_t size, uint16_t od, uint8_t sub_od, uint32_t data, CAN_Bus_TypeDef* can)
+{
+    // Locals
+    CanTxMsgTypeDef tx;
+    uint8_t i;
 
+    tx.IDE = CAN_ID_STD;
+    tx.RTR = CAN_RTR_DATA;
+    tx.StdId = ID_EMDRIVE_PDO_RX | NODE_ID;     // Note: RX is from Emdrive perspective (as per datasheets)
+    tx.DLC = 8;
+    tx.Data[0] = (uint8_t) size;
+    tx.Data[1] = (uint8_t) od;
+    tx.Data[2] = (uint8_t) (od >> 8);
+    tx.Data[3] = (uint8_t) sub_od;
+
+    // Reverse the bytes
+    for (i = 0; i < 4; i++)
+    {
+        tx.Data[i] = (uint8_t) (data >> (i * 8));
+    }
+
+    xQueueSendToBack(can->q_tx, &tx, 100);
+}
 
 // @brief: Function for sending config parameters to the emdrive
-// @author: Chris Fallon
-void emdrive_control(emdrive_nmt_command_t action, emdrive_t * drive, CAN_Bus_TypeDef * can)
+// @author: Chris Fallon & Dawson Moore
+void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_TypeDef* can)
 {
- if (drive->state == PRE_OPERATION && action == EMDRIVE_STOP)
- {
-   return;
- }
- else if (drive->state == PRE_OPERATION && action == EMDRIVE_START)
- {
-   drive->state = OPERATION;
- }
- else if (drive->state == OPERATION && action != EMDRIVE_START)
- {
-   drive->state = PRE_OPERATION;
- }
+    // Locals
+    CanTxMsgTypeDef tx;
 
- emdrive_move_the_car_yo(drive, 0, can);
+    tx.IDE = CAN_ID_STD;
+    tx.RTR = CAN_RTR_DATA;
 
-  CanTxMsgTypeDef tx;
-  tx.IDE = CAN_ID_STD;
-  tx.RTR = CAN_RTR_DATA;
-  tx.StdId = ID_EMDRIVE_NMT_CONTROL;
-  tx.DLC = 2;
-  tx.Data[0] = action;  // testing start mc
-  tx.Data[1] = 0x00;
+    if (drive->state == PRE_OPERATION && action == EMDRIVE_STOP)
+    {
+        return;
+    }
+    else if (drive->state == PRE_OPERATION && action == EMDRIVE_START)
+    {
+        /*
+         * Start sequence:
+         * Send NMT pre-operation to ensure we're in a known state
+         * Send NMT start to move to operation mode
+         * Set controlword to 6
+         * Set controlword to 15
+         */
 
-  xQueueSendToBack(can->q_tx, &tx, 100);
+        // Set to pre-op mode
+        tx.StdId = ID_EMDRIVE_NMT_CONTROL;
+        tx.DLC = 2;
+        tx.Data[0] = EMDRIVE_PRE_OP;
+        tx.Data[1] = 0x00;
+        xQueueSendToBack(can->q_tx, &tx, 100);
+
+        // Might be good to add some wait states here
+
+        // Set to op mode
+        tx.Data[0] = EMDRIVE_START;
+        xQueueSendToBack(can->q_tx, &tx, 100);
+
+        // Only move state once we're for sure in operational mode
+        drive->state = OPERATION;
+
+        // Set controlword to 6
+        sendSDO(BYTES_2, CONTROLWORD, 0, 6, can);
+
+        // Set controlword to 15
+        sendSDO(BYTES_2, CONTROLWORD, 0, 15, can);
+    }
+    else if (drive->state == OPERATION && action != EMDRIVE_STOP)
+    {
+        // Set to pre-op mode
+        tx.StdId = ID_EMDRIVE_NMT_CONTROL;
+        tx.DLC = 2;
+        tx.Data[0] = EMDRIVE_PRE_OP;
+        tx.Data[1] = 0x00;
+        xQueueSendToBack(can->q_tx, &tx, 100);
+
+        // Only move state once we're for sure in pre-operational mode
+        drive->state = PRE_OPERATION;
+    }
+
+    // Make sure the torque command is 0 so we don't have any accidents
+    emdrive_move_the_car_yo(0, can);
 }
 
 // @brief: function for parsing the data returned from the emdrive
@@ -92,26 +149,10 @@ void emdrive_parse_pdo(CAN_IDs_t id, uint8_t * data, emdrive_t * drive)
 } 
 
 // @brief: Function for commanding torque from motor controller
-// @author: Chris Fallon
-void emdrive_move_the_car_yo(emdrive_t * drive, int16_t torque, CAN_Bus_TypeDef * can)
+// @author: Chris Fallon & Dawson Moore
+void emdrive_move_the_car_yo(int16_t torque, CAN_Bus_TypeDef * can)
 {
-  CanTxMsgTypeDef tx;
-  tx.StdId = ID_EMDRIVE_MASTER_PDO_1 | NODE_ID; // and with the emdrive ID, set to 1 in the config tool when I wrote this.
-  tx.RTR = CAN_RTR_DATA;
-  tx.IDE = CAN_ID_STD;
-  tx.DLC = 8;
-  tx.Data[0] = 0x0F;
-  tx.Data[1] = 0x00;
-  // don't care, not using velocity control mode
-  for (uint8_t i = 2; i < 6; i++)
-  {
-    tx.Data[i] = 0;
-  }
-  // Apparently this is little endian. that's dumb emdrive.
-  tx.Data[6] = (uint8_t) torque & 0xFF;
-  tx.Data[7] = (torque >> 8) & 0xFF;
-
-  xQueueSendToBack(can->q_tx, &tx, 100);
+    sendSDO(BYTES_2, TORQUE, 0, torque, can);
 }
 
 // @brief: Function which checks the statusword 
