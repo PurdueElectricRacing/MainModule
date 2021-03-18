@@ -68,31 +68,48 @@ void processPedalboxFrame(uint8_t * Data, PedalBox_t * pedalbox)
 void taskPedalBoxMsgHandler(void * params) {
   
   Pedalbox_msg_t pedalboxmsg;   //struct to store pedalbox msg
+  static uint32_t t1min, t1max, t2min, t2max, b1min, b1max, b2min, b2max;   // Declared static for easy init to 0
+
+  t1min = t2min = b1min = b2min = 0xffffffff;
+
   while (1) 
   {
   	BaseType_t queued = xQueuePeek(car.pedalbox.pb_msg_q, &pedalboxmsg, 5);
     if (queued == pdTRUE)
     {
-    	xQueueReceive(car.pedalbox.pb_msg_q, &pedalboxmsg, 5);
+        xQueueReceive(car.pedalbox.pb_msg_q, &pedalboxmsg, 5);
       //get current time in ms
       uint32_t current_time_ms = xTaskGetTickCount() / portTICK_PERIOD_MS;
       // update time stamp, indicates when a pedalbox message was last received
       car.pedalbox.msg_rx_time = current_time_ms;
       
+      /////////////AUTO-RANGING///////////////
+      if (car.state == CAR_STATE_INIT)
+      {
+        t1min = pedalboxmsg.throttle1_raw < t1min ? pedalboxmsg.throttle1_raw : t1min;
+        t2min = pedalboxmsg.throttle2_raw < t2min ? pedalboxmsg.throttle2_raw : t2min;
+        b1min = pedalboxmsg.brake1_raw < b1min ? pedalboxmsg.brake1_raw : b1min;
+        b2min = pedalboxmsg.brake2_raw < b2min ? pedalboxmsg.brake2_raw : b2min;
+
+        t1max = pedalboxmsg.throttle1_raw > t1max ? pedalboxmsg.throttle1_raw : t1max;
+        t2max = pedalboxmsg.throttle2_raw > t2max ? pedalboxmsg.throttle2_raw : t2max;
+        b1max = pedalboxmsg.brake1_raw > b1max ? pedalboxmsg.brake1_raw : b1max;
+        b2max = pedalboxmsg.brake2_raw > b2max ? pedalboxmsg.brake2_raw : b2max;
+      }
+
       /////////////PROCESS DATA///////////////    
       //value 0-1, throttle 1 calibrated between min and max  
-      float throttle1_cal = ((float)(pedalboxmsg.throttle1_raw - THROTTLE_1_MIN)) / (THROTTLE_1_MAX - THROTTLE_1_MIN);
+      float throttle1_cal = ((float)(pedalboxmsg.throttle1_raw - t1min)) / (t1max - t1min);
       //value 0-1, throttle 2 calibrated between min and max
-      float throttle2_cal = ((float)(pedalboxmsg.throttle2_raw - THROTTLE_2_MIN)) / (THROTTLE_2_MAX - THROTTLE_2_MIN);
+      float throttle2_cal = ((float)(pedalboxmsg.throttle2_raw - t2min)) / (t2max - t2min);
       //value 0-1, brake 1 calibrated between min and max  
-      float brake1_cal   = ((float)(pedalboxmsg.brake1_raw - BRAKE_1_MIN)) / (BRAKE_1_MAX - BRAKE_1_MIN);
+      float brake1_cal   = ((float)(pedalboxmsg.brake1_raw - b1min)) / (b1max - b1min);
       //value 0-1, brake 2 calibrated between min and max 
-      float brake2_cal   = ((float)(pedalboxmsg.brake2_raw - BRAKE_2_MIN)) / (BRAKE_2_MAX - BRAKE_2_MIN);
+      float brake2_cal   = ((float)(pedalboxmsg.brake2_raw - b2min)) / (b2max - b2min);
 
       float throttle_avg = (throttle1_cal + throttle2_cal) / 2.0;
       float brake_avg    = (brake1_cal + brake2_cal) / 2.0;
       uint32_t avg_speed = (car.wheels.RL_rpm + car.wheels.RR_rpm) / 2.0;
-      
       
       // T 6.2.8: Any failure of APPS must be detectable and treated as an implausibility
       if (pedalboxmsg.throttle1_raw >= THROTTLE_1_MIN
@@ -121,7 +138,7 @@ void taskPedalBoxMsgHandler(void * params) {
       {
         //if error is persistent
         if (car.pedalbox.apps_state_imp == PEDALBOX_STATUS_ERROR_APPSIMP_PREV)
-        { 
+        {
           //if time between first error and this error >= 100ms
           if (car.apps_imp_first_time_ms - current_time_ms >= 100)
           {
