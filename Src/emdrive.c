@@ -1,5 +1,9 @@
 #include "emdrive.h"
+#include "car.h"
+#include "main.h"
 #include <string.h>
+
+extern volatile Car_t car;
 
 // @brief: Init function
 // @author: Chris Fallon
@@ -49,10 +53,10 @@ static void sendSDO(emdrive_sdo_size_t size, uint16_t od, uint8_t sub_od, uint32
     // Reverse the bytes
     for (i = 0; i < 4; i++)
     {
-        tx.Data[i] = (uint8_t) (data >> (i * 8));
+        tx.Data[i + 4] = (uint8_t) (data >> (i * 8));
     }
 
-    xQueueSendToBack(can->q_tx, &tx, 100);
+    xQueueSendToBack(can->q_tx, &tx, 1000);
 }
 
 // @brief: Function for sending config parameters to the emdrive
@@ -80,13 +84,14 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_Typ
          */
 
         // Set to pre-op mode
-        tx.StdId = ID_EMDRIVE_NMT_CONTROL;
+        tx.StdId = 0x00;
         tx.DLC = 2;
         tx.Data[0] = EMDRIVE_PRE_OP;
         tx.Data[1] = 0x00;
         xQueueSendToBack(can->q_tx, &tx, 100);
 
         // Might be good to add some wait states here
+        vTaskDelay(200);
 
         // Set to op mode
         tx.Data[0] = EMDRIVE_START;
@@ -95,8 +100,12 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_Typ
         // Only move state once we're for sure in operational mode
         drive->state = OPERATION;
 
+        vTaskDelay(200);
+
         // Set controlword to 6
         sendSDO(BYTES_2, CONTROLWORD, 0, 6, can);
+
+        vTaskDelay(200);
 
         // Set controlword to 15
         sendSDO(BYTES_2, CONTROLWORD, 0, 15, can);

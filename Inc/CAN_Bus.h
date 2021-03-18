@@ -26,7 +26,7 @@ typedef enum
 
 
   ID_BMS_DCL     = 0x03C,
-  ID_MAIN        = 0x420,
+  ID_MAIN        = 0x102,
   ID_DASHBOARD   = 0x350,
   ID_DASHBOARD1  = 0x351,
   ID_POWER_LIMIT = 0x352,
