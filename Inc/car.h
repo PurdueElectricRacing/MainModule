@@ -36,7 +36,7 @@
 #define BUZZER_DELAY          pdMS_TO_TICKS(2000)
 #define MAX_BRAKE_LEVEL       0xFFF
 #define BOOST_MODE_TORQUE     24000 //240 Nm NOT SURE IF THIS IS RIGHT
-#define MAX_CONTINUOUS_TORQUE 16000 // 125 Nm continuous
+#define MAX_CONTINUOUS_TORQUE 1000 // 125 Nm continuous
 #define MAX_REGEN_TORQUE      -35
 #define DONT_CARE             0
 

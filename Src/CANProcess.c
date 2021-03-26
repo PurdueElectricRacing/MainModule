@@ -103,7 +103,15 @@ void task_RX_CAN(void * params) {
           emdrive_parse_pdo(rx.StdId, rx.Data, (emdrive_t *) &car.emdrive);
           break;
         }
+        case ID_PCH_ERR:
+        {
+            if (rx.Data[0] == 0x1)
+            {
+                car.state = CAR_STATE_ERROR;
+            }
 
+            break;
+        }
       }
     }
     
@@ -142,7 +150,7 @@ void task_RX_CAN(void * params) {
     }
     HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
 
-//    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(1));
+    vTaskDelayUntil(&last_tick, pdMS_TO_TICKS(10));
   }
   vTaskDelete(NULL);
 }

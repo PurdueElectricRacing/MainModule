@@ -96,33 +96,50 @@ void taskPedalBoxMsgHandler(void * params) {
         b1max = pedalboxmsg.brake1_raw > b1max ? pedalboxmsg.brake1_raw : b1max;
         b2max = pedalboxmsg.brake2_raw > b2max ? pedalboxmsg.brake2_raw : b2max;
       }
+      else
+      {
+        if (t1max - t1min < 500 || t2max - t2min)
+        {
+            t1max = 1;
+            t1min = 1;
+            t2max = 1;
+            t2min = 1;
+        }
+        if (b1max - b1min < 500 || b2max - b2min)
+        {
+            b1max = 1;
+            b1min = 1;
+            b2max = 1;
+            b2min = 1;
+        }
+      }
 
       /////////////PROCESS DATA///////////////    
       //value 0-1, throttle 1 calibrated between min and max  
-      float throttle1_cal = ((float)(pedalboxmsg.throttle1_raw - t1min)) / (t1max - t1min);
+      float throttle1_cal = ((float)(abs(pedalboxmsg.throttle1_raw - t1min))) / (t1max - t1min);
       //value 0-1, throttle 2 calibrated between min and max
-      float throttle2_cal = ((float)(pedalboxmsg.throttle2_raw - t2min)) / (t2max - t2min);
+      float throttle2_cal = ((float)(abs(pedalboxmsg.throttle2_raw - t2min))) / (t2max - t2min);
       //value 0-1, brake 1 calibrated between min and max  
-      float brake1_cal   = ((float)(pedalboxmsg.brake1_raw - b1min)) / (b1max - b1min);
+      float brake1_cal   = ((float)(abs(pedalboxmsg.brake1_raw - b1min))) / (b1max - b1min);
       //value 0-1, brake 2 calibrated between min and max 
-      float brake2_cal   = ((float)(pedalboxmsg.brake2_raw - b2min)) / (b2max - b2min);
+      float brake2_cal   = ((float)(abs(pedalboxmsg.brake2_raw - b2min))) / (b2max - b2min);
 
       float throttle_avg = (throttle1_cal + throttle2_cal) / 2.0;
       float brake_avg    = (brake1_cal + brake2_cal) / 2.0;
       uint32_t avg_speed = (car.wheels.RL_rpm + car.wheels.RR_rpm) / 2.0;
       
       // T 6.2.8: Any failure of APPS must be detectable and treated as an implausibility
-      if (pedalboxmsg.throttle1_raw >= THROTTLE_1_MIN
-      		|| pedalboxmsg.throttle1_raw <= THROTTLE_1_MAX
-					|| pedalboxmsg.throttle2_raw >= THROTTLE_2_MIN
-					|| pedalboxmsg.throttle2_raw <= THROTTLE_2_MAX)
-      {
-        car.pedalbox.apps_state_eor = PEDALBOX_STATUS_ERROR_EOR;
-      }
-      else
-      {
-        car.pedalbox.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
-      }
+//      if (pedalboxmsg.throttle1_raw >= THROTTLE_1_MIN
+//      		|| pedalboxmsg.throttle1_raw <= THROTTLE_1_MAX
+//					|| pedalboxmsg.throttle2_raw >= THROTTLE_2_MIN
+//					|| pedalboxmsg.throttle2_raw <= THROTTLE_2_MAX)
+//      {
+//        car.pedalbox.apps_state_eor = PEDALBOX_STATUS_ERROR_EOR;
+//      }
+//      else
+//      {
+//        car.pedalbox.apps_state_eor = PEDALBOX_STATUS_NO_ERROR;
+//      }
       
 
       //T.6.2.3 Implausibility is defined as a deviation of more than 10% pedal travel between the sensors or
@@ -134,28 +151,28 @@ void taskPedalBoxMsgHandler(void * params) {
       //controller(s) shutting down the power to the motor(s) is sufficient. 
 
       //Motor is shutdown in car.c when a Pedalbox error is seen
-      if (fabs(throttle1_cal - throttle2_cal) > THROTTLE_SENSOR_PLAUS_THRESH)
-      {
-        //if error is persistent
-        if (car.pedalbox.apps_state_imp == PEDALBOX_STATUS_ERROR_APPSIMP_PREV)
-        {
-          //if time between first error and this error >= 100ms
-          if (car.apps_imp_first_time_ms - current_time_ms >= 100)
-          {
-            car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP;
-          }
-        }
-        else
-        {  //else this is the first message to have an imp error
-          //record the time
-          car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP_PREV;
-          car.apps_imp_first_time_ms = current_time_ms;
-        }
-      }
-      else
-      {
-        car.pedalbox.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
-      }
+//      if (fabs(throttle1_cal - throttle2_cal) > THROTTLE_SENSOR_PLAUS_THRESH)
+//      {
+//        //if error is persistent
+//        if (car.pedalbox.apps_state_imp == PEDALBOX_STATUS_ERROR_APPSIMP_PREV)
+//        {
+//          //if time between first error and this error >= 100ms
+//          if (car.apps_imp_first_time_ms - current_time_ms >= 100)
+//          {
+//            car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP;
+//          }
+//        }
+//        else
+//        {  //else this is the first message to have an imp error
+//          //record the time
+//          car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP_PREV;
+//          car.apps_imp_first_time_ms = current_time_ms;
+//        }
+//      }
+//      else
+//      {
+//        car.pedalbox.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
+//      }
       
       
 //    BRAKE PLAUSIBILITY check
@@ -165,31 +182,36 @@ void taskPedalBoxMsgHandler(void * params) {
       // must be demonstrated when the motor controllers are under load.
       // EV.2.4.2 The motor power shut down must remain active until the APPS signals less than 5% pedal
       // travel, whether the brakes are still actuated or not.
-      if (throttle_avg >= .25 && brake_avg >= BRAKE_PRESSED_THRESHOLD)
-      {
-        car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR_BPIMP;
-      }
-      else if (throttle_avg <= APPS_BP_PLAUS_RESET_THRESHOLD)
-      { //latch until this condition
-        //EV 2.5.1, reset apps-brake pedal plausibility error only if throttle level is less than the .05
-        car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_NO_ERROR;
-      }
+//      if (throttle_avg >= .25 && brake_avg >= BRAKE_PRESSED_THRESHOLD)
+//      {
+//        car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR_BPIMP;
+//      }
+//      else if (throttle_avg <= APPS_BP_PLAUS_RESET_THRESHOLD)
+//      { //latch until this condition
+//        //EV 2.5.1, reset apps-brake pedal plausibility error only if throttle level is less than the .05
+//        car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_NO_ERROR;
+//      }
       
       
 // set car variables
       car.brake = brake_avg;
       // TODO edit this to not be hardcoded values
       // should be able to remove these parameters with pb filtering
+
+      if (car.throttle_acc == 0 && throttle_avg >= 0.9)
+      {
+          HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
+      }
       if (throttle_avg > THROTTLE_LOWER_BOUND)
       {
         if (throttle_avg >= 0.9)
         {
-          car.throttle_acc = MAX_CONTINUOUS_TORQUE;
+          car.throttle_acc = MAX_CONTINUOUS_TORQUE / 100;
         }
         else
         {
           //no errors, set throttle to value received from pedalbox
-          car.throttle_acc = ((throttle_avg - 0.1) * MAX_CONTINUOUS_TORQUE / 0.8);
+          car.throttle_acc = ((throttle_avg - 0.1) * MAX_CONTINUOUS_TORQUE / 0.8) / 100;
         }
 
       }

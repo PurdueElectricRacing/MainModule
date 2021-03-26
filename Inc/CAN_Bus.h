@@ -63,11 +63,13 @@ typedef enum
   ID_R_UCA = 0x41C,
   ID_F_ARB = 0x41D,
   ID_R_ARB = 0x41E,
-  ID_F_IMU = 0x421,
+  ID_F_IMU = 0x104,
   ID_ENABLE_DAQ  = 0x425,
   ID_FRONT_ERROR = 0x423,
   ID_REAR_ERROR  = 0x424,
   
+  ID_PCH_ERR = 0x103,
+
 } CAN_IDs_t;
 
 typedef enum

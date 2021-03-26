@@ -110,7 +110,7 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_Typ
         // Set controlword to 15
         sendSDO(BYTES_2, CONTROLWORD, 0, 15, can);
     }
-    else if (drive->state == OPERATION && action != EMDRIVE_STOP)
+    else if (drive->state == OPERATION && action == EMDRIVE_STOP)
     {
         // Set to pre-op mode
         tx.StdId = ID_EMDRIVE_NMT_CONTROL;

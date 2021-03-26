@@ -103,8 +103,7 @@ void ISR_StartButtonPressed()
 {
   if (car.state == CAR_STATE_INIT)
   {
-    if (car.brake >= BRAKE_PRESSED_THRESHOLD   //check if brake is pressed before starting car
-        && HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) //check if precharge has finished
+    if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE) //check if precharge has finished
   	{
   		car.state = CAR_STATE_PREREADY2DRIVE;
       //send acknowledge message to dashboard
@@ -219,6 +218,10 @@ void taskCarMainRoutine()
 
         //assert these pins always
         HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); //close SDC
+      }
+      else if (car.state == CAR_STATE_ERROR)
+      {
+        HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_RESET); // Open SDC
       }
       else if (car.state == CAR_STATE_PREREADY2DRIVE)
       {
