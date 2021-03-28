@@ -72,6 +72,11 @@ void taskPedalBoxMsgHandler(void * params) {
 
   t1min = t2min = b1min = b2min = 0xffffffff;
 
+  t1max = 2000;
+  t2max = 700;
+  b1max = 1500;
+  b2max = 1000;
+
   while (1) 
   {
   	BaseType_t queued = xQueuePeek(car.pedalbox.pb_msg_q, &pedalboxmsg, 5);

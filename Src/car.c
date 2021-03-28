@@ -27,8 +27,8 @@ extern volatile Car_t car;
 
 void carInit(CAN_HandleTypeDef * vcan, CAN_HandleTypeDef * dcan)
 {
-   // set dcdc pin high, active low logic
-  HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET);
+   // DCDCs are Disabled when control signal is low
+  HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET);
 
   car.state = CAR_STATE_INIT;
   car.throttle_acc = 0;
@@ -222,11 +222,12 @@ void taskCarMainRoutine()
       else if (car.state == CAR_STATE_ERROR)
       {
         HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_RESET); // Open SDC
+        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET);
       }
       else if (car.state == CAR_STATE_PREREADY2DRIVE)
       {
 
-        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET); //enable the DCDC's
+        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET); //enable the DCDC's
         vTaskDelay(500); //account for the DCDC delay turn on
 
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_SET); //turn on pump
@@ -287,7 +288,7 @@ void taskCarMainRoutine()
       }
       else if (car.state == CAR_STATE_RESET)
       {
-        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_SET); //disable the DCDC's
+        HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET); //disable the DCDC's
         HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET);
         emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
 
