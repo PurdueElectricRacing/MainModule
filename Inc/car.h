@@ -31,14 +31,13 @@
 #define PERIOD_TORQUE_SEND    pdMS_TO_TICKS(25)
 #define HEARTBEAT_PULSEWIDTH  pdMS_TO_TICKS(200)
 #define HEARTBEAT_PERIOD      pdMS_TO_TICKS(500)
-#define PEDALBOX_TIMEOUT      pdMS_TO_TICKS(1000)
+#define PEDALBOX_TIMEOUT      pdMS_TO_TICKS(250)
 #define POLL_DELAY            pdMS_TO_TICKS(50)
 #define BUZZER_DELAY          pdMS_TO_TICKS(2000)
-#define MAX_BRAKE_LEVEL       0xFFF
-#define BOOST_MODE_TORQUE     24000 //240 Nm NOT SURE IF THIS IS RIGHT
-#define MAX_CONTINUOUS_TORQUE 1000 // 125 Nm continuous
-#define MAX_REGEN_TORQUE      -35
-#define DONT_CARE             0
+#define MAX_BRAKE_LEVEL       (0xFFF)
+#define MAX_CONTINUOUS_TORQUE (1000)
+#define MAX_REGEN_TORQUE      (0)
+#define DONT_CARE             (0)
 
 #define GREAT 1
 #define PER GREAT
@@ -115,10 +114,8 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
-
-
-
-
+void setDCDCEnabled(uint8_t enabled);
+void setFanSpeed(uint8_t speed);
 
 
 #endif /* CAR_H_ */

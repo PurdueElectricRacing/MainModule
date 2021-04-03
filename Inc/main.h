@@ -80,6 +80,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -114,12 +116,12 @@ void Error_Handler(void);
 #define B1_GPIO_Port GPIOA
 #define I2S3_WS_Pin GPIO_PIN_4
 #define I2S3_WS_GPIO_Port GPIOA
+#define BATT_FAN_Pin GPIO_PIN_1
+#define BATT_FAN_GPIO_Port GPIOB
 #define BOOT1_Pin GPIO_PIN_2
 #define BOOT1_GPIO_Port GPIOB
 #define BRAKE_LIGHT_Pin GPIO_PIN_7
 #define BRAKE_LIGHT_GPIO_Port GPIOE
-#define BATT_FAN_Pin GPIO_PIN_10
-#define BATT_FAN_GPIO_Port GPIOE
 #define RFE_Pin GPIO_PIN_11
 #define RFE_GPIO_Port GPIOE
 #define FRG_RUN_Pin GPIO_PIN_12

@@ -3,8 +3,6 @@
 #include "main.h"
 #include <string.h>
 
-extern volatile Car_t car;
-
 // @brief: Init function
 // @author: Chris Fallon
 void emdrive_init(emdrive_t * drive)
@@ -71,7 +69,12 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_Typ
 
     if (drive->state == PRE_OPERATION && action == EMDRIVE_STOP)
     {
-        return;
+    	// Set to pre-op mode
+		tx.StdId = ID_EMDRIVE_NMT_CONTROL;
+		tx.DLC = 2;
+		tx.Data[0] = EMDRIVE_PRE_OP;
+		tx.Data[1] = 0x00;
+		xQueueSendToBack(can->q_tx, &tx, 100);
     }
     else if (drive->state == PRE_OPERATION && action == EMDRIVE_START)
     {
@@ -84,7 +87,7 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_Typ
          */
 
         // Set to pre-op mode
-        tx.StdId = 0x00;
+        tx.StdId = ID_EMDRIVE_NMT_CONTROL;
         tx.DLC = 2;
         tx.Data[0] = EMDRIVE_PRE_OP;
         tx.Data[1] = 0x00;

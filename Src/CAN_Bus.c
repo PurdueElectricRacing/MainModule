@@ -26,7 +26,7 @@ void init_can_bus(CAN_Bus_TypeDef * bus, CAN_HandleTypeDef * hcan, uint16_t rx_q
 // @author: Chris Fallon
 HAL_StatusTypeDef broadcast_can_msg(CanTxMsgTypeDef * tx, CAN_HandleTypeDef * can)
 {
-  CAN_TxHeaderTypeDef header;
+  CAN_TxHeaderTypeDef header = {0};
   header.DLC = tx->DLC;
   header.IDE = tx->IDE;
   header.RTR = tx->RTR;
@@ -34,8 +34,7 @@ HAL_StatusTypeDef broadcast_can_msg(CanTxMsgTypeDef * tx, CAN_HandleTypeDef * ca
   header.TransmitGlobalTime = DISABLE;
   uint32_t mailbox;
   while (!HAL_CAN_GetTxMailboxesFreeLevel(can)); // while mailboxes not free
-  return HAL_CAN_AddTxMessage(can, &header, tx->Data, &mailbox);
-//  HAL_CAN_Transmit_IT(can);
+  return HAL_CAN_AddTxMessage(can, &header, tx->Data, &mailbox);;
 }
 
 extern CAN_HandleTypeDef hcan1;
