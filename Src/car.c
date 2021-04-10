@@ -107,12 +107,12 @@ void ISR_StartButtonPressed()
 			car.state = CAR_STATE_PREREADY2DRIVE;
 
 			//send acknowledge message to dashboard
-			send_ack(ID_DASHBOARD_ACK, 1, (CAN_Bus_TypeDef *) &car.vcan);
+//			send_ack(ID_DASHBOARD_ACK, 1, (CAN_Bus_TypeDef *) &car.vcan);
 		}
 	}
 	else {
 		car.state = CAR_STATE_RESET;
-		send_ack(ID_DASHBOARD_ACK, 2, (CAN_Bus_TypeDef *) &car.vcan);
+//		send_ack(ID_DASHBOARD_ACK, 2, (CAN_Bus_TypeDef *) &car.vcan);
 	}
 }
 
@@ -132,17 +132,17 @@ void taskHeartbeat(void * params)
 
 		int hv_active_status = HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin);
 		// if HV is on, enable LV charging circuit
-		if(hv_active_status == GPIO_PIN_SET)
-		{
-			HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
-			vTaskDelay(500);
-		}
+//		if(hv_active_status == GPIO_PIN_SET)
+//		{
+//			HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_SET);
+//		}
+//		else
+//		{
+//			HAL_GPIO_WritePin(LV_BATT_CHARGER_ENABLE_GPIO_Port, LV_BATT_CHARGER_ENABLE_Pin, GPIO_PIN_RESET);
+//			vTaskDelay(500);
+//		}
 		// blink LED to show main is alive
-		HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
+//		HAL_GPIO_TogglePin(LD5_GPIO_Port, LD5_Pin);
 		// create Main status message and add to queue
 		CanTxMsgTypeDef tx;
 		tx.IDE = CAN_ID_STD;
@@ -156,17 +156,10 @@ void taskHeartbeat(void * params)
 
 		// if precharge is complete, turn on orange LED and send a 1 in the second byte of heartbeat message
 		if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
-		{
 			tx.Data[2] = 1;
-			HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
-		}
 
 		xQueueSendToBack(car.vcan.q_tx, &tx, 100);
-		xQueueSendToBack(car.dcan.q_tx, &tx, 100);
+//		xQueueSendToBack(car.dcan.q_tx, &tx, 100);
 
 
 		vTaskDelayUntil(&last_wake, HEARTBEAT_PERIOD);
@@ -221,7 +214,6 @@ void taskCarMainRoutine()
 
 			// Assert these pins always
 			HAL_GPIO_WritePin(SDC_CTRL_GPIO_Port, SDC_CTRL_Pin, GPIO_PIN_SET); // Close SDC
-			setDCDCEnabled(0);
 		}
 		else if (car.state == CAR_STATE_ERROR)
 		{
@@ -275,7 +267,7 @@ void taskCarMainRoutine()
 				}
 
 				// Check Temps here
-				setFanSpeed(10);
+				setFanSpeed(0);
 
 				emdrive_move_the_car_yo(torque_to_send, (CAN_Bus_TypeDef *) &car.vcan);
 				//wait until Constant 50 Hz rate
@@ -305,7 +297,7 @@ void taskCarMainRoutine()
 // Disables/Enables DCDC's and other high power modules which require it.
 void setDCDCEnabled(uint8_t enabled)
 {
-	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) == (GPIO_PinState) PC_COMPLETE)
+	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
 	{
 		// Only allow for DCDCs to turn on if we have precharged
 		enabled = 0;
@@ -316,12 +308,10 @@ void setDCDCEnabled(uint8_t enabled)
 		setFanSpeed(0);
 	}
 
-	GPIO_PinState active_high = enabled ? GPIO_PIN_SET : GPIO_PIN_RESET;
-	uint8_t dcdc_already_enabled = HAL_GPIO_ReadPin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin) == GPIO_PIN_SET;
-
+	GPIO_PinState active_high = (enabled) ? GPIO_PIN_SET : GPIO_PIN_RESET;
 	HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, active_high);
 	// Only need to delay if we are turning on the DCDCs
-	if (enabled & !dcdc_already_enabled)
+	if (enabled)
 		vTaskDelay(500 / portTICK_RATE_MS);
 
 	HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, active_high);
@@ -341,5 +331,5 @@ void soundBuzzer(int time_ms)
 void setFanSpeed(uint8_t speed)
 {
 	// TIM3 reloads at 20kHz, duty cycle
-	TIM3->CCR1 = speed > 100 ? 100 : speed;
+	TIM3->CCR4 = speed > 100 ? 100 : speed;
 }

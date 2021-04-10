@@ -140,29 +140,29 @@ void taskPedalBoxMsgHandler(void * params) {
 			//controller(s) shutting down the power to the motor(s) is sufficient.
 
 			//Motor is shutdown in car.c when a Pedalbox error is seen
-			if (fabs(throttle1_cal - throttle2_cal) > THROTTLE_SENSOR_PLAUS_THRESH)
-			{
-				//if error is persistent
-				if (car.pedalbox.apps_state_imp == PEDALBOX_STATUS_ERROR_APPSIMP_PREV)
-				{
-					//if time between first error and this error >= 100ms
-					if (car.apps_imp_first_time_ms - current_time_ms >= 100)
-					{
-						car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP;
-					}
-				}
-				else
-				{
-					//else this is the first message to have an imp error
-					//record the time
-					car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP_PREV;
-					car.apps_imp_first_time_ms = current_time_ms;
-				}
-			}
-			else
-			{
-				car.pedalbox.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
-			}
+//			if (fabs(throttle1_cal - throttle2_cal) > THROTTLE_SENSOR_PLAUS_THRESH)
+//			{
+//				//if error is persistent
+//				if (car.pedalbox.apps_state_imp == PEDALBOX_STATUS_ERROR_APPSIMP_PREV)
+//				{
+//					//if time between first error and this error >= 100ms
+//					if (car.apps_imp_first_time_ms - current_time_ms >= 100)
+//					{
+//						car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP;
+//					}
+//				}
+//				else
+//				{
+//					//else this is the first message to have an imp error
+//					//record the time
+//					car.pedalbox.apps_state_imp = PEDALBOX_STATUS_ERROR_APPSIMP_PREV;
+//					car.apps_imp_first_time_ms = current_time_ms;
+//				}
+//			}
+//			else
+//			{
+//				car.pedalbox.apps_state_imp = PEDALBOX_STATUS_NO_ERROR;
+//			}
 
 
 			//    BRAKE PLAUSIBILITY check
@@ -172,15 +172,15 @@ void taskPedalBoxMsgHandler(void * params) {
 			// must be demonstrated when the motor controllers are under load.
 			// EV.2.4.2 The motor power shut down must remain active until the APPS signals less than 5% pedal
 			// travel, whether the brakes are still actuated or not.
-			if (throttle_avg >= 0.25f && brake_avg >= BRAKE_PRESSED_THRESHOLD)
-			{
-				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR_BPIMP;
-			}
-			else if (throttle_avg <= APPS_BP_PLAUS_RESET_THRESHOLD) // latch until this condition
-			{
-				//EV 2.5.1, reset apps-brake pedal plausibility error only if throttle level is less than the .05
-				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_NO_ERROR;
-			}
+//			if (throttle_avg >= 0.25f && brake_avg >= BRAKE_PRESSED_THRESHOLD)
+//			{
+//				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR_BPIMP;
+//			}
+//			else if (throttle_avg <= APPS_BP_PLAUS_RESET_THRESHOLD) // latch until this condition
+//			{
+//				//EV 2.5.1, reset apps-brake pedal plausibility error only if throttle level is less than the .05
+//				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_NO_ERROR;
+//			}
 
 
 			// Set car variables used in car.c
