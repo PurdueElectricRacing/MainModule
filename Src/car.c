@@ -94,6 +94,10 @@ void initRTOSObjects()
 	{
 		Error_Handler();
 	}
+	if (xTaskCreate(taskSetFanSpeed, "Fan Speed", DEFAULT_STACK_SIZE, NULL, DEFAULT_PRIORITY, NULL) != pdPASS)
+    {
+        Error_Handler();
+    }
 	HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
 }
 
@@ -168,13 +172,13 @@ void taskHeartbeat(void * params)
 	vTaskDelete(NULL);
 }
 
-
 void taskCarMainRoutine()
 {
 	//Initializations for Traction Control
 	uint32_t last_time_tc = 0;
 	uint16_t int_term_tc = 0;
 	uint16_t prev_trq_tc = 0;
+	uint16_t max_throttle = 0;
 	TickType_t current_tick_time;
 
 	while (PER == GREAT)
@@ -205,6 +209,13 @@ void taskCarMainRoutine()
 			HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
 		}
 
+		if (car.dcdc_state == 1)
+		{
+		    car.fan = 50;
+		} else {
+		    car.fan = 0;
+		}
+
 		// *******
 		// State Dependent Block
 		// *******
@@ -222,7 +233,8 @@ void taskCarMainRoutine()
 		}
 		else if (car.state == CAR_STATE_PREREADY2DRIVE)
 		{
-			setDCDCEnabled(1);
+		    car.dcdc_state = 1;
+			setDCDCEnabled();
 			emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
 			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
@@ -266,8 +278,10 @@ void taskCarMainRoutine()
 					torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
 				}
 
-				// Check Temps here
-				setFanSpeed(0);
+				if (torque_to_send > max_throttle)
+				{
+				    max_throttle = torque_to_send;
+				}
 
 				emdrive_move_the_car_yo(torque_to_send, (CAN_Bus_TypeDef *) &car.vcan);
 				//wait until Constant 50 Hz rate
@@ -277,13 +291,15 @@ void taskCarMainRoutine()
 		else if (car.state == CAR_STATE_RESET)
 		{
 			emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
-			setDCDCEnabled(0);
+			car.dcdc_state = 0;
+			setDCDCEnabled();
 			car.state = CAR_STATE_INIT;
 		}
 		else if (car.state == CAR_STATE_RECOVER)
 		{
 			emdrive_control(EMDRIVE_STOP, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
-			setDCDCEnabled(1);
+			car.dcdc_state = 1;
+			setDCDCEnabled();
 			emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
 			car.state = CAR_STATE_READY2DRIVE;
 		}
@@ -295,26 +311,56 @@ void taskCarMainRoutine()
 
 // @funcname setDCDCEnabled
 // Disables/Enables DCDC's and other high power modules which require it.
-void setDCDCEnabled(uint8_t enabled)
+void setDCDCEnabled()
 {
 	if (HAL_GPIO_ReadPin(P_AIR_STATUS_GPIO_Port, P_AIR_STATUS_Pin) != (GPIO_PinState) PC_COMPLETE)
 	{
 		// Only allow for DCDCs to turn on if we have precharged
-		enabled = 0;
+		car.dcdc_state = 0;
 	}
 
-	if (!enabled)
+	if (!car.dcdc_state)
 	{
-		setFanSpeed(0);
+		car.fan = 0;
 	}
 
-	GPIO_PinState active_high = (enabled) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+	GPIO_PinState active_high = (car.dcdc_state) ? GPIO_PIN_SET : GPIO_PIN_RESET;
 	HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, active_high);
 	// Only need to delay if we are turning on the DCDCs
-	if (enabled)
+	if (car.dcdc_state)
 		vTaskDelay(500 / portTICK_RATE_MS);
 
 	HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, active_high);
+}
+
+// @funcname taskSetFanSpeed
+// @param speed - Value 0-100 % fan duty cycle
+void taskSetFanSpeed()
+{
+    int8_t     delta;
+    uint8_t    speed;
+    uint8_t    last_speed = 0;
+    TickType_t current_tick_time;
+
+    while (PER == GREAT)
+    {
+        speed = car.fan;                            // Copy fan command so we don't change it
+        delta = last_speed - speed;                 // Calculate the delta from command to actual
+
+        if (delta < 0)                              // Check if the delta is too low
+        {
+            speed = ++last_speed;                   // Increment the speed commanded
+        }
+        else if (delta > 0)                         // Check if the delta is too high
+        {
+            speed = --last_speed;                   // Decrement the speed commanded
+        }
+
+        // TIM3 reloads at 20kHz, duty cycle
+        TIM3->CCR4 = speed > 100 ? 100 : speed;     // Set output level for fan driver
+
+        vTaskDelayUntil(&current_tick_time, pdMS_TO_TICKS(5));
+    }
 }
 
 // @funcname soundBuzzer
@@ -324,12 +370,4 @@ void soundBuzzer(int time_ms)
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET); //turn on buzzer
 	vTaskDelay((uint32_t) time_ms / portTICK_RATE_MS);
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET); //turn off buzzer
-}
-
-// @funcname setFanSpeed
-// @param speed - Value 0-100 % fan duty cycle
-void setFanSpeed(uint8_t speed)
-{
-	// TIM3 reloads at 20kHz, duty cycle
-	TIM3->CCR4 = speed > 100 ? 100 : speed;
 }

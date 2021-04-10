@@ -90,7 +90,9 @@ typedef struct
   PedalBox_t pedalbox;
   wheel_module_t wheels;
 
-  uint8_t  errorFlags;
+  uint8_t       errorFlags;
+  uint8_t       dcdc_state;
+  uint8_t       fan;
   //calibration values
   int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
@@ -114,8 +116,8 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
-void setDCDCEnabled(uint8_t enabled);
-void setFanSpeed(uint8_t speed);
+void setDCDCEnabled();
+void taskSetFanSpeed();
 
 
 #endif /* CAR_H_ */
