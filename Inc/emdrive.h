@@ -69,6 +69,8 @@ enum
 {
     CONTROLWORD = 0x6040,
     TORQUE = 0x6071,
+    TORQUE_ACTUAL = 0x6077,
+    VELOCITY_VALUE_ACTUAL = 0x606C,
 } emdrive_dict_obj;
 
 typedef struct
@@ -110,6 +112,7 @@ void emdrive_init(emdrive_t * drive);
 void emdrive_control(emdrive_nmt_command_t action, emdrive_t * drive, CAN_Bus_TypeDef * can);
 void emdrive_parse_pdo(CAN_IDs_t id, uint8_t * data, emdrive_t * drive);
 void emdrive_move_the_car_yo(int16_t torque, CAN_Bus_TypeDef * can);
+void getSDO(uint16_t od, uint8_t sub_od, CAN_Bus_TypeDef* can);
 emdrive_err_t emdrive_check_statusword(emdrive_t * drive);
 
 #endif

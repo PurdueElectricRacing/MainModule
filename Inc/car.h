@@ -116,6 +116,7 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
+int16_t rampTorque(int16_t torque);
 void setDCDCEnabled();
 void taskSetFanSpeed();
 

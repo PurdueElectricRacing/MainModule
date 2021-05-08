@@ -198,7 +198,7 @@ void taskCarMainRoutine()
 			// EV 2.5, check if the throttle level is greater than 25% while brakes are on
 			if (car.throttle_acc > APPS_BP_PLAUS_THRESHOLD)
 			{
-				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR;
+				//car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR;
 			} else {
 				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_NO_ERROR;
 			}
@@ -233,11 +233,11 @@ void taskCarMainRoutine()
 		}
 		else if (car.state == CAR_STATE_PREREADY2DRIVE)
 		{
-		    car.dcdc_state = 1;
-			setDCDCEnabled();
 			emdrive_control(EMDRIVE_START, (emdrive_t *) &car.emdrive, (CAN_Bus_TypeDef *) &car.vcan);
 			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
+			car.dcdc_state = 1;
+            setDCDCEnabled();
 		}
 		else if (car.state == CAR_STATE_READY2DRIVE)
 		{
@@ -269,6 +269,8 @@ void taskCarMainRoutine()
 				{
 					torque_to_send = 0;
 				}
+
+				//torque_to_send = rampTorque(torque_to_send);
 
 				if (car.power_limit.enabled == true) {
 					torque_to_send = limit_torque(torque_to_send, &car.bms, &car.power_limit);
@@ -309,6 +311,30 @@ void taskCarMainRoutine()
 	vTaskDelete(NULL);
 }
 
+// @funcname rampTorque()
+// Slowly ramps up torque command
+int16_t rampTorque(int16_t torque)
+{
+    // Locals
+    int16_t        ret_torque;
+    static int16_t saved_torque;
+
+    ret_torque = saved_torque;
+    if (torque > saved_torque)
+    {
+        saved_torque += 20;
+        ret_torque = saved_torque;
+    }
+    else if (torque < saved_torque)
+    {
+        ret_torque = torque;
+    }
+
+    saved_torque = ret_torque;
+
+    return ret_torque;
+}
+
 // @funcname setDCDCEnabled
 // Disables/Enables DCDC's and other high power modules which require it.
 void setDCDCEnabled()
@@ -325,7 +351,7 @@ void setDCDCEnabled()
 	}
 
 	GPIO_PinState active_high = (car.dcdc_state) ? GPIO_PIN_SET : GPIO_PIN_RESET;
-	HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, active_high);
+	HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET);
 	// Only need to delay if we are turning on the DCDCs
 	if (car.dcdc_state)
 		vTaskDelay(500 / portTICK_RATE_MS);
