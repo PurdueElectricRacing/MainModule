@@ -21,8 +21,9 @@
 
 #define TEMP_TOP_COUNT 20  // number of maximum values to average
 #define TEMP_SOFT_LIM	 50  // celcius
-#define TEMP_HARD_LIM	 58  // celcius
+#define TEMP_HARD_LIM	 60  // celcius
 #define TEMP_HARD_POW  20  // gain
+#define TEMP_IMPLAUS   90  // maximum temp to acknowledge
 
 typedef struct
 {

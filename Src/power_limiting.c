@@ -95,12 +95,16 @@ uint8_t power_limit_volt(volatile BMS_t * bms) {
 uint8_t power_limit_temp(volatile BMS_t * bms) {
 
   // bubble sort temperatures in ascending order
+  // however, move temp implauses to the front of the list
   uint16_t temp; //temporary storage
   for (uint16_t i = 0; i < TEMP_CELL_COUNT; i++)
   {
     for (uint16_t j = 0; j < TEMP_CELL_COUNT - i - 1; j++)
     {
-      if (bms->temperatures[j] > bms->temperatures[j + 1])
+      if ((bms->temperatures[j] > bms->temperatures[j + 1] && 
+         bms->temperatures[j] < TEMP_IMPLAUS) ||
+         (bms->temperatures[j + 1] >= TEMP_IMPLAUS &&
+         bms->temperatures[j] < TEMP_IMPLAUS))
       {
         temp = bms->temperatures[j + 1];
         bms->temperatures[j + 1] = bms->temperatures[j];
