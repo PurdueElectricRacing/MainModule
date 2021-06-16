@@ -25,6 +25,8 @@
 
 #define PACK_FULL_VOLTAGE 300
 
+#define TEMP_CELL_COUNT 160
+
 
 typedef enum 
 {
@@ -41,6 +43,7 @@ typedef struct
   BMS_Fault_t  fault;    //flag that tells what limit was broken 1 -> Power, 2 -> Temp, 3 -> Volt
   uint8_t  pack_soc;        //pack SOC
   uint8_t  high_temp;       //the current highest temperature of a cell
+  uint16_t temperatures[TEMP_CELL_COUNT];    //cell temperatures
   uint16_t pack_current;    //Most recent pack current from the BMS
   uint16_t pack_volt;       //Most recent pack voltage
   uint16_t low_cell_volt;   //the lowest cell voltage

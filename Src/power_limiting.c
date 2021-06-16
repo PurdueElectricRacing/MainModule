@@ -96,40 +96,42 @@ uint8_t power_limit_temp(volatile BMS_t * bms) {
 
   // bubble sort temperatures in ascending order
   uint16_t temp; //temporary storage
-  for (uint16_t i = 0; i < TEMP_COUNT; i++)
+  for (uint16_t i = 0; i < TEMP_CELL_COUNT; i++)
   {
-      for (uint16_t j = 0; j < TEMP_COUNT - i - 1; j++)
+    for (uint16_t j = 0; j < TEMP_CELL_COUNT - i - 1; j++)
+    {
+      if (bms->temperatures[j] > bms->temperatures[j + 1])
       {
-          if (bms->temperatures[j] > bms->temperatures[j + 1])
-          {
-              temp = bms->temperatures[j + 1];
-              bms->temperatures[j + 1] = bms->temperatures[j];
-              bms->temperatures[j] = temp;
-          }
+        temp = bms->temperatures[j + 1];
+        bms->temperatures[j + 1] = bms->temperatures[j];
+        bms->temperatures[j] = temp;
       }
+    }
   }
   
   // average the top selected
   uint16_t avg_max_temp = 0;
   for (uint16_t i = 0; i < TEMP_TOP_COUNT; i++) 
   { 
-      if (bms->temperatures[TEMP_COUNT - i - 1] >= TEMP_HARD_LIM)
-      {
-          //if past the hard lim stop the driving
-          bms->fault = OVER_TEMP_FAULT;
-          return 0;
-      }
-      avg_max_temp += bms->temperatures[TEMP_COUNT - i - 1];
+    if (bms->temperatures[TEMP_CELL_COUNT - i - 1] >= TEMP_HARD_LIM)
+    {
+      //if past the hard lim stop the driving
+      bms->fault = OVER_TEMP_FAULT;
+      return 0;
+    }
+    avg_max_temp += bms->temperatures[TEMP_CELL_COUNT - i - 1];
   }
   avg_max_temp /= TEMP_TOP_COUNT;
 
-  if (avg_max_temp >= TEMP_SOFT_LIM){
-      // decrease from 100 to TEMP_HARD_POW
-      return 100 - (avg_max_temp - TEMP_SOFT_LIM) * 
-             (100 - TEMP_HARD_POW) / (TEMP_HARD_LIM - TEMP_SOFT_LIM);
+  if (avg_max_temp >= TEMP_SOFT_LIM)
+  {
+    // decrease from 100 to TEMP_HARD_POW
+    return 100 - (avg_max_temp - TEMP_SOFT_LIM) * 
+           (100 - TEMP_HARD_POW) / (TEMP_HARD_LIM - TEMP_SOFT_LIM);
   }
-  else {
-      return 100;
+  else 
+  {
+    return 100;
   }
 }
 
