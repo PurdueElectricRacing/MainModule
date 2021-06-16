@@ -198,8 +198,10 @@ void taskCarMainRoutine()
 			// EV 2.5, check if the throttle level is greater than 25% while brakes are on
 			if (car.throttle_acc > APPS_BP_PLAUS_THRESHOLD)
 			{
-				//car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR;
-			} else {
+				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_ERROR;
+			}
+			else
+			{
 				car.pedalbox.apps_state_brake_plaus = PEDALBOX_STATUS_NO_ERROR;
 			}
 		}
@@ -212,7 +214,9 @@ void taskCarMainRoutine()
 		if (car.dcdc_state == 1)
 		{
 		    car.fan = 50;
-		} else {
+		}
+		else
+		{
 		    car.fan = 0;
 		}
 
@@ -237,7 +241,7 @@ void taskCarMainRoutine()
 			car.state = CAR_STATE_READY2DRIVE;  //car is started
 			soundBuzzer(BUZZER_DELAY); //turn buzzer on for 2 seconds
 			car.dcdc_state = 1;
-            setDCDCEnabled();
+      setDCDCEnabled();
 		}
 		else if (car.state == CAR_STATE_READY2DRIVE)
 		{
@@ -270,13 +274,14 @@ void taskCarMainRoutine()
 					torque_to_send = 0;
 				}
 
-				//torque_to_send = rampTorque(torque_to_send);
 
-				if (car.power_limit.enabled == true) {
+				if (car.power_limit.enabled == true)
+				{
 					torque_to_send = limit_torque(torque_to_send, &car.bms, &car.power_limit);
 				}
 
-				if (car.tract_cont_en == true) {
+				if (car.tract_cont_en == true)
+				{
 					torque_to_send = TractionControl(current_time_ms, &last_time_tc, torque_to_send, &int_term_tc, &prev_trq_tc);
 				}
 
@@ -311,29 +316,7 @@ void taskCarMainRoutine()
 	vTaskDelete(NULL);
 }
 
-// @funcname rampTorque()
-// Slowly ramps up torque command
-int16_t rampTorque(int16_t torque)
-{
-    // Locals
-    int16_t        ret_torque;
-    static int16_t saved_torque;
 
-    ret_torque = saved_torque;
-    if (torque > saved_torque)
-    {
-        saved_torque += 20;
-        ret_torque = saved_torque;
-    }
-    else if (torque < saved_torque)
-    {
-        ret_torque = torque;
-    }
-
-    saved_torque = ret_torque;
-
-    return ret_torque;
-}
 
 // @funcname setDCDCEnabled
 // Disables/Enables DCDC's and other high power modules which require it.
@@ -354,7 +337,9 @@ void setDCDCEnabled()
 	HAL_GPIO_WritePin(DCDC_ENABLE_GPIO_Port, DCDC_ENABLE_Pin, GPIO_PIN_RESET);
 	// Only need to delay if we are turning on the DCDCs
 	if (car.dcdc_state)
-		vTaskDelay(500 / portTICK_RATE_MS);
+	{
+    vTaskDelay(500 / portTICK_RATE_MS);
+	}
 
 	HAL_GPIO_WritePin(PUMP_GPIO_Port, PUMP_Pin, active_high);
 }
