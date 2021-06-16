@@ -93,33 +93,44 @@ uint8_t power_limit_volt(volatile BMS_t * bms) {
 }
 
 uint8_t power_limit_temp(volatile BMS_t * bms) {
-  uint8_t gain = 0;
-  float multiplier = 0;
-  //only throttle if past the threshold
-  if (bms->high_temp < TEMP_THRESH) return 100;
-  //if past the hard lim stop the driving
-  if (bms->high_temp > TEMP_HARD_LIM)
-  {
-    bms->fault = OVER_TEMP_FAULT;
-    return 0;
-  }
 
-  if (bms->high_temp < TEMP_SOFT_LIM)
+  // bubble sort temperatures in ascending order
+  uint16_t temp; //temporary storage
+  for (uint16_t i = 0; i < TEMP_COUNT; i++)
   {
-    //between threshold and soft limit
-    //have linear decrease from 100% -> 50%
-    multiplier = ((float) (bms->high_temp - TEMP_THRESH) / (TEMP_SOFT_LIM - TEMP_THRESH));
-		gain = 100 - 50 * (multiplier);
+      for (uint16_t j = 0; j < TEMP_COUNT - i - 1; j++)
+      {
+          if (bms->temperatures[j] > bms->temperatures[j + 1])
+          {
+              temp = bms->temperatures[j + 1];
+              bms->temperatures[j + 1] = bms->temperatures[j];
+              bms->temperatures[j] = temp;
+          }
+      }
   }
-  else
-  {
-    //between soft and hard lim
-    //linear decrease from 50% -> 0%
-    multiplier = ((float) (bms->high_temp - TEMP_SOFT_LIM) / (TEMP_HARD_LIM - TEMP_SOFT_LIM));
-    gain = 50 - 50 * (multiplier);
+  
+  // average the top selected
+  uint16_t avg_max_temp = 0;
+  for (uint16_t i = 0; i < TEMP_TOP_COUNT; i++) 
+  { 
+      if (bms->temperatures[TEMP_COUNT - i - 1] >= TEMP_HARD_LIM)
+      {
+          //if past the hard lim stop the driving
+          bms->fault = OVER_TEMP_FAULT;
+          return 0;
+      }
+      avg_max_temp += bms->temperatures[TEMP_COUNT - i - 1];
   }
+  avg_max_temp /= TEMP_TOP_COUNT;
 
-  return gain;
+  if (avg_max_temp >= TEMP_SOFT_LIM){
+      // decrease from 100 to TEMP_HARD_POW
+      return 100 - (avg_max_temp - TEMP_SOFT_LIM) * 
+             (100 - TEMP_HARD_POW) / (TEMP_HARD_LIM - TEMP_SOFT_LIM);
+  }
+  else {
+      return 100;
+  }
 }
 
 uint8_t power_limit_watt(volatile power_limit_t * power_limit, volatile BMS_t * bms)

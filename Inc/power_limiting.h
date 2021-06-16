@@ -19,9 +19,11 @@
 #define VOLT_SOFT_LIM	30000
 #define VOLT_HARD_LIM	28000
 
-#define TEMP_THRESH		50 //when throttling takes place
-#define TEMP_SOFT_LIM	55
-#define TEMP_HARD_LIM	58
+#define TEMP_COUNT     160 // number of values sent
+#define TEMP_TOP_COUNT 20  // number of maximum values to average
+#define TEMP_SOFT_LIM	 50  // celcius
+#define TEMP_HARD_LIM	 58  // celcius
+#define TEMP_HARD_POW  20  // gain
 
 typedef struct
 {
