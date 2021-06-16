@@ -30,15 +30,14 @@
 //#define BRAKES
 #define PERIOD_TORQUE_SEND    pdMS_TO_TICKS(25)
 #define HEARTBEAT_PULSEWIDTH  pdMS_TO_TICKS(200)
-#define HEARTBEAT_PERIOD      pdMS_TO_TICKS(500)
-#define PEDALBOX_TIMEOUT      pdMS_TO_TICKS(1000)
+#define HEARTBEAT_PERIOD      pdMS_TO_TICKS(100)
+#define PEDALBOX_TIMEOUT      pdMS_TO_TICKS(250)
 #define POLL_DELAY            pdMS_TO_TICKS(50)
 #define BUZZER_DELAY          pdMS_TO_TICKS(2000)
-#define MAX_BRAKE_LEVEL       0xFFF
-#define BOOST_MODE_TORQUE     24000 //240 Nm NOT SURE IF THIS IS RIGHT
-#define MAX_CONTINUOUS_TORQUE 1000 // 125 Nm continuous
-#define MAX_REGEN_TORQUE      -35
-#define DONT_CARE             0
+#define MAX_BRAKE_LEVEL       (0xFFF)
+#define MAX_CONTINUOUS_TORQUE (1000)
+#define MAX_REGEN_TORQUE      (0)
+#define DONT_CARE             (0)
 
 #define GREAT 1
 #define PER GREAT
@@ -91,7 +90,9 @@ typedef struct
   PedalBox_t pedalbox;
   wheel_module_t wheels;
 
-  uint8_t  errorFlags;
+  uint8_t       errorFlags;
+  uint8_t       dcdc_state;
+  uint8_t       fan;
   //calibration values
   int16_t       throttle_acc;       //sum of car's intended throttle messages from pedalbox since last cmd sent to MC
   float         brake;            //car's intended brake position
@@ -115,10 +116,9 @@ void taskHeartbeat();
 void initRTOSObjects();
 void taskMotorControllerPoll();
 void soundBuzzer(int time_ms);
-
-
-
-
+int16_t rampTorque(int16_t torque);
+void setDCDCEnabled();
+void taskSetFanSpeed();
 
 
 #endif /* CAR_H_ */

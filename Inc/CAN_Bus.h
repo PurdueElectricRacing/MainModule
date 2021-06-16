@@ -26,7 +26,7 @@ typedef enum
 
 
   ID_BMS_DCL     = 0x03C,
-  ID_MAIN        = 0x102,
+  ID_MAIN        = 0x420,
   ID_DASHBOARD   = 0x350,
   ID_DASHBOARD1  = 0x351,
   ID_POWER_LIMIT = 0x352,
@@ -42,7 +42,7 @@ typedef enum
   ID_BMS_PACKCURRENT     = 0x407,
   ID_BMS_PACKINSTVOLTAGE = 0x408,
 
-  ID_PEDALBOX = 0x104,
+  ID_PEDALBOX = 0x102,
   ID_PEDALBOXCALIBRATE = 0x503,
   ID_PEDALBOX_ERRORS   = 0x601,
 	ID_BMS = 0x6B1,

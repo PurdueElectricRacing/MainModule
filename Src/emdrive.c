@@ -3,8 +3,6 @@
 #include "main.h"
 #include <string.h>
 
-extern volatile Car_t car;
-
 // @brief: Init function
 // @author: Chris Fallon
 void emdrive_init(emdrive_t * drive)
@@ -30,6 +28,9 @@ void emdrive_sync(CAN_Bus_TypeDef * can)
   tx.DLC = 1;
   tx.Data[0] = 0;
   xQueueSendToBack(can->q_tx, &tx, 100);
+
+  getSDO(TORQUE_ACTUAL, 0, can);
+  getSDO(VELOCITY_VALUE_ACTUAL, 0, can);
 }
 
 // @brief:  Sends SDO (service data object) editing a value in
@@ -59,6 +60,28 @@ static void sendSDO(emdrive_sdo_size_t size, uint16_t od, uint8_t sub_od, uint32
     xQueueSendToBack(can->q_tx, &tx, 1000);
 }
 
+// @brief:  Gets SDO (service data object) viewing a value in
+//          the dictionary
+// @author: Dawson Moore
+void getSDO(uint16_t od, uint8_t sub_od, CAN_Bus_TypeDef* can)
+{
+    // Locals
+    CanTxMsgTypeDef tx;
+    uint8_t i;
+
+    tx.IDE = CAN_ID_STD;
+    tx.RTR = CAN_RTR_DATA;
+    tx.StdId = ID_EMDRIVE_SDO_TX | NODE_ID;     // Note: RX is from Emdrive perspective (as per datasheets)
+    tx.DLC = 8;
+    tx.Data[0] = 0x40;
+    tx.Data[1] = (uint8_t) od;
+    tx.Data[2] = (uint8_t) (od >> 8);
+    tx.Data[3] = (uint8_t) sub_od;
+    memset(&tx.Data[4], 0, 4);
+
+    xQueueSendToBack(can->q_tx, &tx, 1000);
+}
+
 // @brief: Function for sending config parameters to the emdrive
 // @author: Chris Fallon & Dawson Moore
 void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_TypeDef* can)
@@ -71,7 +94,12 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_Typ
 
     if (drive->state == PRE_OPERATION && action == EMDRIVE_STOP)
     {
-        return;
+    	// Set to pre-op mode
+		tx.StdId = ID_EMDRIVE_NMT_CONTROL;
+		tx.DLC = 2;
+		tx.Data[0] = EMDRIVE_PRE_OP;
+		tx.Data[1] = 0x00;
+		xQueueSendToBack(can->q_tx, &tx, 100);
     }
     else if (drive->state == PRE_OPERATION && action == EMDRIVE_START)
     {
@@ -84,7 +112,7 @@ void emdrive_control(emdrive_nmt_command_t action, emdrive_t* drive, CAN_Bus_Typ
          */
 
         // Set to pre-op mode
-        tx.StdId = 0x00;
+        tx.StdId = ID_EMDRIVE_NMT_CONTROL;
         tx.DLC = 2;
         tx.Data[0] = EMDRIVE_PRE_OP;
         tx.Data[1] = 0x00;
@@ -144,7 +172,7 @@ void emdrive_parse_pdo(CAN_IDs_t id, uint8_t * data, emdrive_t * drive)
   else if (id == (ID_EMDRIVE_SLAVE_PDO_2 | NODE_ID))
   {
     pdo->electrical_power = parse_from_lil_16(data + BEGIN_DATA_BYTE(4));
-    pdo->error_codes = parse_from_lil_32(data + BEGIN_DATA_BYTE(2));
+    pdo->error_codes = parse_from_lil_16(data + BEGIN_DATA_BYTE(2));
     pdo->motor_temp = data[1];
     pdo->emdrive_temp = data[0];
   }

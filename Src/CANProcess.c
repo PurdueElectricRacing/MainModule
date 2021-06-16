@@ -51,7 +51,7 @@ void task_RX_CAN(void * params) {
   CanRxMsgTypeDef rx;  //CanRxMsgTypeDef to be received on the queue
   TickType_t last_tick;
   TickType_t timeout = 0;
-  BaseType_t peek;
+
   while (1) 
   {
     last_tick = xTaskGetTickCount();
